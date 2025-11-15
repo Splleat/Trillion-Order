@@ -1,13 +1,12 @@
 package com.nhnacademy.order.order.dto;
 
-import com.nhnacademy.order.orderitem.dto.OrderItemRequest;
+import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 
 import java.util.List;
 
 public record OrderCreateRequest(
     String ordererName,
     String ordererContact,
-    String ordererNumber,
 
     String receiverName,
     String receiverContact,
@@ -15,6 +14,14 @@ public record OrderCreateRequest(
     String receiverPostCode,
 
     String nonMemberPassword,
+
     int pointUsage,
-    List<OrderItemRequest> orderItems
-) {}
+
+    List<OrderItemCreateRequest> orderItems
+) {
+    public int getTotalPrice() {
+        return orderItems.stream()
+                .mapToInt(OrderItemCreateRequest::price)
+                .sum();
+    }
+}

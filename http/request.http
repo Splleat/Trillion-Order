@@ -1,0 +1,62 @@
+@hostname = localhost:8080
+
+### 1. 주문 생성
+POST http://{{hostname}}/orders
+Content-Type: application/json
+
+{
+  "ordererName": "홍길동",
+  "ordererContact": "010-1234-5678",
+
+  "receiverName": "김철수",
+  "receiverContact": "010-9876-5432",
+  "receiverAddress": "광주광역시 동구 제봉로 92 (대성학원)",
+  "receiverPostCode": "61455",
+
+  "nonMemberPassword": "password1234",
+
+  "pointUsage": 1000,
+  "orderItems": [
+    {
+      "bookId": 1,
+      "quantity": 2,
+      "price": 20000,
+      "couponId": 1,
+      "packagingId": 1
+    },
+    {
+      "bookId": 2,
+      "quantity": 1,
+      "price": 15000,
+      "couponId": null,
+      "packagingId": 2
+    }
+  ]
+}
+
+### 2. 주문 조회
+GET http://{{hostname}}/orders/1
+
+### 3. 주문 상품 상태 변경: 주문 취소
+PATCH http://{{hostname}}/orders/1/items/1
+Content-Type: application/json
+
+{
+  "status": "CANCELED"
+}
+
+### 4. 주문 상품 상태 변경: 반품 요청
+PATCH http://{{hostname}}/orders/1/items/1
+Content-Type: application/json
+
+{
+  "status": "RETURN_REQUESTED"
+}
+
+### 5. 주문 상품 상태 변경: 반품 완료
+PATCH http://{{hostname}}/orders/1/items/1
+Content-Type: application/json
+
+{
+  "status": "RETURNED"
+}

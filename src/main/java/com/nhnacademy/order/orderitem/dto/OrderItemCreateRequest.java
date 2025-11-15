@@ -1,6 +1,6 @@
 package com.nhnacademy.order.orderitem.dto;
 
-public record OrderItemRequest(
+public record OrderItemCreateRequest(
     Long bookId,
     int quantity,
     int price,
