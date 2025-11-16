@@ -13,4 +13,16 @@ public record OrderDetails(
     int deliveryFee,
     int pointUsage,
     int totalPrice
-) {}
+) {
+    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int totalPrice) {
+        return new OrderDetails(
+            LocalDateTime.now(),
+            null, // 출고일 - 관리자가 설정
+            shippingPostCode,
+            deliveryDate,
+            deliveryFee,
+            pointUsage,
+            totalPrice
+        );
+    }
+}

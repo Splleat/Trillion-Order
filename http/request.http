@@ -1,19 +1,20 @@
-@hostname = localhost:8080
+@hostname = localhost:8000
 
-### 1. 주문 생성
+### 주문 생성 (회원)
 POST http://{{hostname}}/orders
 Content-Type: application/json
 
 {
   "ordererName": "홍길동",
   "ordererContact": "010-1234-5678",
+  "deliveryDate": "2024-07-15T10:00:00",
 
   "receiverName": "김철수",
   "receiverContact": "010-9876-5432",
   "receiverAddress": "광주광역시 동구 제봉로 92 (대성학원)",
   "receiverPostCode": "61455",
 
-  "nonMemberPassword": "password1234",
+  "nonMemberPassword": null,
 
   "pointUsage": 1000,
   "orderItems": [
@@ -34,10 +35,50 @@ Content-Type: application/json
   ]
 }
 
-### 2. 주문 조회
+### 주문 생성 (비회원)
+POST http://{{hostname}}/orders
+Content-Type: application/json
+
+{
+  "ordererName": "이영희",
+  "ordererContact": "010-2222-3333",
+  "deliveryDate": "2024-07-15T14:00:00",
+
+  "receiverName": "박민수",
+  "receiverContact": "010-4444-5555",
+  "receiverAddress": "서울특별시 강남구 테헤란로 123 (삼성동)",
+  "receiverPostCode": "06134",
+
+  "nonMemberPassword": "nonmemberpass",
+
+  "pointUsage": 0,
+  "orderItems": [
+    {
+      "bookId": 3,
+      "quantity": 1,
+      "price": 25000,
+      "couponId": null,
+      "packagingId": 1
+    }
+  ]
+}
+
+### 주문 목록 조회 (관리자)
+GET http://localhost:8000/orders/admin
+
+### 주문 조회 (회원)
 GET http://{{hostname}}/orders/1
 
-### 3. 주문 상품 상태 변경: 주문 취소
+### 주문 조회 (비회원)
+POST http://{{hostname}}/orders/non-members/
+Content-Type: application/json
+
+{
+  "orderNumber": "44776409-8c5a-45aa-86c5-83e395f14086",
+  "nonMemberPassword": "nonmemberpass"
+}
+
+### 주문 상품 상태 변경: 주문 취소
 PATCH http://{{hostname}}/orders/1/items/1
 Content-Type: application/json
 
@@ -45,7 +86,7 @@ Content-Type: application/json
   "status": "CANCELED"
 }
 
-### 4. 주문 상품 상태 변경: 반품 요청
+### 주문 상품 상태 변경: 반품 요청
 PATCH http://{{hostname}}/orders/1/items/1
 Content-Type: application/json
 
@@ -53,7 +94,7 @@ Content-Type: application/json
   "status": "RETURN_REQUESTED"
 }
 
-### 5. 주문 상품 상태 변경: 반품 완료
+### 주문 상품 상태 변경: 반품 완료
 PATCH http://{{hostname}}/orders/1/items/1
 Content-Type: application/json
 

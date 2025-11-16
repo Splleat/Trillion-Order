@@ -8,10 +8,12 @@ import java.time.LocalDateTime;
 
 public record OrderBaseResponse(
     Long orderId,
+    Long memberId,
     String orderTitle,
     LocalDateTime orderDate,
     PaymentStatus paymentStatus,
     int totalPrice,
+    int deliveryFee,
     OrdererInfo ordererInfo,
     ReceiverInfo receiverInfo
 ) {}

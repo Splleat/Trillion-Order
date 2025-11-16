@@ -1,15 +1,22 @@
 package com.nhnacademy.order.order.domain;
 
+import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
+import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
+import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
+import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -40,12 +47,13 @@ public class Orders {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public static Orders create(String orderNumber, Long memberId, String nonMemberPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
+    public static Orders create(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
+
         return new Orders(
             null,
-            orderNumber,
+            UUID.randomUUID().toString(),
             memberId,
-            nonMemberPassword,
+            encryptedPassword,
             PaymentStatus.PENDING,
             ordererInfo,
             receiverInfo,

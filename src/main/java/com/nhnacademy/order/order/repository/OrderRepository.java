@@ -12,10 +12,12 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
             o.orderId,
+            o.memberId,
             o.orderNumber,
             o.orderDetails.orderDate,
             o.paymentStatus,
             o.orderDetails.totalPrice,
+            o.orderDetails.deliveryFee,
             o.ordererInfo,
             o.receiverInfo
         )
@@ -27,10 +29,12 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
             o.orderId,
+            o.memberId,
             o.orderNumber,
             o.orderDetails.orderDate,
             o.paymentStatus,
             o.orderDetails.totalPrice,
+            o.orderDetails.deliveryFee,
             o.ordererInfo,
             o.receiverInfo
         )
@@ -38,4 +42,6 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
         WHERE o.memberId = :memberId
     """)
     List<OrderBaseResponse> findAllBaseOrderByMemberId(Long memberId);
+
+    Optional<Orders> findByOrderNumber(String orderNumber);
 }

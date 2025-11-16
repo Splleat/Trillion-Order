@@ -43,6 +43,10 @@ public class OrderItem {
         this.order = order;
     }
 
+    public void ship() {
+        this.orderItemStatus = OrderItemStatus.SHIPPED;
+    }
+
     public void requestReturn() {
         this.orderItemStatus = OrderItemStatus.RETURN_REQUESTED;
     }
