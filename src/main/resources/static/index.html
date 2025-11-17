@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>토스 결제 승인 테스트</title>
+    <script src="https://js.tosspayments.com/v1/payment-widget"></script>
+    <style>
+        body { padding: 20px; font-family: sans-serif; }
+        .box { border: 2px solid #ddd; padding: 20px; border-radius: 10px; max-width: 500px; margin: 0 auto; }
+        button { width: 100%; padding: 15px; background-color: #0064FF; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #0052cc; }
+        .warning { color: red; font-size: 14px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>🛒 결제 승인 테스트</h2>
+    <p class="warning">⚠️ 주의: Postman으로 먼저 PENDING 데이터를 생성한 뒤 실행하세요!</p>
+
+    <div id="payment-methods"></div>
+
+    <button id="payment-button">10,000원 결제하기</button>
+</div>
+
+<script>
+    // 1. 클라이언트 키 (테스트용)
+    const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+    const paymentWidget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS);
+
+    // ============================================================
+    // [중요] Postman으로 생성했던 PENDING 데이터와 '반드시' 일치해야 함
+    // ============================================================
+    const amount = 10000;     // 결제 금액
+    const saleId = "2025111510";   // 주문 ID (Toss는 이를 orderId로 사용)
+    // ============================================================
+
+    // 2. 결제 위젯 렌더링
+    paymentWidget.renderPaymentMethods(
+        "#payment-methods",
+        { value: amount },
+        { variantKey: "DEFAULT" }
+    );
+
+    // 3. '결제하기' 버튼 클릭 이벤트
+    document.getElementById("payment-button").addEventListener("click", function () {
+        paymentWidget.requestPayment({
+            orderId: saleId,            // 우리 DB의 saleId
+            orderName: "테스트 상품",
+            customerName: "김테스트",
+            customerEmail: "test@example.com",
+
+            // [핵심] 결제 성공 시, 토스가 이 URL로 리다이렉트 시킴 (작성하신 Controller 주소)
+            successUrl: "http://localhost:10416/payments/success",
+
+            failUrl: "http://localhost:10416/payments/fail",
+        });
+    });
+</script>
+
+</body>
+</html>
