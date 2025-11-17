@@ -1,0 +1,12 @@
+
+### pending 결제 생성
+POST http://localhost:8080/payments/ready
+Content-Type: application/json
+
+{
+  "saleId": 2025111514,
+  "amount": 10000
+}
+
+### 결제 승인 상태 조회.
+GET localhost:8080/payments/1

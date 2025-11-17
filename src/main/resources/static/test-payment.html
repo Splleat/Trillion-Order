@@ -32,7 +32,7 @@
     // [중요] Postman으로 생성했던 PENDING 데이터와 '반드시' 일치해야 함
     // ============================================================
     const amount = 10000;     // 결제 금액
-    const saleId = "2025111510";   // 주문 ID (Toss는 이를 orderId로 사용)
+    const saleId = "2025111514";   // 주문 ID (Toss는 이를 orderId로 사용)
     // ============================================================
 
     // 2. 결제 위젯 렌더링
@@ -51,9 +51,9 @@
             customerEmail: "test@example.com",
 
             // [핵심] 결제 성공 시, 토스가 이 URL로 리다이렉트 시킴 (작성하신 Controller 주소)
-            successUrl: "http://localhost:10416/payments/success",
+            successUrl: "http://localhost:8080/payments/success",
 
-            failUrl: "http://localhost:10416/payments/fail",
+            failUrl: "http://localhost:8080/payments/fail",
         });
     });
 </script>
