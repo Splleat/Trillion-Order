@@ -27,11 +27,16 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
+    // orderTitle 필요 없음 (주문 번호(orderNumber)로 대체)
+
     private String orderNumber;
 
     private Long memberId;
 
-    private String nonMemberPassword;
+    private String nonMemberPassword; // 비회원 주문 조회를 위해 필요
+
+    // isMember 필드는 불필요함 (memberId null 여부로 판단 가능)
+    // isMember 필드가 존재한다면 memberId, isMember 두 필드 관리 필요
 
     private PaymentStatus paymentStatus;
 
@@ -48,10 +53,11 @@ public class Orders {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     public static Orders create(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
+        String prefix = "ORD-";
 
         return new Orders(
             null,
-            UUID.randomUUID().toString(),
+            prefix + UUID.randomUUID(),
             memberId,
             encryptedPassword,
             PaymentStatus.PENDING,

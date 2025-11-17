@@ -2,6 +2,8 @@ package com.nhnacademy.order.order.repository;
 
 import com.nhnacademy.order.order.domain.Orders;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -41,7 +43,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
         FROM Orders o
         WHERE o.memberId = :memberId
     """)
-    List<OrderBaseResponse> findAllBaseOrderByMemberId(Long memberId);
+    Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, Long memberId);
 
     Optional<Orders> findByOrderNumber(String orderNumber);
 }

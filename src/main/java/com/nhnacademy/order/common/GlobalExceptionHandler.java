@@ -1,8 +1,66 @@
 package com.nhnacademy.order.common;
 
+import com.nhnacademy.order.common.dto.ErrorResponse;
+import com.nhnacademy.order.order.exception.OrderAccessDeniedException;
+import com.nhnacademy.order.order.exception.OrderNotFoundException;
+import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
+import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler({
+        OrderNotFoundException.class
+    })
+    public ResponseEntity<ErrorResponse> handleNotFoundException(OrderNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "NOT_FOUND");
 
+        return ResponseEntity.status(404).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+        MethodArgumentNotValidException.class
+    })
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        ErrorResponse errorResponse = ErrorResponse.create(errorMessage, "VALIDATION_FAILED");
+
+        return ResponseEntity.status(400).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+        OrderAccessDeniedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(OrderAccessDeniedException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "FORBIDDEN");
+
+        return ResponseEntity.status(403).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+        OrderPasswordMismatchException.class
+    })
+    public ResponseEntity<ErrorResponse> handlePasswordMismatchException(OrderPasswordMismatchException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "PASSWORD_MISMATCH");
+        return ResponseEntity.status(401).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+        OrderStatusTransitionException.class
+    })
+    public ResponseEntity<ErrorResponse> handleStatusTransitionException(OrderStatusTransitionException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "INVALID_STATUS_TRANSITION");
+        return ResponseEntity.status(409).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+        Exception.class
+    })
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        ErrorResponse errorResponse = ErrorResponse.create("Internal Server Error", "INTERNAL_SERVER_ERROR");
+        return ResponseEntity.status(500).body(errorResponse);
+    }
 }

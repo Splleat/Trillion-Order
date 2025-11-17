@@ -20,6 +20,7 @@ public class OrderItem {
     private Orders order;
 
     private Long bookId;
+
     private int quantity;
     private int price;
     private OrderItemStatus orderItemStatus;

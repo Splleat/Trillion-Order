@@ -133,8 +133,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> findAllOrderByMemberId(Long memberId) {
-        List<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberId(memberId);
+    public Page<OrderResponse> findAllOrderByMemberId(Pageable pageable, Long memberId) {
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberId(pageable, memberId);
 
         List<Long> orderIds = orderBaseResponses.stream()
                 .map(OrderBaseResponse::orderId)
@@ -143,9 +143,12 @@ public class OrderServiceImpl implements OrderService {
         Map<Long, List<OrderItemResponse>> orderItemResponses = orderItemRepository.findAllByOrderIds(orderIds).stream()
                 .collect(Collectors.groupingBy(OrderItemResponse::orderId));
 
-        return orderBaseResponses.stream()
-                .map(orderBaseResponse -> OrderResponse.create(orderBaseResponse, orderItemResponses.getOrDefault(orderBaseResponse.orderId(), Collections.emptyList())))
-                .toList();
+        return orderBaseResponses.map(orderBaseResponse -> {
+            List<OrderItemResponse> items = orderItemResponses.getOrDefault(orderBaseResponse.orderId(), Collections.emptyList());
+
+            return OrderResponse.create(orderBaseResponse, items);
+        });
+
     }
 
     @Override

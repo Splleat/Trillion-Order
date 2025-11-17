@@ -13,7 +13,7 @@ public interface OrderService {
     Long createOrder(Long memberId, OrderCreateRequest request);
     OrderResponse findOrderByCustomer(Long memberId, Long orderId);
     OrderResponse findOrderByOrderId(Long orderId);
-    List<OrderResponse> findAllOrderByMemberId(Long memberId);
+    Page<OrderResponse> findAllOrderByMemberId(Pageable pageable, Long memberId);
     void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request);
     OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword);
 }

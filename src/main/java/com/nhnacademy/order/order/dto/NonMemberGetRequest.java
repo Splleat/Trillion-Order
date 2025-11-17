@@ -1,6 +1,10 @@
 package com.nhnacademy.order.order.dto;
 
-public record GuestOrderGetRequest(
+import jakarta.validation.constraints.NotBlank;
+
+public record NonMemberGetRequest(
     String orderNumber,
+
+    @NotBlank
     String nonMemberPassword
 ) {}
