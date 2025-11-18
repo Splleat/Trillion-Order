@@ -1,11 +1,14 @@
 package com.nhnacademy.payment.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nhnacademy.order.order.domain.Orders;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.query.Order;
 
 import java.time.LocalDateTime;
 
@@ -36,17 +39,18 @@ public class Payment {
     @Column(name = "payment_receipt")
     private String paymentReceipt;
 
-    @Column(name = "sale_id")
-    @NotNull
-    private Long saleId ;// 주문 id
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Orders orders; //주문 id
 
     @Column(name = "amount", nullable = false) //해당 트랜잭션에 필수 금액이라고?
     @NotNull
-    private Long amount;
+    private Integer amount;
 
     @Builder
-    public Payment(Long saleId, Long amount, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
-        this.saleId = saleId;
+    public Payment(Orders orders, Integer amount, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
+        this.orders = orders;
         this.amount = amount;
         this.paymentStatus = paymentStatus;
         this.paymentRequestAt = paymentRequestAt;
@@ -61,7 +65,7 @@ public class Payment {
         this.paymentReceipt = paymentReceipt;
     }
 
-    //결제 실패 메서드
+    //결제 취소 메서드
     public void cancelPayment() {
         this.paymentStatus = PaymentStatus.CANCEL;
     }

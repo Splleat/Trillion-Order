@@ -1,7 +1,7 @@
 package com.nhnacademy.payment.dto.reqeust;
 
 public record PaymentRequestDto(
-        Long saleId,
-        Long amount
+        Long orderId,
+        Integer amount
 ) {
 }
