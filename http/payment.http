@@ -4,8 +4,8 @@ POST http://localhost:8080/payments/ready
 Content-Type: application/json
 
 {
-  "saleId": 2025111514,
-  "amount": 10000
+  "orderId": 1,
+  "amount": 35000
 }
 
 ### 결제 승인 상태 조회.

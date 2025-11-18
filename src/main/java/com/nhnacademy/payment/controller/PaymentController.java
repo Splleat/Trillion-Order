@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/payments")
@@ -21,8 +23,8 @@ public class PaymentController {
 
     @GetMapping("/success")
     public ResponseEntity<?> createPaymentSuccess(@RequestParam String paymentKey,
-                                                  @RequestParam("orderId") Long saleId,
-                                                  @RequestParam Long amount) {
+                                                  @RequestParam("orderId") String saleId,
+                                                  @RequestParam Integer amount) {
         try{
             Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId, amount);
             return ResponseEntity.ok().body("결제 성공 : "+ confirmPayment.getPaymentId());
@@ -34,5 +36,15 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<?> getPaymentById(@PathVariable("paymentId") Long paymentId) {
         return ResponseEntity.ok().body(paymentService.getPaymentById(paymentId));
+    }
+
+    @PostMapping("/{paymentId}/cancel")
+    public ResponseEntity<?> cancelPayment(@PathVariable("paymentId") Long paymentId,
+                                           @RequestBody Map<String, String> requestBody) {
+        String cancelReason = requestBody.getOrDefault("cancelReason","단순 변심");
+
+        paymentService.cancelPayment(paymentId, cancelReason);
+
+        return ResponseEntity.ok("결제 취소 완료");
     }
  }

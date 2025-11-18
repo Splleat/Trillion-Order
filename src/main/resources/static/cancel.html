@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 취소 테스트</title>
+  <style>
+    body { padding: 20px; font-family: sans-serif; }
+    .box { border: 2px solid #ff6b6b; padding: 20px; border-radius: 10px; max-width: 400px; }
+    input { width: 95%; padding: 10px; margin-bottom: 10px; }
+    button { width: 100%; padding: 10px; background-color: #ff4d4d; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #cc0000; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>💸 결제 취소</h2>
+
+  <label>취소할 Payment ID (DB의 PK)</label>
+  <input type="number" id="paymentId" placeholder="예: 1" />
+
+  <label>취소 사유</label>
+  <input type="text" id="cancelReason" value="단순 변심" />
+
+  <button onclick="requestCancel()">결제 취소하기</button>
+</div>
+
+<script>
+  function requestCancel() {
+    const id = document.getElementById("paymentId").value;
+    const reason = document.getElementById("cancelReason").value;
+
+    if (!id) {
+      alert("Payment ID를 입력하세요!");
+      return;
+    }
+
+    fetch(`http://localhost:8080/payments/${id}/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ cancelReason: reason })
+    })
+            .then(async response => {
+              const text = await response.text();
+              if (response.ok) {
+                alert("성공: " + text);
+              } else {
+                alert("실패: " + text);
+              }
+            })
+            .catch(error => {
+              alert("에러 발생: " + error);
+            });
+  }
+</script>
+
+</body>
+</html>
