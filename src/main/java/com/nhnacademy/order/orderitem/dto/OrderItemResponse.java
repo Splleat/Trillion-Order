@@ -7,5 +7,6 @@ public record OrderItemResponse(
     Long bookId,
     int quantity,
     int price,
+    int packagingPrice,
     OrderItemStatus orderItemStatus
 ) {}

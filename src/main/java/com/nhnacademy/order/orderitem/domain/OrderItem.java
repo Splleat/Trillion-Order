@@ -23,20 +23,20 @@ public class OrderItem {
 
     private int quantity;
     private int price;
+    private int packagingPrice;
     private OrderItemStatus orderItemStatus;
     private Long couponId;
-    private Long packagingId;
 
-    public static OrderItem create(Orders order, Long bookId, int quantity, int price, Long couponId, Long packagingId) {
+    public static OrderItem create(Orders order, Long bookId, int quantity, int price, int packagingPrice, Long couponId) {
         return new OrderItem(
             null,
             order,
             bookId,
             quantity,
             price,
+            packagingPrice,
             OrderItemStatus.PREPARING,
-            couponId,
-            packagingId
+            couponId
         );
     }
 

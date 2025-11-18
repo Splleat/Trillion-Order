@@ -37,10 +37,13 @@ public enum OrderItemStatusUpdateStrategy {
             }
 
             // TODO: 포인트 환불 로직
-            // 멤버 API를 호출해 결제 금액 만큼의 포인트 추가
+            // 멤버 API를 호출해 결제 금액 만큼의 포인트 추가 (적립 포인트만큼 제외)
             // 도서 API를 호출해 재고 복구
 
             orderItem.completeReturn();
+
+            // 주문 전체 상태 업데이트
+            order.reflectItemStatusChange();
         }
     },
     CANCELED(OrderItemStatus.CANCELED) {
@@ -50,14 +53,18 @@ public enum OrderItemStatusUpdateStrategy {
 
             // 상품 준비 중 상태가 아니면 취소 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
-                throw new OrderStatusTransitionException("주문 취소가 불가능한 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품: " + orderItemId);
             }
 
             // TODO: 주문 취소 로직
             // 결제 API를 호출해 환불
+                // 적립된 포인트만큼 제외하고 환불?
             // 도서 API를 호출해 재고 복구
 
             orderItem.cancel();
+
+            // 주문 전체 상태 업데이트
+            order.reflectItemStatusChange();
         }
     };
 

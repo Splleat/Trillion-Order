@@ -1,15 +1,18 @@
 package com.nhnacademy.order.order.controller;
 
+import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.dto.NonMemberGetRequest;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.service.OrderService;
+import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -22,7 +25,12 @@ public class OrderController {
 
     // 주문 전체 조회 (관리자)
     @GetMapping("/orders/admin")
-    public ResponseEntity<Page<OrderResponse>> getAllOrderByAdmin(Pageable pageable) {
+    public ResponseEntity<Page<OrderResponse>> getAllOrderByAdmin(Pageable pageable,
+                                                                  UserInfo userInfo) {
+        if (userInfo == null || userInfo.role() == null || !userInfo.role().equals("ADMIN")) {
+            throw new AccessDeniedException("관리자만 이용 가능한 기능");
+        }
+
         Page<OrderResponse> response = orderService.findAllOrders(pageable);
 
         return ResponseEntity.ok(response);
@@ -30,20 +38,25 @@ public class OrderController {
 
     // 주문 전체 조회 (회원)
     @GetMapping("/orders")
-    public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable) {
-        Long memberId = 1L; // TODO: JWT로 memberId 받기
+    public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable,
+                                                                     UserInfo userInfo) {
+        if (userInfo == null) {
+            throw new AccessDeniedException("회원만 이용 가능한 기능");
+        }
 
-        Page<OrderResponse> response = orderService.findAllOrderByMemberId(pageable, memberId);
+        Page<OrderResponse> response = orderService.findAllOrderByMemberId(pageable, userInfo.userId());
 
         return ResponseEntity.ok(response);
     }
 
     // 주문 생성
     @PostMapping("/orders")
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody @Valid OrderCreateRequest request) {
-        long memberId = 1L; // TODO: JWT로 memberId 받기, 비회원일 경우 null 처리
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody @Valid OrderCreateRequest request,
+                                                     UserInfo userInfo) {
+        // 비회원인 경우 userId가 null
+        Long userId = (userInfo == null) ? null : userInfo.userId();
 
-        Long createdOrderId = orderService.createOrder(memberId, request);
+        Long createdOrderId = orderService.createOrder(userId, request);
 
         URI locationUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -56,30 +69,46 @@ public class OrderController {
 
     // 주문 단건 조회 (회원)
     @GetMapping("/orders/{orderId}")
-    public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable Long orderId) {
-        long memberId = 1L; // TODO: JWT로 memberId 받기
+    public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable Long orderId,
+                                                            UserInfo userInfo) {
+        if (userInfo == null) {
+            throw new AccessDeniedException("회원만 이용 가능한 기능");
+        }
 
-        OrderResponse response = orderService.findOrderByCustomer(memberId, orderId);
+        OrderResponse response = orderService.findOrderByCustomer(userInfo.userId(), orderId);
 
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/orders/{orderId}/items/{orderItemId}")
-    public ResponseEntity<OrderResponse> patchOrderItemStatus(@PathVariable Long orderId,
-                                                              @PathVariable Long orderItemId,
-                                                              @RequestBody OrderItemStatusPatchRequest request) {
-        Long memberId = 1L; // TODO: JWT로 memberId 받기
-
-        orderService.patchOrderItemStatus(memberId, orderId, orderItemId, request);
-
-        return ResponseEntity.ok().build();
-    }
-
-    // GET 메서드에는 본문이 없는 것이 일반적 -> POST 메서드로 변경
+    // 주문 단건 조회 (비회원)
     @PostMapping("/orders/non-members/")
     public ResponseEntity<OrderResponse> getOrderForNonMember(@RequestBody @Valid NonMemberGetRequest request) {
         OrderResponse response = orderService.findOrderByOrderNumber(request.orderNumber(), request.nonMemberPassword());
 
         return ResponseEntity.ok(response);
+    }
+
+    // 주문 상태 변경 (회원, 관리자)
+    @PatchMapping("/orders/{orderId}/items/{orderItemId}")
+    public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable Long orderId, @PathVariable Long orderItemId,
+                                                                        @RequestBody OrderItemStatusPatchRequest request,
+                                                                        UserInfo userInfo) {
+        if (userInfo == null) {
+            throw new AccessDeniedException("회원만 이용 가능한 기능");
+        }
+
+        orderService.patchOrderItemStatus(userInfo.userId(), orderId, orderItemId, request);
+
+        return ResponseEntity.ok().build();
+    }
+
+    // 주문 상태 변경 (비회원)
+    @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
+    public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
+                                                                          @RequestBody NonMemberOrderItemStatusPatchRequest request) {
+
+        orderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
+
+        return ResponseEntity.ok().build();
     }
 }

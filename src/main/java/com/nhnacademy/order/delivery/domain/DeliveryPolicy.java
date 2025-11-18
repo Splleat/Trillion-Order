@@ -7,14 +7,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name = "delivery_policy")
 public class DeliveryPolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "deliverypolicy_id")
+    private Long deliveryPolicyId;
 
-    private int fee;
+    @Column(name = "deliverypolicy_fee")
+    private int deliveryPolicyFee;
 
-    @Column(name = "free_delivery_threshold")
-    private int freeDeliveryThreshold;
+    @Column(name = "deliverypolicy_threshold")
+    private int deliveryPolicyThreshold;
 }

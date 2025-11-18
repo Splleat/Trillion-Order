@@ -14,6 +14,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookId,
             oi.quantity,
             oi.price,
+            oi.packagingPrice,
             oi.orderItemStatus
         )
         FROM OrderItem oi
@@ -27,6 +28,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookId,
             oi.quantity,
             oi.price,
+            oi.packagingPrice,
             oi.orderItemStatus
         )
         FROM OrderItem oi
