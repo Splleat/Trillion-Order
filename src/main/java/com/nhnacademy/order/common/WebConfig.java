@@ -1,4 +1,4 @@
-package com.nhnacademy.order;
+package com.nhnacademy.order.common;
 
 import com.nhnacademy.order.common.resolver.UserInfoArgumentResolver;
 import lombok.RequiredArgsConstructor;

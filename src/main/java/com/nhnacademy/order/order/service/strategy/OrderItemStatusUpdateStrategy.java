@@ -37,7 +37,8 @@ public enum OrderItemStatusUpdateStrategy {
             }
 
             // TODO: 포인트 환불 로직
-            // 멤버 API를 호출해 결제 금액 만큼의 포인트 추가 (적립 포인트만큼 제외)
+            // 멤버 API를 호출해 결제 금액 만큼의 포인트 추가 (적립 포인트만큼 제외? 어떻게?)
+            // 쿠폰 API를 호출해 쿠폰 복구?
             // 도서 API를 호출해 재고 복구
 
             orderItem.completeReturn();
@@ -59,6 +60,7 @@ public enum OrderItemStatusUpdateStrategy {
             // TODO: 주문 취소 로직
             // 결제 API를 호출해 환불
                 // 적립된 포인트만큼 제외하고 환불?
+            // 쿠폰 API를 호출해 쿠폰 복구?
             // 도서 API를 호출해 재고 복구
 
             orderItem.cancel();
