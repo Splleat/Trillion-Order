@@ -13,9 +13,15 @@
         .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
         .input-group label { width: 120px; font-weight: bold; align-self: center; }
         input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; }
-        button { width: 100%; padding: 15px; background-color: #0064FF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; }
-        button:hover { background-color: #0052cc; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* 버튼 스타일 */
+        .btn-primary { width: 100%; padding: 15px; background-color: #0064FF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .btn-pay { background-color: #333; margin-top: 20px; } /* 최종 결제 버튼 색상 구분 */
+        .btn-pay:hover { background-color: #555; }
+
         .log-box { background: #333; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: scroll; margin-top: 20px; }
         .hidden { display: none; }
     </style>
@@ -70,15 +76,17 @@
             <label>포장지 ID</label>
             <input type="number" id="packagingId" value="1" placeholder="없으면 비워두세요">
         </div>
+
+        <button id="btn-process" class="btn-primary" onclick="startOrderProcess()">주문 생성 및 위젯 불러오기</button>
     </div>
 
     <div id="payment-section" class="section hidden">
-        <h3>2. 결제 진행</h3>
+        <h3>2. 결제 수단 선택</h3>
         <p>주문 번호: <strong id="disp-ord-no">-</strong> / 총 금액: <strong id="disp-amount">-</strong></p>
-        <div id="payment-method"></div>
-    </div>
 
-    <button id="btn-process" onclick="startOrderProcess()">주문 생성하고 결제하기</button>
+        <div id="payment-method"></div>
+        <div id="agreement"></div> <button id="btn-final-pay" class="btn-primary btn-pay" onclick="requestTossPayment()">결제하기</button>
+    </div>
 
     <div class="log-box" id="logs">
         <div>[System] 준비 완료.</div>
@@ -89,7 +97,7 @@
     // ================= CONFIG =================
     const BASE_URL = "http://localhost:10414";
     const API_PREFIX = "";
-    const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
+    const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm"; // 본인의 클라이언트 키 확인 필요!
     // ==========================================
 
     const paymentWidget = PaymentWidget(TOSS_CLIENT_KEY, PaymentWidget.ANONYMOUS);
@@ -108,6 +116,7 @@
         logBox.scrollTop = logBox.scrollHeight;
     }
 
+    // 1. 주문 생성 ~ 위젯 렌더링까지의 프로세스
     async function startOrderProcess() {
         const btn = document.getElementById('btn-process');
         btn.disabled = true;
@@ -124,8 +133,8 @@
             // 3. 결제 대기 생성
             await createPendingPaymentAPI(orderId);
 
-            // 4. 결제창 호출
-            renderAndPay();
+            // 4. 위젯 렌더링 (여기서 멈춤, 사용자가 선택하도록)
+            renderWidget();
 
         } catch (e) {
             log(`❌ 프로세스 중단: ${e.message}`);
@@ -174,31 +183,21 @@
             throw new Error(`주문 생성 실패 (${response.status}): ${errorText}`);
         }
 
-        // ============================================================
-        // [핵심 수정] JSON Body 대신 Location Header에서 ID 추출
-        // ============================================================
         const locationHeader = response.headers.get('Location');
+        if (!locationHeader) throw new Error("Location 헤더 누락");
 
-        if (!locationHeader) {
-            throw new Error("Location 헤더가 없습니다! (서버에서 201 응답 시 Location을 보내는지 확인 필요)");
-        }
-
-        // Location 예시: http://localhost:10414/orders/1
-        // '/'로 자른 뒤 마지막 부분이 ID
         const urlParts = locationHeader.split('/');
         const extractedId = urlParts[urlParts.length - 1];
         const orderId = parseInt(extractedId);
 
-        if (isNaN(orderId)) {
-            throw new Error(`ID 파싱 실패. Location Header: ${locationHeader}`);
-        }
+        if (isNaN(orderId)) throw new Error(`ID 파싱 실패: ${locationHeader}`);
 
-        log(`✅ 주문 생성 성공! (Location: ${locationHeader}) -> ID 추출: ${orderId}`);
+        log(`✅ 주문 생성 성공! ID: ${orderId}`);
         return orderId;
     }
 
     async function fetchOrderDetailsAPI(orderId) {
-        log(`2. 주문 정보 조회 중 (ID: ${orderId})...`);
+        log(`2. 주문 정보 조회 중...`);
 
         const response = await fetch(`${BASE_URL}${API_PREFIX}/orders/${orderId}`, {
             method: "GET",
@@ -221,10 +220,7 @@
             totalPrice = data.content[0].totalPrice;
         }
 
-        if (!orderNumber || totalPrice === undefined) {
-            log(`[응답 데이터 디버그] ${JSON.stringify(data)}`);
-            throw new Error("응답에서 주문번호 또는 금액을 찾을 수 없습니다.");
-        }
+        if (!orderNumber || totalPrice === undefined) throw new Error("데이터 파싱 실패");
 
         currentOrderInfo.number = orderNumber;
         currentOrderInfo.amount = totalPrice;
@@ -247,27 +243,44 @@
         log("✅ 결제 대기 상태 생성 완료.");
     }
 
-    function renderAndPay() {
-        log("4. 토스 결제창 호출...");
+    // 4. 위젯만 렌더링 (자동 결제 X)
+    function renderWidget() {
+        log("4. 결제 수단 위젯을 불러옵니다. 원하는 수단을 선택하세요.");
 
         const section = document.getElementById('payment-section');
         section.classList.remove('hidden');
 
-        paymentWidget.renderPaymentMethods("#payment-method", { value: currentOrderInfo.amount });
+        // 결제 UI 렌더링
+        paymentWidget.renderPaymentMethods(
+            "#payment-method",
+            { value: currentOrderInfo.amount }
+        );
 
-        setTimeout(() => {
-            paymentWidget.requestPayment({
-                orderId: currentOrderInfo.number,
-                orderName: "테스트 도서 주문",
-                successUrl: `${BASE_URL}${API_PREFIX}/payments/success`,
-                failUrl: `${BASE_URL}${API_PREFIX}/payments/fail`,
-                customerEmail: "customer@example.com",
-                customerName: document.getElementById('ordererName').value,
-            }).catch(error => {
-                log(`❌ 결제창 호출 오류: ${error.message}`);
-                document.getElementById('btn-process').disabled = false;
-            });
-        }, 1000);
+        // 이용약관 렌더링 (필수)
+        paymentWidget.renderAgreement("#agreement");
+
+        // 이 시점에서는 사용자가 UI를 조작할 수 있음.
+        // '결제하기' 버튼을 누르면 requestTossPayment()가 실행됨.
+    }
+
+    // 5. 사용자가 '결제하기' 버튼을 눌렀을 때 호출
+    function requestTossPayment() {
+        log("⏳ 토스 결제창으로 이동합니다...");
+
+        paymentWidget.requestPayment({
+            orderId: currentOrderInfo.number,
+            orderName: "테스트 도서 주문",
+            successUrl: `${BASE_URL}${API_PREFIX}/payments/success`,
+            failUrl: `${BASE_URL}${API_PREFIX}/payments/fail`,
+            customerEmail: "customer@example.com",
+            customerName: document.getElementById('ordererName').value,
+        }).catch(error => {
+            if (error.code === 'USER_CANCEL') {
+                log("⚠️ 사용자가 결제를 취소했습니다.");
+            } else {
+                log(`❌ 결제 요청 에러: ${error.message}`);
+            }
+        });
     }
 </script>
 
