@@ -1,6 +1,7 @@
 package com.nhnacademy.payment.controller;
 
 import com.nhnacademy.payment.domain.Payment;
+import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -15,18 +16,17 @@ import java.util.Map;
 public class PaymentController {
     private final PaymentService paymentService;
 
-    @PostMapping("/ready")
-    public ResponseEntity<?> createPayment(@RequestBody PaymentRequestDto request) {
-        Payment savedPayment = paymentService.createPendingPayment(request);
+    @PostMapping("/{orderId}")
+    public ResponseEntity<?> createPayment(@PathVariable Long orderId) {
+        Payment savedPayment = paymentService.createPendingPayment(orderId);
         return ResponseEntity.ok().body(savedPayment);
     }
 
     @GetMapping("/success")
     public ResponseEntity<?> createPaymentSuccess(@RequestParam String paymentKey,
-                                                  @RequestParam("orderId") String saleId,
-                                                  @RequestParam Integer amount) {
+                                                  @RequestParam("orderId") String saleId) {
         try{
-            Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId, amount);
+            Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId);
             return ResponseEntity.ok().body("결제 성공 : "+ confirmPayment.getPaymentId());
         }catch(Exception ex){
             return ResponseEntity.badRequest().body("결제 실패 " + ex.getMessage());
@@ -47,4 +47,5 @@ public class PaymentController {
 
         return ResponseEntity.ok("결제 취소 완료");
     }
+
  }
