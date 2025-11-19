@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Orders {
+public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
@@ -47,13 +47,17 @@ public class Orders {
     @Embedded
     private OrderDetails orderDetails;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public static Orders create(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
+    public static Order create(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
+        // UUID 대신 주문 일시(yyyyMMdd) + AUTO_INCREMENT된 식별자(orderId)?
+        // createOrder의 repository.save()로 반환된 객체로 AUTO_INCREMENT된 식별자 획득 가능할듯?
+        // 이후 주문 번호 업데이트 -> 변경 감지로 자동으로 DB에 반영
+
         String prefix = "ORD-";
 
-        return new Orders(
+        return new Order(
             null,
             prefix + UUID.randomUUID(),
             memberId,
@@ -72,12 +76,12 @@ public class Orders {
     }
 
     public void reflectItemStatusChange() {
-        int newtotalPrice = this.orderItems.stream()
+        int newTotalPrice = this.orderItems.stream()
                 .filter(item -> item.getOrderItemStatus() != OrderItemStatus.CANCELED && item.getOrderItemStatus() != OrderItemStatus.RETURNED)
                 .mapToInt(item -> item.getPrice() + item.getPackagingPrice())
                 .sum();
 
-        OrderDetails updatedOrderDetails = this.orderDetails.withNewTotalPrice(newtotalPrice);
+        OrderDetails updatedOrderDetails = this.orderDetails.withNewTotalPrice(newTotalPrice);
 
         boolean allItemsCanceledOrReturned = this.orderItems.stream()
                 .allMatch(item -> item.getOrderItemStatus() == OrderItemStatus.CANCELED || item.getOrderItemStatus() == OrderItemStatus.RETURNED);

@@ -29,8 +29,8 @@ public class LoggingAspect {
             long executionTime = endTime - startTime;
 
             // JPA의 변경 감지로 인한 UPDATE 쿼리가 해당 로그가 출력된 후 DB로 전송됨
-            // 1. @TransactionalEventListener로 해결? -> AI가 권장
-            // 2. Service에서 EntityManager를 주입받아 수동 flush() -> 간단함
+            // 1. @TransactionalEventListener로 해결? -> AI가 권장 (트랜잭션 최종 커밋 이후 -> 트랜잭션 성공 보장, 트랜잭션 시점과 로깅 시점을 정확히 일치)
+            // 2. Service에서 EntityManager를 주입받아 수동 flush() -> 간단함 (flush() 이후 트랜잭션 롤백 가능성 -> 트랜잭션 성공 보장 X)
             log.info("<--- [끝] {} (실행 시간: {} ms)", methodName, executionTime);
         }
     }

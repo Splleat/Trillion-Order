@@ -1,7 +1,7 @@
 package com.nhnacademy.order.order.dto;
 
 import com.nhnacademy.order.order.domain.OrdererInfo;
-import com.nhnacademy.order.order.domain.Orders;
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.PaymentStatus;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
@@ -36,7 +36,7 @@ public record OrderResponse(
         );
     }
 
-    public static OrderResponse create(Orders order, List<OrderItemResponse> orderItems) {
+    public static OrderResponse create(Order order, List<OrderItemResponse> orderItems) {
         return new OrderResponse(
             order.getOrderId(),
             order.getMemberId(),

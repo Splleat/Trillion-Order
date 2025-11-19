@@ -1,6 +1,6 @@
 package com.nhnacademy.order.orderitem.domain;
 
-import com.nhnacademy.order.order.domain.Orders;
+import com.nhnacademy.order.order.domain.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,21 +13,29 @@ import lombok.NoArgsConstructor;
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "orderitem_id")
     private Long orderItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders order;
+    private Order order;
 
+    @Column(name = "book_id")
     private Long bookId;
 
     private int quantity;
     private int price;
+
+    @Column(name = "packaging_price")
     private int packagingPrice;
+
+    @Column(name = "orderitem_status")
     private OrderItemStatus orderItemStatus;
+
+    @Column(name = "coupon_id")
     private Long couponId;
 
-    public static OrderItem create(Orders order, Long bookId, int quantity, int price, int packagingPrice, Long couponId) {
+    public static OrderItem create(Order order, Long bookId, int quantity, int price, int packagingPrice, Long couponId) {
         return new OrderItem(
             null,
             order,
@@ -40,7 +48,7 @@ public class OrderItem {
         );
     }
 
-    public void setOrder(Orders order) {
+    public void setOrder(Order order) {
         this.order = order;
     }
 

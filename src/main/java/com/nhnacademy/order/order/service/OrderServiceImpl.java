@@ -41,7 +41,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderResponse> findAllOrders(Pageable pageable) {
-        Page<Orders> orders = orderRepository.findAll(pageable);
+        Page<Order> orders = orderRepository.findAll(pageable);
 
         return orders.map(order -> {
             List<OrderItemResponse> orderItems = orderItemRepository.findOrderItemByOrder_OrderId(order.getOrderId());
@@ -60,6 +60,8 @@ public class OrderServiceImpl implements OrderService {
         // TODO 2: 쿠폰 API -> 쿠폰 사용 처리
         // TODO 3: 포인트 API -> 포인트 사용 처리
         // TODO 4: 최종 결제 정보 생성
+
+        // TODO: 도서 -> 쿠폰 -> 포인트 이후 로직
 
         // 1. OrderItemCreateRequest -> OrderItem (연관 관계 매핑은 아직 안 함)
         List<OrderItem> orderItems = request.orderItems().stream()
@@ -87,6 +89,7 @@ public class OrderServiceImpl implements OrderService {
         int deliveryFee = (finalTotalPrice >= deliveryPolicy.getDeliveryPolicyThreshold())
                 ? 0
                 : deliveryPolicy.getDeliveryPolicyFee();
+
         // 5. Order 객체 생성
         OrdererInfo ordererInfo = new OrdererInfo(
                 request.ordererName(),
@@ -107,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
                 finalTotalPrice
         );
 
-        Orders order = Orders.create(
+        Order order = Order.create(
                 memberId,
                 Optional.ofNullable(request.nonMemberPassword())
                         .map(passwordEncoder::encode)
@@ -120,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
         // 6. OrderItem 리스트를 Order에 추가
         orderItems.forEach(order::addOrderItem);
 
-        Orders savedOrder = orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
         return savedOrder.getOrderId();
     }
@@ -173,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
-        Orders order = orderRepository.findById(orderId)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
 
         // TODO: 관리자 권한도 고려해야 함
@@ -192,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request) {
 
-        Orders order = orderRepository.findById(orderId)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
 
         if (!passwordEncoder.matches(request.nonMemberPassword(), order.getNonMemberPassword())) {
@@ -206,7 +209,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword) {
-        Optional<Orders> orderOptional = orderRepository.findByOrderNumber(orderNumber);
+        Optional<Order> orderOptional = orderRepository.findByOrderNumber(orderNumber);
 
         return orderOptional.map(order -> {
             if (!passwordEncoder.matches(nonMemberPassword, order.getNonMemberPassword())) {

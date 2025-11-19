@@ -1,6 +1,6 @@
 package com.nhnacademy.order.order.service.strategy;
 
-import com.nhnacademy.order.order.domain.Orders;
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 public enum OrderItemStatusUpdateStrategy {
     SHIPPED(OrderItemStatus.SHIPPED) {
         @Override
-        public void updateStatus(Orders order, Long orderItemId) {
+        public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
             orderItem.ship();
         }
@@ -21,14 +21,14 @@ public enum OrderItemStatusUpdateStrategy {
     REQUEST_RETURN(OrderItemStatus.RETURN_REQUESTED) {
 
         @Override
-        public void updateStatus(Orders order, Long orderItemId) {
+        public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
             orderItem.requestReturn();
         }
     },
     RETURNED(OrderItemStatus.RETURNED) {
         @Override
-        public void updateStatus(Orders order, Long orderItemId) {
+        public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
 
             // 반품 요청 상태가 아니면 반품 완료 불가
@@ -49,7 +49,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     CANCELED(OrderItemStatus.CANCELED) {
         @Override
-        public void updateStatus(Orders order, Long orderItemId) {
+        public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
 
             // 상품 준비 중 상태가 아니면 취소 불가
@@ -72,9 +72,9 @@ public enum OrderItemStatusUpdateStrategy {
 
     private final OrderItemStatus targetStatus;
 
-    public abstract void updateStatus(Orders order, Long orderItemId);
+    public abstract void updateStatus(Order order, Long orderItemId);
 
-    protected OrderItem findOrderItem(Orders order, Long orderItemId) {
+    protected OrderItem findOrderItem(Order order, Long orderItemId) {
         return order.getOrderItems().stream()
                 .filter(orderItem -> orderItem.getOrderItemId().equals(orderItemId))
                 .findFirst()

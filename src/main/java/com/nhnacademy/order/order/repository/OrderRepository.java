@@ -1,16 +1,15 @@
 package com.nhnacademy.order.order.repository;
 
-import com.nhnacademy.order.order.domain.Orders;
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepository extends JpaRepository<Orders, Long> {
+public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
             o.orderId,
@@ -23,7 +22,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
             o.ordererInfo,
             o.receiverInfo
         )
-        FROM Orders o
+        FROM Order o
         WHERE o.orderId = :orderId
     """)
     Optional<OrderBaseResponse> findBaseOrderById(Long orderId);
@@ -40,10 +39,10 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
             o.ordererInfo,
             o.receiverInfo
         )
-        FROM Orders o
+        FROM Order o
         WHERE o.memberId = :memberId
     """)
     Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, Long memberId);
 
-    Optional<Orders> findByOrderNumber(String orderNumber);
+    Optional<Order> findByOrderNumber(String orderNumber);
 }
