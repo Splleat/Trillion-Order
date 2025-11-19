@@ -27,7 +27,6 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
@@ -40,24 +39,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     //결제 대기 상태 생성 -> 결제 처리전의 주문상태-> 결제하기는 눌렀는데 결제 방법 및 다른 결제사의 승인을 받기 전
     @Override
-    public Payment createPendingPayment(PaymentRequestDto request) {
+    public Payment createPendingPayment(Long orderId) {
         //주문 가져오기 by 식별자로
-        Order findOrders = orderRepository.findById(request.orderId()).orElseThrow(
-                () -> new OrderNotFoundException("Order not found with id: " + request.orderId())
+        Order findOrders = orderRepository.findById(orderId).orElseThrow(
+                () -> new OrderNotFoundException("Order not found with id: " + orderId)
         );
-        //todo : 타입 고쳐야 할듯 Long으로
-        //주문의 총액을 가져오게 됨. -> 주문 db의 값을 넘겨 받음
-        Integer amount = findOrders.getOrderDetails().totalPrice();
-
-        //클라이언트로부터 받은 금액 view로부터 받은 금액과 db에 저장된 값이 일치하는지 체크가 필요한가?
-        if(!request.amount().equals(amount)) {
-            throw new IllegalArgumentException("Amount must be equal to request amount");
-        }
 
         //결제 대기 상태 생성 null인 필드들은 추후에 결제 승인하면 toss-api에서 받아온 값들이 채워줌.
         Payment payment = Payment.builder()
                 .orders(findOrders)
-                .amount(amount)
                 .paymentStatus(PaymentStatus.PENDING)
                 .paymentRequestAt(LocalDateTime.now())
                 .build();
@@ -68,16 +58,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     //결제 승인
     @Override
-    public Payment ConfirmPayment(String paymentKey, String orderNumber, Integer amount) {
+    @Transactional
+    public Payment ConfirmPayment(String paymentKey, String orderNumber) {
         Payment payment = paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber,PaymentStatus.PENDING)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-        if (payment.getAmount().longValue() != amount) {
-            payment.cancelPayment(); // [수정] cancel -> fail
-            throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
-        }
         String encodedSecretKey = Base64.getEncoder()
                 .encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+        Integer amount = payment.getOrder().getOrderDetails().totalPrice();
 
         try{
             TossPaymentResponseDto response = webClient.post()
@@ -101,6 +89,8 @@ public class PaymentServiceImpl implements PaymentService {
                         response.getReceipt().getUrl(),
                         approvedAt
                 );
+
+
                 return payment;
             } else {
                 throw new RuntimeException("결제 승인 실패: 상태가 DONE이 아닙니다.");
@@ -122,8 +112,10 @@ public class PaymentServiceImpl implements PaymentService {
 
     //결제 취소
     @Override
+    @Transactional
     public void cancelPayment(Long paymentId, String cancelReason) {
         Payment payment = paymentRepository.findByPaymentId(paymentId);
+
         if(payment == null){
             throw new IllegalArgumentException("Payment not found");
         }

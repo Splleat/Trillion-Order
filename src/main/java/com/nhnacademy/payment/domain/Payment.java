@@ -43,14 +43,9 @@ public class Payment {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(name = "amount", nullable = false) //해당 트랜잭션에 필수 금액이라고?
-    @NotNull
-    private Integer amount;
-
     @Builder
-    public Payment(Order orders, Integer amount, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
+    public Payment(Order orders, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
         this.order = orders;
-        this.amount = amount;
         this.paymentStatus = paymentStatus;
         this.paymentRequestAt = paymentRequestAt;
     }
@@ -59,13 +54,13 @@ public class Payment {
     //결제 승인시 처리 메서드
     public void approvePayment(String paymentKey, String paymentReceipt, LocalDateTime paymentApprovedAt) {
         this.paymentKey = paymentKey;
-        this.paymentStatus = PaymentStatus.DONE;
+        this.paymentStatus = PaymentStatus.COMPLETED;
         this.paymentApprovedAt = paymentApprovedAt;
         this.paymentReceipt = paymentReceipt;
     }
 
     //결제 취소 메서드
     public void cancelPayment() {
-        this.paymentStatus = PaymentStatus.CANCEL;
+        this.paymentStatus = PaymentStatus.CANCELED;
     }
 }
