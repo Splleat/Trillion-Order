@@ -7,7 +7,7 @@ import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 public interface PaymentService {
     Payment createPendingPayment(Long orderId);
 
-    Payment ConfirmPayment(String paymentKey, String orderNumber);
+    Payment ConfirmPayment(String paymentKey, String orderNumber,Integer amount);
 
     Payment getPaymentById(Long paymentId);
 

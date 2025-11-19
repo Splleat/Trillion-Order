@@ -10,7 +10,7 @@ import lombok.ToString;
 public class TossPaymentResponseDto {
     private String paymentKey;
     private String status; // "DONE" 등 상태
-    private String orderId; // 여기가 orderId를 조회해서 orderNumber을 받아와야할듯?
+    private String orderId;
     private Integer totalAmount;
     private String method;
     private String approvedAt; // ISO 8601 날짜 문자열
