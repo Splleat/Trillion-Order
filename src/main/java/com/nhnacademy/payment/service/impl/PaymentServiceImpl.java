@@ -1,6 +1,7 @@
 package com.nhnacademy.payment.service.impl;
 
-import com.nhnacademy.order.order.domain.Orders;
+
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.domain.Payment;
@@ -41,7 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Payment createPendingPayment(PaymentRequestDto request) {
         //주문 가져오기 by 식별자로
-        Orders findOrders = orderRepository.findById(request.orderId()).orElseThrow(
+        Order findOrders = orderRepository.findById(request.orderId()).orElseThrow(
                 () -> new OrderNotFoundException("Order not found with id: " + request.orderId())
         );
         //todo : 타입 고쳐야 할듯 Long으로
@@ -68,7 +69,7 @@ public class PaymentServiceImpl implements PaymentService {
     //결제 승인
     @Override
     public Payment ConfirmPayment(String paymentKey, String orderNumber, Integer amount) {
-        Payment payment = paymentRepository.findByOrders_OrderNumberAndPaymentStatus(orderNumber,PaymentStatus.PENDING)
+        Payment payment = paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber,PaymentStatus.PENDING)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
         if (payment.getAmount().longValue() != amount) {
