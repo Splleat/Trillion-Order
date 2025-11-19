@@ -21,6 +21,9 @@ import java.net.URI;
 @RequiredArgsConstructor
 @RestController
 public class OrderController {
+    private static final String ADMIN_ACCESS_ONLY = "관리자만 이용 가능한 기능";
+    private static final String MEMBER_ACCESS_ONLY = "회원만 이용 가능한 기능";
+
     private final OrderService orderService;
 
     // 주문 전체 조회 (관리자)
@@ -28,7 +31,7 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> getAllOrderByAdmin(Pageable pageable,
                                                                   UserInfo userInfo) {
         if (userInfo == null || userInfo.role() == null || !userInfo.role().equals("ADMIN")) {
-            throw new AccessDeniedException("관리자만 이용 가능한 기능");
+            throw new AccessDeniedException(ADMIN_ACCESS_ONLY);
         }
 
         Page<OrderResponse> response = orderService.findAllOrders(pageable);
@@ -41,7 +44,7 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable,
                                                                      UserInfo userInfo) {
         if (userInfo == null) {
-            throw new AccessDeniedException("회원만 이용 가능한 기능");
+            throw new AccessDeniedException(MEMBER_ACCESS_ONLY);
         }
 
         Page<OrderResponse> response = orderService.findAllOrderByMemberId(pageable, userInfo.userId());
@@ -72,7 +75,7 @@ public class OrderController {
     public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable Long orderId,
                                                             UserInfo userInfo) {
         if (userInfo == null) {
-            throw new AccessDeniedException("회원만 이용 가능한 기능");
+            throw new AccessDeniedException(MEMBER_ACCESS_ONLY);
         }
 
         OrderResponse response = orderService.findOrderByCustomer(userInfo.userId(), orderId);
@@ -94,7 +97,7 @@ public class OrderController {
                                                                         @RequestBody OrderItemStatusPatchRequest request,
                                                                         UserInfo userInfo) {
         if (userInfo == null) {
-            throw new AccessDeniedException("회원만 이용 가능한 기능");
+            throw new AccessDeniedException(MEMBER_ACCESS_ONLY);
         }
 
         orderService.patchOrderItemStatus(userInfo.userId(), orderId, orderItemId, request);

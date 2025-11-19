@@ -39,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final PackagingRepository packagingRepository;
 
+    private static final String ORDER_NOT_FOUND_MESSAGE = "존재하지 않는 주문 ID: ";
+
     @Override
     public Page<OrderResponse> findAllOrders(Pageable pageable) {
         Page<Order> orders = orderRepository.findAll(pageable);
@@ -140,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
             List<OrderItemResponse> orderItems = orderItemRepository.findOrderItemByOrder_OrderId(orderId);
 
             return OrderResponse.create(orderBaseResponse, orderItems);
-        }).orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
+        }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
     }
 
     @Override
@@ -151,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
             List<OrderItemResponse> orderItems = orderItemRepository.findOrderItemByOrder_OrderId(orderId);
 
             return OrderResponse.create(orderBaseResponse, orderItems);
-        }).orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
+        }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
     }
 
     @Override
@@ -177,7 +179,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
         // TODO: 관리자 권한도 고려해야 함
         // 반품 요청, 주문 취소 -> 회원 / 비회원 가능
@@ -196,7 +198,7 @@ public class OrderServiceImpl implements OrderService {
     public void patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
         if (!passwordEncoder.matches(request.nonMemberPassword(), order.getNonMemberPassword())) {
             throw new OrderPasswordMismatchException("비회원 주문 비밀번호 불일치");
@@ -222,6 +224,6 @@ public class OrderServiceImpl implements OrderService {
                 order,
                 orderItems
             );
-        }).orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 번호: " + orderNumber));
+        }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
     }
 }
