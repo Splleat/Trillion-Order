@@ -1,7 +1,7 @@
-@hostname = localhost:10414
+@hostname = 127.0.0.1:10400
 
 ### 주문 생성 (회원)
-POST http://{{hostname}}/orders
+POST http://{{hostname}}/api/orders
 Content-Type: application/json
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
@@ -38,7 +38,7 @@ X-USER-ROLE: MEMBER
 }
 
 ### 주문 생성 (비회원)
-POST http://{{hostname}}/orders
+POST http://{{hostname}}/api/orders
 Content-Type: application/json
 
 {
@@ -66,12 +66,12 @@ Content-Type: application/json
 }
 
 ### 주문 목록 조회 (관리자)
-GET http://{{hostname}}/orders/admin
+GET http://{{hostname}}/api/orders/admin
 X-USER-ID: 2
 X-USER-ROLE: ADMIN
 
 ### 주문 목록 조회 (회원)
-GET http://{{hostname}}/orders
+GET http://{{hostname}}/api/orders
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
 
