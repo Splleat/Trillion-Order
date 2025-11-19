@@ -1,4 +1,4 @@
-@hostname = localhost:8080
+@hostname = localhost:10414
 
 ### 주문 생성 (회원)
 POST http://{{hostname}}/orders

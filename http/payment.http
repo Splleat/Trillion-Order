@@ -1,12 +1,12 @@
 
 ### pending 결제 생성
-POST http://localhost:8080/payments/ready
+POST http://localhost:10414/payments/ready
 Content-Type: application/json
 
 {
   "orderId": 1,
-  "amount": 35000
+  "amount": 36500
 }
 
 ### 결제 승인 상태 조회.
-GET localhost:8080/payments/1
+GET localhost:10414/payments/1
