@@ -1,14 +1,13 @@
 package com.nhnacademy.payment.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nhnacademy.order.order.domain.Orders;
+import com.nhnacademy.order.order.domain.Order;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.query.Order;
 
 import java.time.LocalDateTime;
 
@@ -42,15 +41,15 @@ public class Payment {
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders orders; //주문 id
+    private Order order;
 
     @Column(name = "amount", nullable = false) //해당 트랜잭션에 필수 금액이라고?
     @NotNull
     private Integer amount;
 
     @Builder
-    public Payment(Orders orders, Integer amount, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
-        this.orders = orders;
+    public Payment(Order orders, Integer amount, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
+        this.order = orders;
         this.amount = amount;
         this.paymentStatus = paymentStatus;
         this.paymentRequestAt = paymentRequestAt;
