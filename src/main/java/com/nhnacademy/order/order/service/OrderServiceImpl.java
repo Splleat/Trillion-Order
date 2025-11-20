@@ -19,6 +19,7 @@ import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -225,5 +227,17 @@ public class OrderServiceImpl implements OrderService {
                 orderItems
             );
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
+    }
+
+    @Override
+    public void patchPaymentStatus(Long orderId, String paymentStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
+
+        try {
+            order.setPaymentStatus(PaymentStatus.valueOf(paymentStatus));
+        } catch (IllegalArgumentException e) {
+            log.info("일치하는 결제 상태를 찾을 수 없음: {}", paymentStatus);
+        }
     }
 }

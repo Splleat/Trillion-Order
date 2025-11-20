@@ -29,7 +29,7 @@ X-USER-ROLE: MEMBER
     },
     {
       "bookId": 2,
-      "quantity": 1,
+      "quantity": 2,
       "price": 15000,
       "couponId": null,
       "packagingId": 1

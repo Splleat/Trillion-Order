@@ -24,9 +24,10 @@ public class PaymentController {
 
     @GetMapping("/success")
     public ResponseEntity<?> createPaymentSuccess(@RequestParam String paymentKey,
-                                                  @RequestParam("orderId") String saleId) {
+                                                  @RequestParam("orderId") String saleId,
+                                                  @RequestParam("amount")  Integer amount) {
         try{
-            Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId);
+            Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId,amount);
             return ResponseEntity.ok().body("결제 성공 : "+ confirmPayment.getPaymentId());
         }catch(Exception ex){
             return ResponseEntity.badRequest().body("결제 실패 " + ex.getMessage());

@@ -93,4 +93,8 @@ public class Order {
 
         this.orderDetails = updatedOrderDetails;
     }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 }

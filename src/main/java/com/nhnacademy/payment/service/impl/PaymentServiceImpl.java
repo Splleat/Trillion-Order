@@ -59,13 +59,25 @@ public class PaymentServiceImpl implements PaymentService {
     //결제 승인
     @Override
     @Transactional
-    public Payment ConfirmPayment(String paymentKey, String orderNumber) {
+    public Payment ConfirmPayment(String paymentKey, String orderNumber, Integer amount) {
         Payment payment = paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber,PaymentStatus.PENDING)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
         String encodedSecretKey = Base64.getEncoder()
                 .encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
-        Integer amount = payment.getOrder().getOrderDetails().totalPrice();
+
+
+        Integer realAmount = payment.getOrder().getOrderDetails().totalPrice();
+
+        if(!realAmount.equals(amount)) {
+            throw new IllegalArgumentException("올바르지 않은 금액");
+        }
+
+        String realOrderNumber = payment.getOrder().getOrderNumber();
+
+        if(!realOrderNumber.equals(orderNumber)) {
+            throw new IllegalArgumentException("올바르지 않은 주문 정보");
+        }
 
         try{
             TossPaymentResponseDto response = webClient.post()
@@ -89,8 +101,6 @@ public class PaymentServiceImpl implements PaymentService {
                         response.getReceipt().getUrl(),
                         approvedAt
                 );
-
-
                 return payment;
             } else {
                 throw new RuntimeException("결제 승인 실패: 상태가 DONE이 아닙니다.");

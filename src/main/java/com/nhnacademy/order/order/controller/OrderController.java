@@ -104,7 +104,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    // 주문 상태 변경 (회원, 관리자)
+    // 주문 상품 상태 변경 (회원, 관리자)
     @PatchMapping("/orders/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable Long orderId, @PathVariable Long orderItemId,
                                                                         @RequestBody OrderItemStatusPatchRequest request,
@@ -118,7 +118,7 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    // 주문 상태 변경 (비회원)
+    // 주문 상품 상태 변경 (비회원)
     @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
                                                                           @RequestBody NonMemberOrderItemStatusPatchRequest request) {
