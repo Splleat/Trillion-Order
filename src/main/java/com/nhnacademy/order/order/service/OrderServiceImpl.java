@@ -127,6 +127,9 @@ public class OrderServiceImpl implements OrderService {
         // 6. OrderItem 리스트를 Order에 추가
         orderItems.forEach(order::addOrderItem);
 
+        // todo 결제 생성
+        // TODO: 결제 승인 호출
+
         Order savedOrder = orderRepository.save(order);
 
         return savedOrder.getOrderId();

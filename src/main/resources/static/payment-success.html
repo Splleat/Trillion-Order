@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 결과</title>
+    <style>
+        body { text-align: center; padding: 50px; font-family: sans-serif; }
+        .success { color: green; }
+        .fail { color: red; }
+        .result-box { border: 1px solid #ddd; padding: 20px; display: inline-block; text-align: left; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<h1 id="title">결제 승인 요청 중...</h1>
+<p id="message">잠시만 기다려주세요.</p>
+
+<div id="result" class="result-box" style="display:none;">
+    <p><strong>주문 번호:</strong> <span id="orderId"></span></p>
+    <p><strong>결제 금액:</strong> <span id="amount"></span>원</p>
+    <p><strong>승인 일시:</strong> <span id="approvedAt"></span></p>
+</div>
+
+<script>
+    // 1. URL 쿼리 파라미터 파싱 (paymentKey, orderId, amount)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentKey = urlParams.get("paymentKey");
+    const orderId = urlParams.get("orderId");
+    const amount = urlParams.get("amount");
+
+    async function confirmPayment() {
+        if (!paymentKey || !orderId || !amount) {
+            document.getElementById("title").innerText = "오류 발생";
+            document.getElementById("title").className = "fail";
+            document.getElementById("message").innerText = "결제 정보가 누락되었습니다.";
+            return;
+        }
+
+        try {
+            // 2. 백엔드 서버로 결제 승인 요청
+            // Controller가 /payments/success 경로에서 승인 로직을 수행하고 JSON을 리턴한다고 가정
+            const response = await fetch(`/payments/success?paymentKey=${paymentKey}&orderId=${orderId}&amount=${amount}`);
+
+            if (!response.ok) {
+                // 승인 실패 시 (잔액 부족, 네트워크 오류 등)
+                const errorData = await response.json();
+                throw new Error(errorData.message || "결제 승인 실패");
+            }
+
+            // 3. 승인 성공 처리
+            const paymentData = await response.json();
+
+            document.getElementById("title").innerText = "🎉 결제 성공!";
+            document.getElementById("title").className = "success";
+            document.getElementById("message").innerText = "주문이 정상적으로 완료되었습니다.";
+
+            // 결과 데이터 바인딩
+            document.getElementById("result").style.display = "block";
+            document.getElementById("orderId").innerText = orderId;
+            document.getElementById("amount").innerText = Number(amount).toLocaleString();
+            document.getElementById("approvedAt").innerText = new Date(paymentData.paymentApprovedAt).toLocaleString();
+
+        } catch (error) {
+            document.getElementById("title").innerText = "결제 승인 실패";
+            document.getElementById("title").className = "fail";
+            document.getElementById("message").innerText = error.message;
+            console.error(error);
+        }
+    }
+
+    // 페이지 로드 시 자동 실행
+    confirmPayment();
+</script>
+</body>
+</html>

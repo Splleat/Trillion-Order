@@ -74,12 +74,15 @@ public class OrderController {
 
         Long createdOrderId = orderService.createOrder(userId, request);
 
+        //OrderResponse createdOrderResponse = orderService.findOrderByOrderId(createdOrderId);
+
         URI locationUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{orderId}")
                 .buildAndExpand(createdOrderId)
                 .toUri();
 
+        //return ResponseEntity.created(locationUri).body(createdOrderResponse);
         return ResponseEntity.created(locationUri).build();
     }
 

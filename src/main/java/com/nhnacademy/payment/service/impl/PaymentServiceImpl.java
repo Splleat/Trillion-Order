@@ -8,6 +8,8 @@ import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.exception.PaymentAlreadyApprovedException;
+import com.nhnacademy.payment.exception.PaymentNotFoundException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import jakarta.transaction.Transactional;
@@ -24,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
+import java.util.function.LongToIntFunction;
 
 @Slf4j
 @Service
@@ -38,79 +41,66 @@ public class PaymentServiceImpl implements PaymentService {
     private String tossSecretKey;
 
     //결제 대기 상태 생성 -> 결제 처리전의 주문상태-> 결제하기는 눌렀는데 결제 방법 및 다른 결제사의 승인을 받기 전
-    @Override
-    public Payment createPendingPayment(Long orderId) {
-        //주문 가져오기 by 식별자로
-        Order findOrders = orderRepository.findById(orderId).orElseThrow(
-                () -> new OrderNotFoundException("Order not found with id: " + orderId)
-        );
-
-        //결제 대기 상태 생성 null인 필드들은 추후에 결제 승인하면 toss-api에서 받아온 값들이 채워줌.
-        Payment payment = Payment.builder()
-                .orders(findOrders)
-                .paymentStatus(PaymentStatus.PENDING)
-                .paymentRequestAt(LocalDateTime.now())
-                .build();
-
-        return paymentRepository.save(payment);
-    }
+    //todo -> 이 메서드는 그냥 여기 서비스에서만 사용할거 같은데 그냥 다른 private메서드로 빼내줘야 할듯
+    //todo -> 그리고 내가 볼때는 진짜 pending상태가 필요 없음 -> 여기 필드에는 그냥 Completed Canceld만
 
 
     //결제 승인
     @Override
     @Transactional
-    public Payment ConfirmPayment(String paymentKey, String orderNumber, Integer amount) {
-        Payment payment = paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber,PaymentStatus.PENDING)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+    public Payment ConfirmPayment(PaymentRequestDto request) {
+
+        Order order = orderRepository.findByOrderNumber(request.orderNumber())
+                .orElseThrow(() -> new OrderNotFoundException(request.orderNumber()));
 
         String encodedSecretKey = Base64.getEncoder()
                 .encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
 
+        TossPaymentResponseDto response;
 
-        Integer realAmount = payment.getOrder().getOrderDetails().totalPrice();
-
-        if(!realAmount.equals(amount)) {
-            throw new IllegalArgumentException("올바르지 않은 금액");
-        }
-
-        String realOrderNumber = payment.getOrder().getOrderNumber();
-
-        if(!realOrderNumber.equals(orderNumber)) {
-            throw new IllegalArgumentException("올바르지 않은 주문 정보");
-        }
-
-        try{
-            TossPaymentResponseDto response = webClient.post()
+        try {
+             response = webClient.post()
                     .uri("https://api.tosspayments.com/v1/payments/confirm")
-                    .header(HttpHeaders.AUTHORIZATION, "Basic "+encodedSecretKey)
+                    .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedSecretKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(Map.of(
-                            "paymentKey",paymentKey,
-                            "orderId",orderNumber,
-                            "amount",amount
+                            "paymentKey", request.paymentKey(),
+                            "orderId", request.orderNumber(),
+                            "amount", request.amount()
                     ))
                     .retrieve()
                     .bodyToMono(TossPaymentResponseDto.class)
-                    .block(); // 동기 ,, -> 나중에 비동기로 전환 예정 도움!
-
+                    .block();
+        }catch(Exception e) {
+            log.error("TossApi 연동 실페 : {} ", e.getMessage());
+            throw new RuntimeException("결제 승인 중 오류 발생");
+        }
             if (response != null && "DONE".equals(response.getStatus())) {
+
                 LocalDateTime approvedAt = LocalDateTime.parse(response.getApprovedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
-                payment.approvePayment(
-                        response.getPaymentKey(),
-                        response.getReceipt().getUrl(),
-                        approvedAt
-                );
-                return payment;
-            } else {
-                throw new RuntimeException("결제 승인 실패: 상태가 DONE이 아닙니다.");
+                Payment payment = Payment.builder()
+                        .paymentKey(response.getPaymentKey())
+                        .paymentStatus(PaymentStatus.COMPLETED)
+                        .paymentRequestAt(LocalDateTime.now()) // 혹은 response.requestedAt
+                        .paymentApprovedAt(approvedAt)
+                        .paymentReceipt(response.getReceipt().getUrl())
+                        .order(order)
+                        .build();
+                try{
+                    Payment savedPayment =  paymentRepository.save(payment);
+
+                    //todo 주문의 결제 상태값 변환하기
+                    return savedPayment;
+                }catch(Exception e) {
+                    log.error("결제 중 오류 발생, orderId :{}, paymentKey : {}",request.orderNumber(),request.paymentKey());
+                    //todo 결제 취소 호출
+                    throw new RuntimeException("결제는 승인도중 오류가 발새앟여 롤백");
+                }
+            }else{
+                throw new RuntimeException("결제 실패 알수 없는 오류");
             }
 
-        }catch(Exception e){
-            log.error("결제 승인 실패 : {}",e.getMessage());
-            payment.cancelPayment();
-            throw new RuntimeException(e.getMessage());
-        }
     }
 
     //결제 조회
@@ -147,6 +137,8 @@ public class PaymentServiceImpl implements PaymentService {
 
             if(response != null && ("CANCELED".equals(response.getStatus()))) {
                 payment.cancelPayment();
+                //todo 여기도 마찬가지
+
                 log.info("결제 취소 완료 : paymentId={}, reason={}", paymentId, cancelReason);
             }else{
                 throw new RuntimeException("토스 api 취소 실패");

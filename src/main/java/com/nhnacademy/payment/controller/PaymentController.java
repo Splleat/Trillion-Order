@@ -14,24 +14,22 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/payments")
 public class PaymentController {
+
     private final PaymentService paymentService;
 
-    @PostMapping("/{orderId}")
-    public ResponseEntity<?> createPayment(@PathVariable Long orderId) {
-        Payment savedPayment = paymentService.createPendingPayment(orderId);
-        return ResponseEntity.ok().body(savedPayment);
-    }
 
     @GetMapping("/success")
-    public ResponseEntity<?> createPaymentSuccess(@RequestParam String paymentKey,
-                                                  @RequestParam("orderId") String saleId,
-                                                  @RequestParam("amount")  Integer amount) {
-        try{
-            Payment confirmPayment = paymentService.ConfirmPayment(paymentKey, saleId,amount);
-            return ResponseEntity.ok().body("결제 성공 : "+ confirmPayment.getPaymentId());
-        }catch(Exception ex){
-            return ResponseEntity.badRequest().body("결제 실패 " + ex.getMessage());
-        }
+    public ResponseEntity<?> createPaymentSuccess(@RequestParam("paymentKey") String paymentKey,
+                                                  @RequestParam("orderId") String orderId, // Toss는 'orderId'로 보냄
+                                                  @RequestParam("amount") Integer amount) {
+
+
+            PaymentRequestDto requestDto = new PaymentRequestDto(paymentKey, orderId, amount);
+
+            Payment payment = paymentService.ConfirmPayment(requestDto);
+
+            return ResponseEntity.ok(payment);
+
     }
 
     @GetMapping("/{paymentId}")

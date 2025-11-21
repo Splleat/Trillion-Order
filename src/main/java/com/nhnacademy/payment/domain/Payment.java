@@ -40,23 +40,18 @@ public class Payment {
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
     @Builder
-    public Payment(Order orders, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt) {
-        this.order = orders;
+    public Payment(String paymentKey, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt,
+                   LocalDateTime paymentApprovedAt, String paymentReceipt, Order order) {
+        this.paymentKey = paymentKey;
         this.paymentStatus = paymentStatus;
         this.paymentRequestAt = paymentRequestAt;
-    }
-
-
-    //결제 승인시 처리 메서드
-    public void approvePayment(String paymentKey, String paymentReceipt, LocalDateTime paymentApprovedAt) {
-        this.paymentKey = paymentKey;
-        this.paymentStatus = PaymentStatus.COMPLETED;
         this.paymentApprovedAt = paymentApprovedAt;
         this.paymentReceipt = paymentReceipt;
+        this.order = order;
     }
 
     //결제 취소 메서드

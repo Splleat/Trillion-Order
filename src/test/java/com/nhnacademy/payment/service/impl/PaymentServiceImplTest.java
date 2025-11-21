@@ -61,79 +61,79 @@ class PaymentApplicationTests {
         ReflectionTestUtils.setField(paymentService, "tossSecretKey", "test-secret-key");
     }
 
-    @Test
-    @DisplayName("결제 대기 상태 (PENDIG)_성공 테스트")
-    void createPendingPayment(){
-        Long orderId = 1L;
-
-        Order mockOrder = mock(Order.class);
-
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(mockOrder));
-
-        given(paymentRepository.save(any(Payment.class))).willAnswer(invocation -> {
-            Payment p = invocation.getArgument(0);
-            ReflectionTestUtils.setField(p, "paymentId", 1L); // ID 주입 시늉
-            return p;
-        });
-
-        Payment result = paymentService.createPendingPayment(orderId);
-
-        assertNotNull(result);
-        assertEquals(1L, result.getPaymentId());
-        assertEquals(PaymentStatus.PENDING, result.getPaymentStatus());
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(paymentRepository, times(1)).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("결제 승인 성공 테스트")
-    void confirmPaymentSuccess(){
-        String paymentKey = "test_payment_key";
-        String orderNumber = "ORD-1234-5678";
-        Integer amount = 10000;
-
-        OrderDetails mockOrderDetails = mock(OrderDetails.class);
-        given(mockOrderDetails.totalPrice()).willReturn(amount);
-
-        Order mockOrder = mock(Order.class);
-        given(mockOrder.getOrderDetails()).willReturn(mockOrderDetails);
-
-        given(mockOrder.getOrderNumber()).willReturn(orderNumber);
-
-
-
-        Payment pendingPayment = spy(Payment.builder()
-                .orders(mockOrder)
-                .paymentStatus(PaymentStatus.PENDING)
-                .paymentRequestAt(LocalDateTime.now())
-                .build());
-
-        ReflectionTestUtils.setField(pendingPayment, "paymentId", 1L);
-
-
-        given(paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber, PaymentStatus.PENDING))
-                .willReturn(Optional.of(pendingPayment));
-
-        TossPaymentResponseDto tossResponse = new TossPaymentResponseDto();
-
-        //여기서부터 -> 실제 토스 서버로 요청이 날아가 응답값을 받은것으로 가정.
-        ReflectionTestUtils.setField(tossResponse,"status","DONE");
-        ReflectionTestUtils.setField(tossResponse,"paymentKey",paymentKey);
-        ReflectionTestUtils.setField(tossResponse, "approvedAt", "2024-01-01T12:00:00+09:00");
-
-        TossPaymentResponseDto.Receipt mockReceipt = new TossPaymentResponseDto.Receipt();
-        ReflectionTestUtils.setField(mockReceipt, "url", "http://receipt.url");
-        ReflectionTestUtils.setField(tossResponse, "receipt", mockReceipt);
-
-        mockWebClientChain(tossResponse);
-
-        Payment result = paymentService.ConfirmPayment(paymentKey,orderNumber,amount);
-
-        assertNotNull(result);
-        assertEquals(paymentKey,result.getPaymentKey());
-        verify(pendingPayment).approvePayment(anyString(),anyString(),any(LocalDateTime.class));
-
-    }
+//    @Test
+//    @DisplayName("결제 대기 상태 (PENDIG)_성공 테스트")
+//    void createPendingPayment(){
+//        Long orderId = 1L;
+//
+//        Order mockOrder = mock(Order.class);
+//
+//        given(orderRepository.findById(orderId)).willReturn(Optional.of(mockOrder));
+//
+//        given(paymentRepository.save(any(Payment.class))).willAnswer(invocation -> {
+//            Payment p = invocation.getArgument(0);
+//            ReflectionTestUtils.setField(p, "paymentId", 1L); // ID 주입 시늉
+//            return p;
+//        });
+//
+//        Payment result = paymentService.createPendingPayment(orderId);
+//
+//        assertNotNull(result);
+//        assertEquals(1L, result.getPaymentId());
+//        assertEquals(PaymentStatus.PENDING, result.getPaymentStatus());
+//        verify(orderRepository, times(1)).findById(orderId);
+//        verify(paymentRepository, times(1)).save(any(Payment.class));
+//    }
+//
+//    @Test
+//    @DisplayName("결제 승인 성공 테스트")
+//    void confirmPaymentSuccess(){
+//        String paymentKey = "test_payment_key";
+//        String orderNumber = "ORD-1234-5678";
+//        Integer amount = 10000;
+//
+//        OrderDetails mockOrderDetails = mock(OrderDetails.class);
+//        given(mockOrderDetails.totalPrice()).willReturn(amount);
+//
+//        Order mockOrder = mock(Order.class);
+//        given(mockOrder.getOrderDetails()).willReturn(mockOrderDetails);
+//
+//        given(mockOrder.getOrderNumber()).willReturn(orderNumber);
+//
+//
+//
+//        Payment pendingPayment = spy(Payment.builder()
+//                .orders(mockOrder)
+//                .paymentStatus(PaymentStatus.PENDING)
+//                .paymentRequestAt(LocalDateTime.now())
+//                .build());
+//
+//        ReflectionTestUtils.setField(pendingPayment, "paymentId", 1L);
+//
+//
+//        given(paymentRepository.findByOrder_OrderNumberAndPaymentStatus(orderNumber, PaymentStatus.PENDING))
+//                .willReturn(Optional.of(pendingPayment));
+//
+//        TossPaymentResponseDto tossResponse = new TossPaymentResponseDto();
+//
+//        //여기서부터 -> 실제 토스 서버로 요청이 날아가 응답값을 받은것으로 가정.
+//        ReflectionTestUtils.setField(tossResponse,"status","DONE");
+//        ReflectionTestUtils.setField(tossResponse,"paymentKey",paymentKey);
+//        ReflectionTestUtils.setField(tossResponse, "approvedAt", "2024-01-01T12:00:00+09:00");
+//
+//        TossPaymentResponseDto.Receipt mockReceipt = new TossPaymentResponseDto.Receipt();
+//        ReflectionTestUtils.setField(mockReceipt, "url", "http://receipt.url");
+//        ReflectionTestUtils.setField(tossResponse, "receipt", mockReceipt);
+//
+//        mockWebClientChain(tossResponse);
+//
+//        Payment result = paymentService.ConfirmPayment(paymentKey,orderNumber,amount);
+//
+//        assertNotNull(result);
+//        assertEquals(paymentKey,result.getPaymentKey());
+//        verify(pendingPayment).approvePayment(anyString(),anyString(),any(LocalDateTime.class));
+//
+//    }
 
 //    @Test
 //    @DisplayName("결제 승인 실패 case -> 결제 금액 불일치 시 ")

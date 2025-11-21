@@ -26,7 +26,7 @@ public class Order {
     @Column(name = "order_number")
     private String orderNumber;
 
-    @Column(name = "memeber_id")
+    @Column(name = "member_id")
     private Long memberId;
 
     @Column(name = "non_member_password")

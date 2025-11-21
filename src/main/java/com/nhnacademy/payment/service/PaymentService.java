@@ -5,9 +5,7 @@ import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 
 public interface PaymentService {
-    Payment createPendingPayment(Long orderId);
-
-    Payment ConfirmPayment(String paymentKey, String orderNumber,Integer amount);
+    Payment ConfirmPayment(PaymentRequestDto request);
 
     Payment getPaymentById(Long paymentId);
 
