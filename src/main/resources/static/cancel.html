@@ -4,86 +4,81 @@
   <meta charset="UTF-8">
   <title>결제 취소 테스트</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #f9f9f9; }
+    .container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #d9534f; margin-bottom: 30px; }
     .input-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input { width: 95%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-    button { width: 100%; padding: 12px; background-color: #FF4500; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-    button:hover { background-color: #cc3700; }
-    .log-box { background: #333; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; height: 150px; overflow-y: scroll; margin-top: 20px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+    input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    button { width: 100%; padding: 15px; background-color: #d9534f; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+    button:hover { background-color: #c9302c; }
+    .log-box { margin-top: 20px; background: #333; color: #0f0; padding: 15px; border-radius: 5px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 13px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>🚫 결제 취소 테스트</h2>
+  <h2>🚫 결제 취소 (Refund)</h2>
 
   <div class="input-group">
-    <label for="payment-id">취소할 결제 ID (Payment ID)</label>
-    <input type="number" id="payment-id" value="1" placeholder="DB의 Payment ID 입력">
+    <label>취소할 주문번호 (Order Number)</label>
+    <input type="text" id="orderNumber" placeholder="예: ORD-1234-5678..." value="">
   </div>
 
   <div class="input-group">
-    <label for="cancel-reason">취소 사유</label>
-    <input type="text" id="cancel-reason" value="단순 변심 (테스트)" placeholder="취소 사유 입력">
+    <label>취소 사유</label>
+    <input type="text" id="cancelReason" value="단순 변심 (테스트)" placeholder="사유 입력">
   </div>
 
   <button onclick="requestCancel()">결제 취소 요청하기</button>
 
-  <div class="log-box" id="logs">
+  <div class="log-box" id="logBox">
     <div>[System] 준비 완료.</div>
   </div>
 </div>
 
 <script>
-  // ================= CONFIG =================
-  // PaymentController의 매핑 경로가 /api/payments 라면 "/api" 추가, /payments 라면 "" 공백
-  const BASE_URL = "http://localhost:10414";
-  const API_PREFIX = "";
-  // ==========================================
+  // API 경로 설정 (컨트롤러 매핑에 맞게 수정 필요)
+  // PaymentController의 클래스 레벨 매핑이 /payments 라면 아래 주소는 /payments/cancel 이 됨
+  const API_URL = "/payments/cancel";
 
   function log(msg) {
-    const logBox = document.getElementById('logs');
-    logBox.innerHTML += `<div>> ${msg}</div>`;
-    logBox.scrollTop = logBox.scrollHeight;
+    const box = document.getElementById('logBox');
+    box.innerHTML += `<div>> ${msg}</div>`;
+    box.scrollTop = box.scrollHeight;
   }
 
   async function requestCancel() {
-    const paymentId = document.getElementById('payment-id').value;
-    const reason = document.getElementById('cancel-reason').value;
+    const orderNumber = document.getElementById('orderNumber').value;
+    const cancelReason = document.getElementById('cancelReason').value;
 
-    if (!paymentId) return alert("결제 ID를 입력하세요.");
+    if (!orderNumber) {
+      alert("주문번호를 입력해주세요.");
+      return;
+    }
 
-    log(`결제 취소 요청 시작 (ID: ${paymentId}, 사유: ${reason})`);
+    log(`취소 요청 중... (Order: ${orderNumber})`);
 
     try {
-      // POST http://localhost:10414/payments/{paymentId}/cancel
-      const url = `${BASE_URL}${API_PREFIX}/payments/${paymentId}/cancel`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cancelReason: reason
+          orderNumber: orderNumber,
+          cancelReason: cancelReason
         })
       });
 
       if (response.ok) {
-        const resultText = await response.text();
-        log(`✅ 취소 성공: ${resultText}`);
-        log(`DB에서 status가 CANCELED로 변했는지 확인하세요.`);
+        const text = await response.text();
+        log(`✅ 성공: ${text}`);
+        alert("결제가 정상적으로 취소되었습니다.");
       } else {
         const errorText = await response.text();
-        throw new Error(`서버 오류 (${response.status}): ${errorText}`);
+        log(`❌ 실패 (${response.status}): ${errorText}`);
       }
-
-    } catch (e) {
-      log(`❌ 취소 실패: ${e.message}`);
-      console.error(e);
+    } catch (error) {
+      log(`❌ 네트워크 오류: ${error.message}`);
     }
   }
 </script>

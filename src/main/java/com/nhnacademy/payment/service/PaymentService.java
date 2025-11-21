@@ -1,13 +1,13 @@
 package com.nhnacademy.payment.service;
 
 import com.nhnacademy.payment.domain.Payment;
-import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
+import com.nhnacademy.payment.dto.response.PaymentResponse;
 
 public interface PaymentService {
-    Payment ConfirmPayment(PaymentRequestDto request);
+    PaymentResponse ConfirmPayment(PaymentRequestDto request);
 
-    Payment getPaymentById(Long paymentId);
+    PaymentResponse getPaymentById(Long paymentId);
 
-    void cancelPayment(Long paymentId, String cancelReason);
+    void cancelPayment(String orderNumber, String cancelReason);
 }

@@ -74,7 +74,7 @@ public class OrderController {
 
         Long createdOrderId = orderService.createOrder(userId, request);
 
-        //OrderResponse createdOrderResponse = orderService.findOrderByOrderId(createdOrderId);
+        OrderResponse createdOrderResponse = orderService.findOrderByOrderId(createdOrderId);
 
         URI locationUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -82,8 +82,8 @@ public class OrderController {
                 .buildAndExpand(createdOrderId)
                 .toUri();
 
-        //return ResponseEntity.created(locationUri).body(createdOrderResponse);
-        return ResponseEntity.created(locationUri).build();
+        return ResponseEntity.created(locationUri).body(createdOrderResponse);
+        //return ResponseEntity.created(locationUri).build();
     }
 
     // 주문 단건 조회 (회원)

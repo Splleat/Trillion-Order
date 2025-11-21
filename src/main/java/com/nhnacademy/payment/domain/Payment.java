@@ -38,8 +38,8 @@ public class Payment {
     @Column(name = "payment_receipt")
     private String paymentReceipt;
 
-    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
