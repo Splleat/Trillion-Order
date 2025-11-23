@@ -1,5 +1,6 @@
 package com.nhnacademy.payment.dto.response;
 
+import com.nhnacademy.payment.domain.Payment;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,4 +15,15 @@ public record PaymentResponse (
         LocalDateTime approvedAt,
         String receiptUrl
 ){
+    public static PaymentResponse from(Payment payment) {
+        return PaymentResponse.builder()
+                .paymentId(payment.getPaymentId())
+                .orderNumber(payment.getOrder().getOrderNumber())
+                .totalAmount(payment.getOrder().getOrderDetails().totalPrice())
+                .status(payment.getPaymentStatus().toString())
+                .requestedAt(payment.getPaymentRequestAt())
+                .approvedAt(payment.getPaymentApprovedAt())
+                .receiptUrl(payment.getPaymentReceipt())
+                .build();
+    }
 }

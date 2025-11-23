@@ -5,6 +5,7 @@ import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.service.PaymentService;
+import com.nhnacademy.payment.service.impl.PaymentFlowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/payments")
 public class PaymentController {
     private final PaymentService paymentService;
+    private final PaymentFlowService paymentFlowService;
 
 
     @GetMapping("/success")
@@ -25,14 +27,14 @@ public class PaymentController {
 
         PaymentRequestDto requestDto = new PaymentRequestDto(paymentKey, orderId, amount);
 
-        PaymentResponse payment = paymentService.ConfirmPayment(requestDto);
+        PaymentResponse payment = paymentFlowService.ConfirmPayment(requestDto);
 
         return ResponseEntity.ok(payment);
     }
 
     @GetMapping("/{paymentId}")
     public ResponseEntity<?> getPaymentById(@PathVariable("paymentId") Long paymentId) {
-        return ResponseEntity.ok().body(paymentService.getPaymentById(paymentId));
+        return ResponseEntity.ok(paymentService.getPaymentById(paymentId));
     }
 
     @PostMapping("/cancel")
@@ -40,7 +42,7 @@ public class PaymentController {
         String orderNumber= requestBody.get("orderNumber");
         String cancelReason = requestBody.get("cancelReason");
 
-        paymentService.cancelPayment(orderNumber, cancelReason);
+        paymentFlowService.cancelPayment(orderNumber, cancelReason);
 
         return ResponseEntity.ok("결제 취소 완료");
     }
