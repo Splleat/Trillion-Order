@@ -24,14 +24,12 @@ X-USER-ROLE: MEMBER
     {
       "bookId": 1,
       "quantity": 2,
-      "price": 500000,
       "couponId": 1,
       "packagingId": 2
     },
     {
       "bookId": 2,
       "quantity": 2,
-      "price": 15000,
       "couponId": null,
       "packagingId": 1
     }
@@ -59,7 +57,6 @@ Content-Type: application/json
     {
       "bookId": 3,
       "quantity": 1,
-      "price": 25000,
       "couponId": null,
       "packagingId": 3
     }
@@ -82,7 +79,7 @@ X-USER-ID: 1
 X-USER-ROLE: MEMBER
 
 ### 주문 단건 조회 (비회원)
-POST http://{{hostname}}/orders/non-members/
+POST http://{{hostname}}/api/orders/non-members/
 Content-Type: application/json
 
 {
@@ -91,7 +88,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 주문 취소 (회원)
-PATCH http://{{hostname}}/orders/1/items/1
+PATCH http://{{hostname}}/api/orders/1/items/1
 Content-Type: application/json
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
@@ -100,24 +97,32 @@ X-USER-ROLE: MEMBER
   "status": "CANCELED"
 }
 
-### 주문 상품 상태 변경: 반품 요청 (회원)
-PATCH http://{{hostname}}/orders/1/items/1
+### 주문 상품 상태 변경: 반품 요청 (단순 변심) (회원)
+PATCH http://{{hostname}}/api/orders/1/items/1
 Content-Type: application/json
 
 {
-  "status": "RETURN_REQUESTED"
+  "status": "RETURN_REQUESTED_CHANGE_OF_MIND"
 }
 
 ### 주문 상품 상태 변경: 반품 완료 (회원)
-PATCH http://{{hostname}}/orders/1/items/1
+PATCH http://{{hostname}}/api/orders/1/items/1
 Content-Type: application/json
 
 {
   "status": "RETURNED"
 }
 
+### 주문 상품 상태 변경: 구매 확정 (회원)
+PATCH http://{{hostname}}/api/orders/1/items/1
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED"
+}
+
 ### 주문 상품 상태 변경: 주문 취소 (비회원)
-PATCH http://{{hostname}}/orders/non-members/1/items/1
+PATCH http://{{hostname}}/api/orders/non-members/1/items/1
 Content-Type: application/json
 
 {

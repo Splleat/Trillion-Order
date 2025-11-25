@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -24,7 +26,11 @@ public class OrderItem {
     private Long bookId;
 
     private int quantity;
+
     private int price;
+
+    @Column(name = "shipping_date")
+    private LocalDateTime shippingDate; // 출고일
 
     @Column(name = "packaging_price")
     private int packagingPrice;
@@ -42,6 +48,7 @@ public class OrderItem {
             bookId,
             quantity,
             price,
+            null, // 출고일 - 관리자가 설정
             packagingPrice,
             OrderItemStatus.PREPARING,
             couponId
@@ -52,19 +59,12 @@ public class OrderItem {
         this.order = order;
     }
 
+    public void setOrderItemStatus(OrderItemStatus orderItemStatus) {
+        this.orderItemStatus = orderItemStatus;
+    }
+
     public void ship() {
         this.orderItemStatus = OrderItemStatus.SHIPPED;
-    }
-
-    public void requestReturn() {
-        this.orderItemStatus = OrderItemStatus.RETURN_REQUESTED;
-    }
-
-    public void completeReturn() {
-        this.orderItemStatus = OrderItemStatus.RETURNED;
-    }
-
-    public void cancel() {
-        this.orderItemStatus = OrderItemStatus.CANCELED;
+        this.shippingDate = LocalDateTime.now();
     }
 }

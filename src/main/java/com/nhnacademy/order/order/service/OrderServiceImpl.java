@@ -10,9 +10,9 @@ import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.strategy.OrderItemStatusUpdateStrategy;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
+import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
@@ -60,41 +60,66 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Long createOrder(Long memberId, OrderCreateRequest request) {
 
-        // TODO 1: 도서 API -> 재고 확인 및 차감, 가격 검증
-        // TODO 2: 쿠폰 API -> 쿠폰 사용 처리
-        // TODO 3: 포인트 API -> 포인트 사용 처리
-        // TODO 4: 최종 결제 정보 생성
+        // 0. 주문 상품 ID 리스트 추출
+        List<Long> bookIds = request.orderItems().stream()
+                .map(OrderItemCreateRequest::bookId)
+                .toList();
 
-        // TODO: 도서 -> 쿠폰 -> 포인트 이후 로직
+        Map<Long, Integer> stockMap = request.orderItems().stream()
+                .collect(Collectors.toMap(OrderItemCreateRequest::bookId, OrderItemCreateRequest::quantity));
+
+        // TODO 1: 도서 API -> 재고 확인 및 차감, 가격 검증
+        // bookService.decreaseStock(stockMap);
+        // Map<bookId, Price> realPrice = bookService.getRealPrice(bookIds);
+        // Map<bookId, Stock> stocks = bookService.getStocks(bookIds);
 
         // 1. OrderItemCreateRequest -> OrderItem (연관 관계 매핑은 아직 안 함)
         List<OrderItem> orderItems = request.orderItems().stream()
                 .map(itemReq -> {
+                    int bookPrice = 0; // realPrice.get(itemReq.bookId()); // 도서 API에서 조회한 실제 가격
                     int packagingPrice = 0;
+
+                    // 포장 정책을 조회해 포장 비용 계산
                     if (itemReq.packagingId() != null) {
                         packagingPrice = packagingRepository.findById(itemReq.packagingId())
                                 .orElseThrow(() -> new PackagingNotFoundException("포장 정보를 찾을 수 없음: " + itemReq.packagingId()))
                                 .getPackagingPrice();
                     }
-                    return OrderItem.create(null, itemReq.bookId(), itemReq.quantity(), itemReq.price(), packagingPrice, itemReq.couponId());
+                    return OrderItem.create(null, itemReq.bookId(), itemReq.quantity(), bookPrice, packagingPrice, itemReq.couponId());
                 })
                 .toList();
 
-        // 2. 포장비 총합 계산
-        int totalPackagingPrice = orderItems.stream().mapToInt(OrderItem::getPackagingPrice).sum();
+        // 2. 도서 + 포장비 금액
+        int totalPackagingPrice = orderItems.stream()
+                .mapToInt(orderItem -> orderItem.getPrice() + orderItem.getPackagingPrice())
+                .sum();
 
-        // 3. 최종 주문 비용 계산
-        int finalTotalPrice = request.getTotalPrice() + totalPackagingPrice;
-
-        // 4. 배송비 결정
+        // 3. 배송비 결정
         DeliveryPolicy deliveryPolicy = deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()
                 .orElseThrow(() -> new PolicyNotConfiguredException("배송 정책이 설정되지 않음"));
 
-        int deliveryFee = (finalTotalPrice >= deliveryPolicy.getDeliveryPolicyThreshold())
+        int deliveryFee = (totalPackagingPrice >= deliveryPolicy.getDeliveryPolicyThreshold())
                 ? 0
                 : deliveryPolicy.getDeliveryPolicyFee();
 
-        // 5. Order 객체 생성
+        // 4. 할인 전 결제 금액 결정
+        int originPrice = totalPackagingPrice + deliveryFee;
+
+        // TODO 2: 쿠폰 API -> 쿠폰 사용 처리
+        Map<Long, Integer> couponMap = orderItems.stream()
+                .filter(orderItem -> orderItem.getCouponId() != null)
+                .collect(Collectors.toMap(OrderItem::getCouponId, OrderItem::getPrice));
+
+         int discountAmount = 0; // couponService.applyCoupon(couponMap);
+
+        // TODO 3: 포인트 API -> 포인트 사용 처리
+         int pointUsage = request.pointUsage();
+         // pointService.usagePoint(pointUsage);
+
+        // 5. 최종 결제 금액 계산
+        int finalTotalPrice = originPrice - (discountAmount + pointUsage);
+
+        // 6. Order 객체 생성
         OrdererInfo ordererInfo = new OrdererInfo(
                 request.ordererName(),
                 request.ordererContact()
@@ -111,6 +136,7 @@ public class OrderServiceImpl implements OrderService {
                 request.deliveryDate(),
                 deliveryFee,
                 request.pointUsage(),
+                originPrice,
                 finalTotalPrice
         );
 
@@ -124,11 +150,8 @@ public class OrderServiceImpl implements OrderService {
                 orderDetails
         );
 
-        // 6. OrderItem 리스트를 Order에 추가
+        // 7. OrderItem 리스트를 Order에 추가
         orderItems.forEach(order::addOrderItem);
-
-        // todo 결제 생성
-        // TODO: 결제 승인 호출
 
         Order savedOrder = orderRepository.save(order);
 
@@ -230,17 +253,5 @@ public class OrderServiceImpl implements OrderService {
                 orderItems
             );
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
-    }
-
-    @Override
-    public void patchPaymentStatus(Long orderId, String paymentStatus) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
-
-        try {
-            order.setPaymentStatus(PaymentStatus.valueOf(paymentStatus));
-        } catch (IllegalArgumentException e) {
-            log.info("일치하는 결제 상태를 찾을 수 없음: {}", paymentStatus);
-        }
     }
 }
