@@ -1,4 +1,4 @@
-package com.nhnacademy.order.order.service.strategy;
+package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
@@ -7,6 +7,7 @@ import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @RequiredArgsConstructor
@@ -15,15 +16,49 @@ public enum OrderItemStatusUpdateStrategy {
         @Override
         public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
+
+            // 상품 준비 상태가 아니면 배송 불가
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
+                throw new OrderStatusTransitionException("준비 상태가 아닌 상품: " + orderItemId);
+            }
+
             orderItem.ship();
         }
     },
-    REQUEST_RETURN(OrderItemStatus.RETURN_REQUESTED) {
-
+    REQUEST_RETURN_CHANGE_OF_MIND(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) {
         @Override
         public void updateStatus(Order order, Long orderItemId) {
             OrderItem orderItem = findOrderItem(order, orderItemId);
-            orderItem.requestReturn();
+
+            // 배송 완료 상태가 아니면 반품 요청 불가
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
+                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItemId);
+            }
+
+            // 출고일 기준 10일 경과 시 반품 요청 불가
+            if (LocalDateTime.now().isAfter(orderItem.getShippingDate().plusDays(10))) {
+                throw new OrderStatusTransitionException("단순 변심 반품 기간이 지난 상품: " + orderItemId);
+            }
+
+            orderItem.setOrderItemStatus(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        }
+    },
+    REQUEST_RETURN_DAMAGED(OrderItemStatus.RETURN_REQUESTED_DAMAGED) {
+        @Override
+        public void updateStatus(Order order, Long orderItemId) {
+            OrderItem orderItem = findOrderItem(order, orderItemId);
+
+            // 배송 완료 상태가 아니면 반품 요청 불가
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
+                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItemId);
+            }
+
+            // 출고일 기준 30일 경과 시 반품 요청 불가
+            if (LocalDateTime.now().isAfter(orderItem.getShippingDate().plusDays(30))) {
+                throw new OrderStatusTransitionException("파손 반품 기간이 지난 상품: " + orderItemId);
+            }
+
+            orderItem.setOrderItemStatus(OrderItemStatus.RETURN_REQUESTED_DAMAGED);
         }
     },
     RETURNED(OrderItemStatus.RETURNED) {
@@ -32,8 +67,15 @@ public enum OrderItemStatusUpdateStrategy {
             OrderItem orderItem = findOrderItem(order, orderItemId);
 
             // 반품 요청 상태가 아니면 반품 완료 불가
-            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED)) {
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) &&
+            !orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_DAMAGED)) {
                 throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItemId);
+            }
+
+            if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND)) {
+
+            } else if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_DAMAGED)) {
+
             }
 
             // TODO: 포인트 환불 로직
@@ -41,7 +83,7 @@ public enum OrderItemStatusUpdateStrategy {
             // 쿠폰 API를 호출해 쿠폰 복구?
             // 도서 API를 호출해 재고 복구
 
-            orderItem.completeReturn();
+            orderItem.setOrderItemStatus(OrderItemStatus.RETURNED);
 
             // 주문 전체 상태 업데이트
             order.reflectItemStatusChange();
@@ -63,10 +105,23 @@ public enum OrderItemStatusUpdateStrategy {
             // 쿠폰 API를 호출해 쿠폰 복구?
             // 도서 API를 호출해 재고 복구
 
-            orderItem.cancel();
+            orderItem.setOrderItemStatus(OrderItemStatus.CANCELED);
 
             // 주문 전체 상태 업데이트
             order.reflectItemStatusChange();
+        }
+    },
+    CONFIRMED(OrderItemStatus.CONFIRMED) {
+        @Override
+        public void updateStatus(Order order, Long orderItemId) {
+            OrderItem orderItem = findOrderItem(order, orderItemId);
+
+            // 배송 완료 상태가 아니면 구매 확정 불가
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
+                throw new OrderStatusTransitionException("구매 확정이 불가능한 상태의 상품: " + orderItemId);
+            }
+
+            orderItem.setOrderItemStatus(OrderItemStatus.CONFIRMED);
         }
     };
 

@@ -20,10 +20,4 @@ public record OrderCreateRequest(
     int pointUsage,
 
     List<OrderItemCreateRequest> orderItems
-) {
-    public int getTotalPrice() {
-        return orderItems.stream()
-                .mapToInt(OrderItemCreateRequest::price)
-                .sum();
-    }
-}
+) {}

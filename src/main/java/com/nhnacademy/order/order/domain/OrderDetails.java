@@ -10,9 +10,6 @@ public record OrderDetails(
     @Column(name = "order_date")
     LocalDateTime orderDate,
 
-    @Column(name = "shipping_date")
-    LocalDateTime shippingDate, // 출고일
-
     @Column(name = "shipping_post_code")
     String shippingPostCode, // 우편번호
 
@@ -25,17 +22,20 @@ public record OrderDetails(
     @Column(name = "point_usage")
     int pointUsage,
 
+    @Column(name = "origin_price")
+    int originPrice,
+
     @Column(name = "total_price")
     int totalPrice
 ) {
-    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int totalPrice) {
+    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int originPrice, int totalPrice) {
         return new OrderDetails(
             LocalDateTime.now(),
-            null, // 출고일 - 관리자가 설정
             shippingPostCode,
             deliveryDate,
             deliveryFee,
             pointUsage,
+            originPrice,
             totalPrice
         );
     }
@@ -43,11 +43,11 @@ public record OrderDetails(
     public OrderDetails withNewTotalPrice(int newTotalPrice) {
         return new OrderDetails(
             this.orderDate,
-            this.shippingDate,
             this.shippingPostCode,
             this.deliveryDate,
             this.deliveryFee,
             this.pointUsage,
+            this.originPrice,
             newTotalPrice
         );
     }
@@ -55,11 +55,11 @@ public record OrderDetails(
     public OrderDetails withNewDeliveryFee(int newDeliveryFee) {
         return new OrderDetails(
             this.orderDate,
-            this.shippingDate,
             this.shippingPostCode,
             this.deliveryDate,
             newDeliveryFee,
             this.pointUsage,
+            this.originPrice,
             this.totalPrice
         );
     }
