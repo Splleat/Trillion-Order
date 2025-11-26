@@ -3,7 +3,6 @@ package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
@@ -40,6 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentReceipt(response.getReceipt().getUrl())
                 .order(order)
                 .build();
+
         paymentRepository.save(savePayment);
         savePayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.COMPLETED);
         orderRepository.save(order);
