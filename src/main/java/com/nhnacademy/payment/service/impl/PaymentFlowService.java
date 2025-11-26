@@ -3,18 +3,15 @@ package com.nhnacademy.payment.service.impl;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +22,7 @@ public class PaymentFlowService {
     private final OrderRepository orderRepository;
 
     public PaymentResponse ConfirmPayment(PaymentRequestDto request) {
-        Order order = orderRepository.findByOrderNumber(request.orderNumber())
+        Order order = orderRepository.findOrderWithItemsByOrderNumber(request.orderNumber())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderNumber()));
 
         TossPaymentResponseDto response;

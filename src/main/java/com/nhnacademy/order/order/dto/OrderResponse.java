@@ -36,7 +36,7 @@ public record OrderResponse(
         );
     }
 
-    public static OrderResponse create(Order order, List<OrderItemResponse> orderItems) {
+    public static OrderResponse create(Order order) {
         return new OrderResponse(
             order.getOrderId(),
             order.getMemberId(),
@@ -47,7 +47,7 @@ public record OrderResponse(
             order.getOrderDetails().deliveryFee(),
             order.getOrdererInfo(),
             order.getReceiverInfo(),
-            orderItems
+            order.getOrderItems().stream().map(OrderItemResponse::create).toList()
         );
     }
 }

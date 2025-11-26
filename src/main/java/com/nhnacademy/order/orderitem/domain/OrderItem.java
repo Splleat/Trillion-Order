@@ -38,10 +38,7 @@ public class OrderItem {
     @Column(name = "orderitem_status")
     private OrderItemStatus orderItemStatus;
 
-    @Column(name = "coupon_id")
-    private Long couponId;
-
-    public static OrderItem create(Order order, Long bookId, int quantity, int price, int packagingPrice, Long couponId) {
+    public static OrderItem create(Order order, Long bookId, int quantity, int price, int packagingPrice) {
         return new OrderItem(
             null,
             order,
@@ -50,8 +47,7 @@ public class OrderItem {
             price,
             null, // 출고일 - 관리자가 설정
             packagingPrice,
-            OrderItemStatus.PREPARING,
-            couponId
+            OrderItemStatus.PREPARING
         );
     }
 

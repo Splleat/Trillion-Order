@@ -22,13 +22,18 @@ public record OrderDetails(
     @Column(name = "point_usage")
     int pointUsage,
 
+    // 총 상품 금액: (모든 도서 가격 * 수량) + 모든 도서의 포장비 합
     @Column(name = "origin_price")
     int originPrice,
 
+    // 최종 청구 금액: originPrice - (총 쿠폰 할인액 + 사용 포인트) + 배송비
     @Column(name = "total_price")
-    int totalPrice
+    int totalPrice,
+
+    @Column(name = "coupon_id")
+    Long couponId
 ) {
-    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int originPrice, int totalPrice) {
+    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int originPrice, int totalPrice, Long couponId) {
         return new OrderDetails(
             LocalDateTime.now(),
             shippingPostCode,
@@ -36,7 +41,8 @@ public record OrderDetails(
             deliveryFee,
             pointUsage,
             originPrice,
-            totalPrice
+            totalPrice,
+            couponId
         );
     }
 
@@ -48,7 +54,8 @@ public record OrderDetails(
             this.deliveryFee,
             this.pointUsage,
             this.originPrice,
-            newTotalPrice
+            newTotalPrice,
+            this.couponId
         );
     }
 
@@ -60,7 +67,8 @@ public record OrderDetails(
             newDeliveryFee,
             this.pointUsage,
             this.originPrice,
-            this.totalPrice
+            this.totalPrice,
+            this.couponId
         );
     }
 }

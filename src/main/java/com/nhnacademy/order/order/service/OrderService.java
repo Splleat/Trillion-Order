@@ -9,8 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
     Page<OrderResponse> findAllOrders(Pageable pageable);
-    Long createOrder(Long memberId, OrderCreateRequest request);
-    OrderResponse findOrderByCustomer(Long memberId, Long orderId);
+    OrderResponse createOrder(Long memberId, OrderCreateRequest request);
     OrderResponse findOrderByOrderId(Long orderId);
     Page<OrderResponse> findAllOrderByMemberId(Pageable pageable, Long memberId);
     void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request);
