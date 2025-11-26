@@ -20,14 +20,11 @@ public class PaymentController {
     private final PaymentFlowService paymentFlowService;
 
 
-    @GetMapping("/success")
-    public ResponseEntity<?> createPaymentSuccess(@RequestParam String paymentKey,
-                                                  @RequestParam("orderId") String orderId,
-                                                  @RequestParam("amount")  Integer amount) {
+    @PostMapping("/success")
+    public ResponseEntity<?> createPaymentSuccess(@RequestBody PaymentRequestDto request) {
 
-        PaymentRequestDto requestDto = new PaymentRequestDto(paymentKey, orderId, amount);
 
-        PaymentResponse payment = paymentFlowService.ConfirmPayment(requestDto);
+        PaymentResponse payment = paymentFlowService.ConfirmPayment(request);
 
         return ResponseEntity.ok(payment);
     }
