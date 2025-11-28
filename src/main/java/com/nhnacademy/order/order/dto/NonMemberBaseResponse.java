@@ -24,7 +24,7 @@ public record NonMemberBaseResponse(
             memberId,
             orderTitle,
             orderDate,
-                orderStatus,
+            orderStatus,
             totalPrice,
             deliveryFee,
             ordererInfo,
