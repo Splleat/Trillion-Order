@@ -1,5 +1,6 @@
 package com.nhnacademy.order.order.service;
 
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;

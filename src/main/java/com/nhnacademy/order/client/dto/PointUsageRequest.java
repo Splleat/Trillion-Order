@@ -1,7 +1,7 @@
 package com.nhnacademy.order.client.dto;
 
-public record CouponApplyRequest(
+public record PointUsageRequest(
     Long sagaId,
     Long memberId,
-    Long couponId
+    int point
 ) {}

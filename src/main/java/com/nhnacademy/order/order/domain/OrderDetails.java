@@ -33,16 +33,29 @@ public record OrderDetails(
     @Column(name = "coupon_id")
     Long couponId
 ) {
-    public static OrderDetails create(String shippingPostCode, LocalDateTime deliveryDate, int deliveryFee, int pointUsage, int originPrice, int totalPrice, Long couponId) {
+    public static OrderDetails createInitial(String shippingPostCode, LocalDateTime deliveryDate, int pointUsage, Long couponId) {
         return new OrderDetails(
             LocalDateTime.now(),
             shippingPostCode,
             deliveryDate,
-            deliveryFee,
+            0,  // 확정된 배송비로 교체
             pointUsage,
+            0,  // 확정된 초기 결제액으로 교체
+            0,            // 확정된 최종 결제액으로 교체
+            couponId
+        );
+    }
+
+    public OrderDetails withFinalValue(int originPrice, int totalPrice, int deliveryFee) {
+        return new OrderDetails(
+            this.orderDate,
+            this.shippingPostCode,
+            this.deliveryDate,
+            deliveryFee,
+            this.pointUsage,
             originPrice,
             totalPrice,
-            couponId
+            this.couponId
         );
     }
 

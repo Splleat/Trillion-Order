@@ -2,7 +2,7 @@ package com.nhnacademy.order.order.dto;
 
 import com.nhnacademy.order.order.domain.OrdererInfo;
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.order.order.domain.PaymentStatus;
+import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 
@@ -14,7 +14,7 @@ public record OrderResponse(
     Long memberId,
     String orderNumber,
     LocalDateTime orderDate,
-    PaymentStatus paymentStatus,
+    OrderStatus orderStatus,
     int totalPrice,
     int deliveryFee,
     OrdererInfo ordererInfo,
@@ -27,7 +27,7 @@ public record OrderResponse(
             orderBaseResponse.memberId(),
             orderBaseResponse.orderTitle(),
             orderBaseResponse.orderDate(),
-            orderBaseResponse.paymentStatus(),
+            orderBaseResponse.orderStatus(),
             orderBaseResponse.totalPrice(),
             orderBaseResponse.deliveryFee(),
             orderBaseResponse.ordererInfo(),
@@ -42,7 +42,7 @@ public record OrderResponse(
             order.getMemberId(),
             order.getOrderNumber(),
             order.getOrderDetails().orderDate(),
-            order.getPaymentStatus(),
+            order.getOrderStatus(),
             order.getOrderDetails().totalPrice(),
             order.getOrderDetails().deliveryFee(),
             order.getOrdererInfo(),

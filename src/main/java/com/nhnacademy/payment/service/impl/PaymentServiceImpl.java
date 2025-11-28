@@ -2,12 +2,9 @@ package com.nhnacademy.payment.service.impl;
 
 
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.order.order.exception.OrderNotFoundException;
-import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.payment.config.TossPaymentClient;
+import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
-import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
@@ -43,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(savePayment);
 
-        order.setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.COMPLETED);
+        order.setOrderStatus(OrderStatus.COMPLETED);
         return PaymentResponse.from(savePayment);
     }
 
@@ -51,7 +48,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void updatePaymentCanceledStatus(Payment payment) {
         payment.cancelPayment();
-        payment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.CANCELED);
+        payment.getOrder().setOrderStatus(OrderStatus.CANCELED);
     }
 
     @Override

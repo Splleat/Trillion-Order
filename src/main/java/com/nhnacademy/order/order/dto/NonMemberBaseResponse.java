@@ -1,7 +1,7 @@
 package com.nhnacademy.order.order.dto;
 
 import com.nhnacademy.order.order.domain.OrdererInfo;
-import com.nhnacademy.order.order.domain.PaymentStatus;
+import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
 
 import java.time.LocalDateTime;
@@ -12,7 +12,7 @@ public record NonMemberBaseResponse(
     Long memberId,
     String orderTitle,
     LocalDateTime orderDate,
-    PaymentStatus paymentStatus,
+    OrderStatus orderStatus,
     int totalPrice,
     int deliveryFee,
     OrdererInfo ordererInfo,
@@ -24,7 +24,7 @@ public record NonMemberBaseResponse(
             memberId,
             orderTitle,
             orderDate,
-            paymentStatus,
+                orderStatus,
             totalPrice,
             deliveryFee,
             ordererInfo,
