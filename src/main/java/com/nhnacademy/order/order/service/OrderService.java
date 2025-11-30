@@ -16,4 +16,5 @@ public interface OrderService {
     void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request);
     void patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request);
     OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword);
+    void cancelOrder(Long memberId, Long orderId);
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,11 +25,11 @@ public class BookService {
                 .collect(Collectors.toMap(BookResponse::bookId, Function.identity()));
     }
 
-    public void decreaseStock(Long sagaId, Map<Long, Integer> quantityMap) {
+    public void decreaseStock(UUID sagaId, Map<Long, Integer> quantityMap) {
         bookClient.decreaseStock(new BookStockRequest(sagaId, quantityMap));
     }
 
-    public void increaseStock(Long sagaId, Map<Long, Integer> quantityMap) {
+    public void increaseStock(UUID sagaId, Map<Long, Integer> quantityMap) {
         bookClient.increaseStock(new BookStockRequest(sagaId, quantityMap));
     }
 }

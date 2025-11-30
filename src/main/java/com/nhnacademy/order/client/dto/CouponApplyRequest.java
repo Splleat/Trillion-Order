@@ -1,7 +1,9 @@
 package com.nhnacademy.order.client.dto;
 
+import java.util.UUID;
+
 public record CouponApplyRequest(
-    Long sagaId,
+    UUID sagaId,
     Long memberId,
     Long couponId
 ) {}

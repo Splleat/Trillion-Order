@@ -22,6 +22,8 @@ import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.packaging.domain.Packaging;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
+import com.nhnacademy.order.ordersaga.cancelation.service.OrderCancelOrchestrator;
+import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -49,9 +51,11 @@ public class OrderServiceImpl implements OrderService {
 
     // Service
     private final OrderCreateService orderCreateService;
+    private final OrderCancelService orderCancelService;
 
     // 사가 패턴
-    private final OrderOrchestrator orderOrchestrator;
+    private final OrderCreateOrchestrator orderCreateOrchestrator;
+    private final OrderCancelOrchestrator orderCancelOrchestrator;
 
     // 비회원 주문 비밀번호 인코딩
     private final PasswordEncoder passwordEncoder;
@@ -115,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             // 2. 오케스트레이션 사가 시작 (재고 감소 -> 쿠폰 사용 -> 포인트 사용)
-            orderOrchestrator.processOrder(memberId, order);
+            orderCreateOrchestrator.processCreateOrder(memberId, order);
 
             // 3. 초기 결제 금액, 최종 결제 금액, 배송비 연산
             List<Long> bookIds = request.orderItems().stream()
@@ -150,6 +154,7 @@ public class OrderServiceImpl implements OrderService {
             orderCreateService.completeOrder(order, originPrice, totalPrice, deliveryFee, orderItems);
         } catch (Exception e) {
             // 5. 주문 생성 실패 (사가 패턴 실패 or 주문 생성 중 오류 발생)
+            log.error("주문 ID: {} - 생성 실패: {}", order.getOrderId(), e.getMessage(), e);
             orderCreateService.createFailureOrder(order);
             throw e;
         }
@@ -229,5 +234,22 @@ public class OrderServiceImpl implements OrderService {
 
             return OrderResponse.create(nonMemberBaseResponse.toOrderBaseResponse(), items);
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
+    }
+
+    @Override
+    public void cancelOrder(Long memberId, Long orderId) {
+        Order order = orderRepository.findOrderWithItemsById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
+
+        try {
+            orderCancelOrchestrator.processCancelOrder(memberId, order);
+
+            orderCancelService.completeOrder(order);
+        } catch (Exception e) {
+            log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
+            // 오케스트레이터 내부에서 이미 FAILED 처리 및 로깅 되었음.
+            // completeOrder 실패 -> 아마 스케줄러나 배치 서버로 처리해야 할듯?
+            throw e;
+        }
     }
 }

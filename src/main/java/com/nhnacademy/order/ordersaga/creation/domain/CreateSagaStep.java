@@ -1,6 +1,6 @@
-package com.nhnacademy.order.order.domain;
+package com.nhnacademy.order.ordersaga.creation.domain;
 
-public enum SagaStep {
+public enum CreateSagaStep {
     STARTED,            // 시작
     STOCK_DECREASED,    // 도서 재고 감소
     COUPON_APPLIED,     // 쿠폰 적용

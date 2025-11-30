@@ -1,7 +1,9 @@
 package com.nhnacademy.order.client.dto;
 
+import java.util.UUID;
+
 public record PointUsageRequest(
-    Long sagaId,
+    UUID sagaId,
     Long memberId,
     int point
 ) {}

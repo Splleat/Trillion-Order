@@ -6,6 +6,8 @@ import com.nhnacademy.order.client.dto.CouponGetDiscountAmountRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class CouponService {
@@ -15,11 +17,11 @@ public class CouponService {
         return couponClient.calculateDiscount(new CouponGetDiscountAmountRequest(couponId, price));
     }
 
-    public void applyCoupon(Long sagaId, Long memberId, Long couponId) {
+    public void applyCoupon(UUID sagaId, Long memberId, Long couponId) {
         couponClient.applyCoupon(new CouponApplyRequest(sagaId, memberId, couponId));
     }
 
-    public void withdrawCoupon(Long sagaId, Long memberId, Long couponId) {
+    public void withdrawCoupon(UUID sagaId, Long memberId, Long couponId) {
         couponClient.withdrawCoupon(new CouponApplyRequest(sagaId, memberId, couponId));
     }
 }

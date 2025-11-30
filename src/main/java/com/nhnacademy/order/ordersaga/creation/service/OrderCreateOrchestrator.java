@@ -1,11 +1,15 @@
-package com.nhnacademy.order.order.service;
+package com.nhnacademy.order.ordersaga.creation.service;
 
 import com.nhnacademy.order.client.service.BookService;
 import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
+import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
+import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
+import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,20 +18,20 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class OrderOrchestrator {
+public class OrderCreateOrchestrator {
     private final SagaUpdateService sagaUpdateService;
 
     private final MemberService memberService;
     private final CouponService couponService;
     private final BookService bookService;
 
-    public void processOrder(Long memberId, Order order) {
-        OrderSaga orderSaga = OrderSaga.create(order.getOrderId());
+    public void processCreateOrder(Long memberId, Order order) {
+        OrderCreateSaga orderCreateSaga = OrderCreateSaga.create(order.getOrderId());
 
         // 1. 사가 시작
-        sagaUpdateService.updateSagaStep(orderSaga, SagaStep.STARTED);
+        sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.STARTED);
 
-        Long sagaId = orderSaga.getSagaId();
+        UUID sagaId = orderCreateSaga.getSagaId();
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
@@ -42,14 +46,14 @@ public class OrderOrchestrator {
             bookService.decreaseStock(sagaId, quantityMap);
 
             // 3. 사가 상태 업데이트 (재고 감소 성공)
-            sagaUpdateService.updateSagaStep(orderSaga, SagaStep.STOCK_DECREASED);
+            sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.STOCK_DECREASED);
 
             if (Objects.nonNull(couponId)) {
                 // 4. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
                 couponService.applyCoupon(sagaId, memberId, couponId);
 
                 // 5. 사가 상태 업데이트 (쿠폰 적용)
-                sagaUpdateService.updateSagaStep(orderSaga, SagaStep.COUPON_APPLIED);
+                sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.COUPON_APPLIED);
             }
 
             if (pointUsage > 0) {
@@ -57,54 +61,54 @@ public class OrderOrchestrator {
                 memberService.decreasePoint(sagaId, memberId, pointUsage);
 
                 // 7. 사가 상태 업데이트 (포인트 감소 성공)
-                sagaUpdateService.updateSagaStep(orderSaga, SagaStep.POINT_USED);
+                sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.POINT_USED);
             }
 
             // 8. 사가 성공
-            sagaUpdateService.updateSagaStatus(orderSaga, SagaStatus.COMPLETED);
+            sagaUpdateService.updateCreateSagaStatus(orderCreateSaga, SagaStatus.COMPLETED);
 
         } catch (Exception e) {
             // 9. 사가의 상태를 COMPENSATE로 설정 (보상 트랜잭션 진행 중 서버 오류에도 다시 동작하기 위함)
-            sagaUpdateService.updateSagaStatus(orderSaga, SagaStatus.COMPENSATED);
+            sagaUpdateService.updateCreateSagaStatus(orderCreateSaga, SagaStatus.COMPENSATED);
 
             // 10. 보상 트랜잭션 시작
-            compensate(orderSaga, memberId, quantityMap, couponId, pointUsage);
+            compensate(orderCreateSaga, memberId, quantityMap, couponId, pointUsage);
 
             // 11. RestControllerAdvice에서 ErrorResponse 생성을 위한 예외 던지기
-            throw new OrderCreateFailureException("주문 생성 실패");
+            throw new OrderCreateFailureException("주문 생성 실패" + order.getOrderId());
         }
     }
 
-    private void compensate(OrderSaga orderSaga, Long memberId, Map<Long, Integer> quantityMap, Long couponId, int pointUsage) {
+    private void compensate(OrderCreateSaga orderCreateSaga, Long memberId, Map<Long, Integer> quantityMap, Long couponId, int pointUsage) {
         // 1. 마지막으로 수행한 사가 단계 확인
-        SagaStep currentStep = orderSaga.getLastCompletedStep();
+        CreateSagaStep currentStep = orderCreateSaga.getLastCompletedStep();
 
-        Long sagaId = orderSaga.getSagaId();
+        UUID sagaId = orderCreateSaga.getSagaId();
 
         // 2. 역순으로 보상 트랜잭션 시작
-        if (currentStep == SagaStep.POINT_USED) {
+        if (currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
                 memberService.increasePoint(sagaId, memberId, pointUsage);
             }
-            sagaUpdateService.updateSagaStep(orderSaga, SagaStep.COUPON_APPLIED);
+            sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.COUPON_APPLIED);
 
-            currentStep = SagaStep.COUPON_APPLIED;
+            currentStep = CreateSagaStep.COUPON_APPLIED;
         }
 
-        if (currentStep == SagaStep.COUPON_APPLIED) {
+        if (currentStep == CreateSagaStep.COUPON_APPLIED) {
             if (couponId != null) {
                 couponService.withdrawCoupon(sagaId, memberId, couponId);
             }
-            sagaUpdateService.updateSagaStep(orderSaga, SagaStep.STOCK_DECREASED);
+            sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.STOCK_DECREASED);
 
-            currentStep = SagaStep.STOCK_DECREASED;
+            currentStep = CreateSagaStep.STOCK_DECREASED;
         }
 
-        if (currentStep == SagaStep.STOCK_DECREASED) {
+        if (currentStep == CreateSagaStep.STOCK_DECREASED) {
             bookService.increaseStock(sagaId, quantityMap);
         }
 
         // 3. 보상 트랜잭션 완료 (COMPENSATE -> FAILED)
-        sagaUpdateService.updateSagaStatus(orderSaga, SagaStatus.FAILED);
+        sagaUpdateService.updateCreateSagaStatus(orderCreateSaga, SagaStatus.FAILED);
     }
 }
