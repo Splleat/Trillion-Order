@@ -19,7 +19,9 @@ import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
+import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
+import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import com.nhnacademy.order.packaging.domain.Packaging;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
 import com.nhnacademy.order.ordersaga.cancelation.service.OrderCancelOrchestrator;
@@ -56,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     // 사가 패턴
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderCancelOrchestrator orderCancelOrchestrator;
+    private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
 
     // 비회원 주문 비밀번호 인코딩
     private final PasswordEncoder passwordEncoder;
@@ -200,9 +203,22 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findOrderWithItemsById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new OrderItemNotFoundException("존재하지 않는 주문 상품: " + orderItemId));
+
         OrderItemStatusUpdateStrategy strategy = OrderItemStatusUpdateStrategy.from(request.status());
 
         strategy.updateStatus(order, orderItemId);
+
+        // TODO: 일단 만들어 두긴 했는데 리팩토링 필요할듯. 다른 메서드로 분리한다던가?
+        // 단건 환불 승인
+        if (strategy == OrderItemStatusUpdateStrategy.RETURNED) {
+
+            int deliveryFee = determineDeliveryFee(0);
+
+            orderItemRefundOrchestrator.processItemRefund(memberId, order, orderItem, deliveryFee);
+        }
+
     }
 
     @Override

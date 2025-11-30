@@ -53,13 +53,13 @@ public class OrderCancelOrchestrator {
                 sagaUpdateService.updateCancelSagaStep(orderCancelSaga, CancelSagaStep.COUPON_RESTORED);
             }
 
-            bookService.increaseStock(sagaId, quantityMap);
+            bookService.increaseStocks(sagaId, quantityMap);
 
             sagaUpdateService.updateCancelSagaStatus(orderCancelSaga, SagaStatus.COMPLETED);
 
         } catch (Exception e) {
             sagaUpdateService.updateCancelSagaStatus(orderCancelSaga, SagaStatus.FAILED);
-            // Spring Retry를 사용해 재시도하거나, 배치 서버를 사용해 상태가 FAILED인 사가를 재시작
+            // 스케줄러를 사용해 재시도하거나, 배치 서버를 사용해 상태가 FAILED인 사가를 재시작
             throw new OrderCancelFailureException("주문 전체 취소 실패: " + order.getOrderId());
         }
     }

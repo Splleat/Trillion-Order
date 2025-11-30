@@ -43,7 +43,7 @@ public class OrderCreateOrchestrator {
 
         try {
             // 2. 도서 API에 재고 감소 요청
-            bookService.decreaseStock(sagaId, quantityMap);
+            bookService.decreaseStocks(sagaId, quantityMap);
 
             // 3. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(orderCreateSaga, CreateSagaStep.STOCK_DECREASED);
@@ -105,7 +105,7 @@ public class OrderCreateOrchestrator {
         }
 
         if (currentStep == CreateSagaStep.STOCK_DECREASED) {
-            bookService.increaseStock(sagaId, quantityMap);
+            bookService.increaseStocks(sagaId, quantityMap);
         }
 
         // 3. 보상 트랜잭션 완료 (COMPENSATE -> FAILED)

@@ -1,4 +1,4 @@
-package com.nhnacademy.order.order.repository;
+package com.nhnacademy.order.ordersaga.creation.repository;
 
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import org.springframework.data.jpa.repository.JpaRepository;

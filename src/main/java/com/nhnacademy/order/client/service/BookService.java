@@ -3,6 +3,7 @@ package com.nhnacademy.order.client.service;
 import com.nhnacademy.order.client.BookClient;
 import com.nhnacademy.order.client.dto.BookResponse;
 import com.nhnacademy.order.client.dto.BookStockRequest;
+import com.nhnacademy.order.client.dto.BookStocksRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +26,15 @@ public class BookService {
                 .collect(Collectors.toMap(BookResponse::bookId, Function.identity()));
     }
 
-    public void decreaseStock(UUID sagaId, Map<Long, Integer> quantityMap) {
-        bookClient.decreaseStock(new BookStockRequest(sagaId, quantityMap));
+    public void decreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
+        bookClient.decreaseStocks(new BookStocksRequest(sagaId, quantityMap));
     }
 
-    public void increaseStock(UUID sagaId, Map<Long, Integer> quantityMap) {
-        bookClient.increaseStock(new BookStockRequest(sagaId, quantityMap));
+    public void increaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
+        bookClient.increaseStocks(new BookStocksRequest(sagaId, quantityMap));
+    }
+
+    public void increaseStock(UUID sagaId, Long bookId, int quantity) {
+        bookClient.increaseStock(new BookStockRequest(sagaId, bookId, quantity));
     }
 }
