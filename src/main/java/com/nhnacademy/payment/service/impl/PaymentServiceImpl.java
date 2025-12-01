@@ -5,6 +5,7 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
+import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;

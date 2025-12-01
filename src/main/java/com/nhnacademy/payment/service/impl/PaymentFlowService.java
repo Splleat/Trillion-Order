@@ -4,16 +4,18 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.PaymentStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.exception.*;
+import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class PaymentFlowService {
         if(order.getPaymentStatus().equals(PaymentStatus.COMPLETED)){
             throw new PaymentStateConflictException(request.orderNumber());
         }
-        
+
             TossPaymentResponseDto response = tossPaymentClient.confirm(
                     request.paymentKey(),
                     request.orderNumber(),
