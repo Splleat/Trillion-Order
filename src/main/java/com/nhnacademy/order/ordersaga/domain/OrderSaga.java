@@ -13,7 +13,8 @@ public abstract class OrderSaga {
     // UUID를 가장 효율적으로 저장하고 검색 성능을 최적화하기 위해 16바이트의 이진 데이터로 저장하도록 강제
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "BINARY(16)")
+    // TODO: MySQL에서 변경
+//    @Column(columnDefinition = "BINARY(16)")
     private UUID sagaId;
 
     @Column(nullable = false)

@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(name = "order_create_saga")
 public class OrderCreateSaga extends OrderSaga {
     @Setter
     @Enumerated(EnumType.STRING)

@@ -1,10 +1,7 @@
 package com.nhnacademy.order.ordersaga.itemrefund.domain;
 
 import com.nhnacademy.order.ordersaga.domain.OrderSaga;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(name = "non_member_order_item_refund_saga")
 public class NonMemberOrderItemRefundSaga extends OrderSaga {
     @Column(nullable = false)
     Long orderItemId;

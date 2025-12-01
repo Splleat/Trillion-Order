@@ -4,6 +4,7 @@ import com.nhnacademy.order.ordersaga.domain.OrderSaga;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(name = "order_cancel_saga")
 public class OrderCancelSaga extends OrderSaga {
     @Setter
     @Enumerated(EnumType.STRING)
