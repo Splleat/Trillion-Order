@@ -24,11 +24,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         JOIN FETCH o.orderItems
         WHERE o.orderId = :orderId
     """)
-    Optional<Order> findOrderWithItemsById(Long orderId);
+    Optional<Order> findOrderWithItemsByOrderId(Long orderId);
 
     @Query("""
-        SELECT o.memberId
+        SELECT o
         FROM Order o
+        JOIN FETCH o.orderItems
         WHERE o.orderNumber = :orderNumber
     """)
     Optional<Order> findOrderWithItemsByOrderNumber(String orderNumber);

@@ -72,17 +72,7 @@ public enum OrderItemStatusUpdateStrategy {
                 throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItemId);
             }
 
-            if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND)) {
-
-            } else if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_DAMAGED)) {
-
-            }
-
-            // TODO: 포인트 환불 로직
-            // 멤버 API를 호출해 결제 금액 만큼의 포인트 추가 (적립 포인트만큼 제외? 어떻게?)
-            // 쿠폰 API를 호출해 쿠폰 복구?
-            // 도서 API를 호출해 재고 복구
-
+            // 상태 변경
             orderItem.setOrderItemStatus(OrderItemStatus.RETURNED);
 
             // 주문 전체 상태 업데이트
@@ -99,12 +89,7 @@ public enum OrderItemStatusUpdateStrategy {
                 throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품: " + orderItemId);
             }
 
-            // TODO: 주문 취소 로직
-            // 결제 API를 호출해 환불
-                // 적립된 포인트만큼 제외하고 환불?
-            // 쿠폰 API를 호출해 쿠폰 복구?
-            // 도서 API를 호출해 재고 복구
-
+            // 상태 변경
             orderItem.setOrderItemStatus(OrderItemStatus.CANCELED);
 
             // 주문 전체 상태 업데이트

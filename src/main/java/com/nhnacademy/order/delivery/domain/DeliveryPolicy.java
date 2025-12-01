@@ -1,11 +1,13 @@
 package com.nhnacademy.order.delivery.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class DeliveryPolicy {
     @Id

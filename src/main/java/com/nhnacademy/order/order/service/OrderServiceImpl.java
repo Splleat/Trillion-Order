@@ -21,6 +21,7 @@ import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
+import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import com.nhnacademy.order.packaging.domain.Packaging;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
@@ -59,6 +60,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderCancelOrchestrator orderCancelOrchestrator;
     private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
+    private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
 
     // 비회원 주문 비밀번호 인코딩
     private final PasswordEncoder passwordEncoder;
@@ -133,8 +135,9 @@ public class OrderServiceImpl implements OrderService {
 
             List<OrderItem> orderItems = buildOrderItems(request.orderItems(), bookResponseMap);
 
+            // 순수 금액 (도서 * 재고 + 포장비)
             int originPrice = orderItems.stream()
-                    .mapToInt(OrderItem::getPrice)
+                    .mapToInt(orderItem -> orderItem.getPrice() * orderItem.getQuantity() + orderItem.getPackagingPrice())
                     .sum();
 
             int totalPrice = originPrice;
@@ -165,6 +168,7 @@ public class OrderServiceImpl implements OrderService {
         return OrderResponse.create(order);
     }
 
+    // 주문 ID로 주문 찾기
     @Override
     @Transactional(readOnly = true)
     public OrderResponse findOrderByOrderId(Long orderId) {
@@ -177,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
     }
 
+    // 멤버 ID로 주문 목록 찾기
     @Override
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrderByMemberId(Pageable pageable, Long memberId) {
@@ -197,10 +202,11 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    // 주문 상품 상태 변경
     @Override
     @Transactional
     public void patchOrderItemStatus(Long memberId, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
-        Order order = orderRepository.findOrderWithItemsById(orderId)
+        Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
@@ -216,15 +222,22 @@ public class OrderServiceImpl implements OrderService {
 
             int deliveryFee = determineDeliveryFee(0);
 
+            // memberId 여부로 회원 환불 / 비회원 환불 구분
+            Optional.ofNullable(memberId).ifPresentOrElse(
+                    id -> orderItemRefundOrchestrator.processItemRefund(id, order, orderItem, deliveryFee),
+                    () -> nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem)
+            );
+
             orderItemRefundOrchestrator.processItemRefund(memberId, order, orderItem, deliveryFee);
         }
 
     }
 
+    // 비회원 주문 상품 상태 변경 (주문 취소, 환불 요청)
     @Override
     @Transactional
     public void patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request) {
-        Order order = orderRepository.findOrderWithItemsById(orderId)
+        Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE));
 
         if (!passwordEncoder.matches(request.nonMemberPassword(), order.getNonMemberPassword())) {
@@ -236,6 +249,7 @@ public class OrderServiceImpl implements OrderService {
         strategy.updateStatus(order, orderItemId);
     }
 
+    // 주문 번호로 주문 찾기
     @Override
     @Transactional(readOnly = true)
     public OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword) {
@@ -252,9 +266,10 @@ public class OrderServiceImpl implements OrderService {
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
     }
 
+    // 주문 전체 취소
     @Override
     public void cancelOrder(Long memberId, Long orderId) {
-        Order order = orderRepository.findOrderWithItemsById(orderId)
+        Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
         try {

@@ -17,8 +17,6 @@ public class OrderCancelService {
 
         order.setOrderStatus(OrderStatus.CANCELED);
 
-        // TODO: PaymentService를 호출해서 환불
-
         orderRepository.save(order);
     }
 }

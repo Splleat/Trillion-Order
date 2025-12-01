@@ -10,7 +10,7 @@ public record NonMemberBaseResponse(
     Long orderId,
     String nonMemberPassword,
     Long memberId,
-    String orderTitle,
+    String orderNumber,
     LocalDateTime orderDate,
     OrderStatus orderStatus,
     int totalPrice,
@@ -22,7 +22,7 @@ public record NonMemberBaseResponse(
         return new OrderBaseResponse(
             orderId,
             memberId,
-            orderTitle,
+            orderNumber,
             orderDate,
             orderStatus,
             totalPrice,

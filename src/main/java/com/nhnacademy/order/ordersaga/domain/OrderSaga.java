@@ -9,8 +9,11 @@ import java.util.UUID;
 @Getter
 @MappedSuperclass
 public abstract class OrderSaga {
+    // MySQL은 기본적으로 UUID를 하이픈을 포함한 36자 문자열로 간주하여 VARCHAR(255) 또는 이와 유사한 타입으로 저장하려 함
+    // UUID를 가장 효율적으로 저장하고 검색 성능을 최적화하기 위해 16바이트의 이진 데이터로 저장하도록 강제
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)")
     private UUID sagaId;
 
     @Column(nullable = false)

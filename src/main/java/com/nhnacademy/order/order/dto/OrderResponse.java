@@ -25,7 +25,7 @@ public record OrderResponse(
         return new OrderResponse(
             orderBaseResponse.orderId(),
             orderBaseResponse.memberId(),
-            orderBaseResponse.orderTitle(),
+            orderBaseResponse.orderNumber(),
             orderBaseResponse.orderDate(),
             orderBaseResponse.orderStatus(),
             orderBaseResponse.totalPrice(),

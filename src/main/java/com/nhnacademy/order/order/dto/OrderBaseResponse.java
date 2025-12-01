@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record OrderBaseResponse(
     Long orderId,
     Long memberId,
-    String orderTitle,
+    String orderNumber,
     LocalDateTime orderDate,
     OrderStatus orderStatus,
     int totalPrice,

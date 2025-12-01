@@ -1,7 +1,6 @@
 package com.nhnacademy.order.client;
 
 import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStockRequest;
 import com.nhnacademy.order.client.dto.BookStocksRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +19,4 @@ public interface BookClient {
 
     @PatchMapping("/api/book/3")
     void decreaseStocks(@RequestBody BookStocksRequest request);
-
-    @PatchMapping("/api/book/4")
-    void increaseStock(@RequestBody BookStockRequest request);
 }
