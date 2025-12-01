@@ -67,7 +67,6 @@ public class PaymentFlowService {
 
     //결제 취소 -> 주문이 결제 대기이거나 이미 취소됐다면 취소 못하게 해야 함.
     //todo 결제 취소 반환 타입도 바꿔야할 듯?
-
     public void cancelPayment(String orderNumber,String cancelReason,Integer cancelAmount) {
         Payment payment = paymentService.getPaymentByOrderNumber(orderNumber);
 

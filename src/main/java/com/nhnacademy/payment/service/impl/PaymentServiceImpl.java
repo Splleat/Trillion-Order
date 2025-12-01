@@ -71,7 +71,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
         //todo 주문의 결제 상태에 부분취소를 같이 추가한다면 partial canceled 상태 업데이트 해주고 아니면 그냥 completed 유지.
     }
-
     //결제 정보 반환 -> 서버에서 처리할때만 사용할듯
     @Override
     @Transactional(readOnly = true)
