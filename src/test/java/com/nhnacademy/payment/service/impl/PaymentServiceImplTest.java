@@ -2,11 +2,15 @@ package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
+import com.nhnacademy.order.order.domain.OrderStatus;
+import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.domain.Payment;
+import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
+import com.nhnacademy.payment.exception.PaymentStateConflictException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,11 +19,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +44,8 @@ class PaymentServiceImplTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    OrderService orderService;
+    private OrderRepository orderRepository;
+
 
     private Order order;
 
@@ -44,25 +54,28 @@ class PaymentServiceImplTest {
     @BeforeEach
     void setup(){
         order = new Order();
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+        ReflectionTestUtils.setField(order, "orderNumber", "testOrderNumber");
+        order.setOrderStatus(OrderStatus.PENDING);
 
-        ReflectionTestUtils.setField(order,"orderId",1L);
-        ReflectionTestUtils.setField(order,"orderNumber","testOrderNumber");
 
-        OrderDetails orderDetails = mock(OrderDetails.class);
-        lenient().when(orderDetails.totalPrice()).thenReturn(50000); // totalPrice 호출 시 50000원 리턴하도록 설정
-        ReflectionTestUtils.setField(order, "orderDetails", orderDetails);
+        OrderDetails mockOrderDetails = mock(OrderDetails.class);
 
-        // Order 객체에 orderDetails 필드 강제 주입
+        lenient().when(mockOrderDetails.totalPrice()).thenReturn(50000);
+
+        ReflectionTestUtils.setField(order, "orderDetails", mockOrderDetails);
+
+
+        // 3. TossPaymentResponseDto 생성
         response = new TossPaymentResponseDto();
-
-        ReflectionTestUtils.setField(response,"paymentKey","test_paymentKey");
+        ReflectionTestUtils.setField(response, "paymentKey", "test_paymentKey");
+        ReflectionTestUtils.setField(response, "totalAmount", 50000); // [중요] 이거 꼭 있어야 함
         ReflectionTestUtils.setField(response, "requestedAt", "2024-11-25T10:00:00+09:00");
         ReflectionTestUtils.setField(response, "approvedAt", "2024-11-25T10:00:05+09:00");
 
         TossPaymentResponseDto.Receipt receipt = new TossPaymentResponseDto.Receipt();
         ReflectionTestUtils.setField(receipt, "url", "http://receipt.url");
         ReflectionTestUtils.setField(response, "receipt", receipt);
-
     }
 
 
@@ -78,14 +91,19 @@ class PaymentServiceImplTest {
                 }
         );
 
-        PaymentResponse result = paymentService.savePayment(response,order);
+        PaymentResponse result = paymentService.savePayment(response, order);
 
+        // then
         assertNotNull(result);
-        assertEquals("DONE",result.status());
-        assertEquals(50000,result.totalAmount());
+        assertEquals("DONE", result.status());
+        assertEquals(50000, result.totalAmount());
 
-        verify(paymentRepository,times(1)).save(any(Payment.class));
+        // 주문 상태 변경 확인
+        assertEquals(OrderStatus.COMPLETED, order.getOrderStatus());
 
+        // [확인] savePayment 내부에서 orderRepository.save()가 호출되었는지 검증
+        verify(paymentRepository, times(1)).save(any(Payment.class));
+        verify(orderRepository, times(1)).save(any(Order.class));
 
     }
 
@@ -93,6 +111,7 @@ class PaymentServiceImplTest {
     @DisplayName("결제 취소 상태 업데이트 - 성공")
     void updateCanceledStatus(){
         Long paymentId = 1L;
+        Integer cancelAmount = 50000;
 
         Payment mockPayment = mock(Payment.class);
         given(mockPayment.getPaymentId()).willReturn(paymentId);
@@ -101,21 +120,29 @@ class PaymentServiceImplTest {
                 .paymentKey("test_paymentKey")
                 .paymentStatus(com.nhnacademy.payment.domain.PaymentStatus.DONE)
                 .order(order)
+                .totalAmount(50000)
                 .build();
+
+        ReflectionTestUtils.setField(findPayment, "paymentId", paymentId);
 
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(findPayment));
 
-        paymentService.updatePaymentCanceledStatus(mockPayment);
+        paymentService.updatePaymentCanceledStatus(mockPayment,cancelAmount);
 
 
-        assertEquals(com.nhnacademy.payment.domain.PaymentStatus.CANCELED, findPayment.getPaymentStatus());
-        assertEquals(PaymentStatus.CANCELED, order.getPaymentStatus());
+        // 1. Payment 상태가 CANCELED로 변경되었는지
+        assertEquals(PaymentStatus.CANCELED, findPayment.getPaymentStatus());
+        // 2. 잔액이 0원인지
+        assertEquals(0, findPayment.getBalanceAmount());
+        // 3. Order 상태가 CANCELED로 변경되었는지
+        assertEquals(OrderStatus.CANCELED, order.getOrderStatus());
     }
 
     @Test
     @DisplayName("결제 취소 상태 업데이트 - 실패(이미 취소 처리된 결제 정보)")
     void updatedCanceledStatus_Fail2(){
         Long paymentId = 1L;
+        Integer cancelAmount = 50000;
         Payment mockPayment = mock(Payment.class);
         given(mockPayment.getPaymentId()).willReturn(paymentId);
 
@@ -127,7 +154,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(findPayment));
 
-        assertThrows(PaymentAlreadyCanceledException.class,()->paymentService.updatePaymentCanceledStatus(mockPayment));
+        assertThrows(PaymentStateConflictException.class,()->paymentService.updatePaymentCanceledStatus(mockPayment,cancelAmount));
 
         assertEquals(com.nhnacademy.payment.domain.PaymentStatus.CANCELED, findPayment.getPaymentStatus());
 
@@ -137,6 +164,7 @@ class PaymentServiceImplTest {
     @DisplayName("결제 취소 상태 업데이트 - 실패(없는 결제 정보)")
     void updateCanceledStatus_Fail(){
         Long paymentId = 1L;
+        Integer cancelAmount = 50000;
 
         Payment mockPayment = mock(Payment.class);
         given(mockPayment.getPaymentId()).willReturn(paymentId);
@@ -144,7 +172,7 @@ class PaymentServiceImplTest {
         given(paymentRepository.findById(mockPayment.getPaymentId())).willReturn(Optional.empty());
 
         assertThrows(PaymentNotFoundException.class, () ->
-                paymentService.updatePaymentCanceledStatus(mockPayment));
+                paymentService.updatePaymentCanceledStatus(mockPayment,cancelAmount));
 
     }
 
@@ -209,6 +237,39 @@ class PaymentServiceImplTest {
         assertNotNull(result);
         assertEquals("test_paymentKey",result.paymentKey());
         assertEquals(1L,result.paymentId());
+    }
+
+    @Test
+    @DisplayName("결제 내역 전체 조회 - 성공")
+    void getAllPaymentsSuccess() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // setup()에서 이미 생성된 order(mockOrderDetails 포함)를 사용하여 Payment 객체 생성
+        Payment payment = Payment.builder()
+                .paymentKey("test_paymentKey")
+                .paymentStatus(com.nhnacademy.payment.domain.PaymentStatus.DONE)
+                .order(order) // [중요] setup에서 만든 order 사용
+                .totalAmount(50000)
+                .build();
+
+        ReflectionTestUtils.setField(payment, "paymentId", 1L);
+
+        // Repository가 반환할 Page 객체 생성
+        Page<Payment> paymentPage = new PageImpl<>(List.of(payment));
+
+        given(paymentRepository.findAll(pageable)).willReturn(paymentPage);
+
+        // when
+        Page<PaymentResponse> result = paymentService.getAllPayments(pageable);
+
+        // then
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements()); // 요소 개수 확인
+        assertEquals("test_paymentKey", result.getContent().get(0).paymentKey()); // 변환된 DTO 값 확인
+        assertEquals(50000, result.getContent().get(0).totalAmount()); // 금액 확인
+
+        verify(paymentRepository, times(1)).findAll(pageable);
     }
 
     

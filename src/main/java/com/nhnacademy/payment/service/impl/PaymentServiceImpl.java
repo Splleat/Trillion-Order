@@ -44,7 +44,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         paymentRepository.save(savePayment);
-
         savePayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.COMPLETED);
         orderRepository.save(order);
 
@@ -57,9 +56,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void updatePaymentCanceledStatus(Payment payment, Integer cancelAmount) {
 
+        //해당 결제를 찾을 수 없다면?
         Payment findPayment = paymentRepository.findById((payment.getPaymentId())).orElseThrow(
-                () -> new PaymentNotFoundException(payment.getPaymentKey()));
+                () -> new PaymentNotFoundException("결제 정보가 존재하지 않습니다."));
 
+        //이미 취소된 결제 건 이라면?
         if(findPayment.getPaymentStatus().equals(PaymentStatus.CANCELED)) {
             throw new PaymentStateConflictException("이미 전체 취소된 결제 건 입니다.");
         }
