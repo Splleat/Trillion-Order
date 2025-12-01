@@ -5,7 +5,6 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
-import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
@@ -46,7 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(savePayment);
 
-        savePayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.COMPLETED);
+        savePayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.COMPLETED);
         orderRepository.save(order);
 
 
@@ -68,7 +67,7 @@ public class PaymentServiceImpl implements PaymentService {
         findPayment.cancelPayment(cancelAmount);
 
         if(findPayment.getPaymentStatus() == PaymentStatus.CANCELED) {
-            findPayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.CANCELED);
+            findPayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.CANCELED);
         }
         //todo 주문의 결제 상태에 부분취소를 같이 추가한다면 partial canceled 상태 업데이트 해주고 아니면 그냥 completed 유지.
     }

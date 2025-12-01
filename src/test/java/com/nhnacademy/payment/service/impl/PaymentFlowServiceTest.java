@@ -1,7 +1,6 @@
 package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.order.order.domain.PaymentStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.config.TossPaymentClient;

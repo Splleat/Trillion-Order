@@ -1,21 +1,22 @@
 package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.order.order.domain.PaymentStatus;
+import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.repository.PaymentRepository;
+import com.nhnacademy.payment.exception.PaymentSaveFailException;
+import com.nhnacademy.payment.exception.PaymentStateConflictException;
+import com.nhnacademy.payment.exception.PaymentValidationException;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class PaymentFlowService {
     //결제 승인 -> 취소나 대기 중은 승인 가능하게, 이미 결제 처리되었다면? 결제 승인 불가능 하게
     public PaymentResponse confirmPayment(PaymentRequestDto request) {
         // 결제를 승인하려 했을때 찾을 수 없는 주문 건이라면?
-        Order order = orderRepository.findByOrderNumber(request.orderNumber())
+        Order order = orderRepository.findOrderWithItemsByOrderNumber(request.orderNumber())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderNumber()));
 
         //view에서 뿌린 금액과 db에 저장된 금액이 일치하지 않을 시?
@@ -40,7 +41,7 @@ public class PaymentFlowService {
         }
 
         //결제 승인시 이미 결제 승인된 주문이라면?
-        if(order.getPaymentStatus().equals(PaymentStatus.COMPLETED)){
+        if(order.getOrderStatus().equals(OrderStatus.COMPLETED)){
             throw new PaymentStateConflictException(request.orderNumber());
         }
 
@@ -60,7 +61,7 @@ public class PaymentFlowService {
             tossPaymentClient.cancel(request.paymentKey(), "서버 데이터베이스 저장 오류",response.getTotalAmount());
 
             //주문이 정상적으로 처리되지 않았으니 CANCELED로 롤백
-            order.setPaymentStatus(PaymentStatus.CANCELED);
+            order.setOrderStatus(OrderStatus.CANCELED);
             orderRepository.save(order);
             throw new PaymentSaveFailException(request.orderNumber(), "데이터베이스에 저장 중 오류 발생");
         }
@@ -73,12 +74,12 @@ public class PaymentFlowService {
         Payment payment = paymentService.getPaymentByOrderNumber(orderNumber);
 
         //이미 결제가 취소된 주문건에서는 또 다시 결제 취소는 불가능 함.
-        if(payment.getOrder().getPaymentStatus().equals(PaymentStatus.CANCELED)){
+        if(payment.getOrder().getOrderStatus().equals(OrderStatus.CANCELED)){
             throw new PaymentStateConflictException("이미 전액 취소된 결제 건 입니다.");
         }
 
         //주문이 결제 대기 상태인데 취소 하려 할때도 역시 결제 취소는 불가능하다고 처리 해줘야 할듯
-        if(payment.getOrder().getPaymentStatus().equals(PaymentStatus.PENDING)){
+        if(payment.getOrder().getOrderStatus().equals(OrderStatus.PENDING)){
             throw new PaymentStateConflictException("결제가 승인되지 않은 주문 건 입니다.");
         }
 

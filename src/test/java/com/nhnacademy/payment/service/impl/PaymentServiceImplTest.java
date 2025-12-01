@@ -2,7 +2,6 @@ package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
-import com.nhnacademy.order.order.domain.PaymentStatus;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
