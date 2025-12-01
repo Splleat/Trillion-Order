@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -40,17 +41,26 @@ public class TossPaymentClient {
                 .block();//동기
     }
 
+    //toss-api 기준 넘겨주는 금액이 null 이면 결제 전체 취소 처리임, 그러나 금액을 넘겨주먄 부분 취소 처리로 함.
+    public TossPaymentResponseDto cancel(String paymentKey, String cancelReason, Integer cancelAmount){
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("cancelReason", cancelReason);
 
-    public TossPaymentResponseDto cancel(String paymentKey, String cancelReason){
+        // 2. 취소 금액이 null이 아닐 때만 API 요청에 포함 (null이면 전액 취소로 동작)
+        if (cancelAmount != null) {
+            requestBody.put("cancelAmount", cancelAmount);
+        }
+
         return tossWebClient.post()
-                .uri("/payments/" +paymentKey+"/cancel")
-                .header(HttpHeaders.AUTHORIZATION,getBasicAuthHeader())
-                .bodyValue(Map.of("cancelReason",cancelReason))
+                .uri("/payments/" + paymentKey + "/cancel")
+                .header(HttpHeaders.AUTHORIZATION, getBasicAuthHeader())
+                .bodyValue(requestBody)
                 .retrieve()
-                .onStatus(status ->
-                        status.isError(), response -> response.bodyToMono(String.class)
-                        .flatMap(error -> Mono.error(new RuntimeException("Toss 결제 취소 오류 " + error)))
-                ).bodyToMono(TossPaymentResponseDto.class)
+                .onStatus(status -> status.isError(), response ->
+                        response.bodyToMono(String.class)
+                                .flatMap(error -> Mono.error(new RuntimeException("Toss 결제 취소 오류 " + error)))
+                )
+                .bodyToMono(TossPaymentResponseDto.class)
                 .block();
     }
 

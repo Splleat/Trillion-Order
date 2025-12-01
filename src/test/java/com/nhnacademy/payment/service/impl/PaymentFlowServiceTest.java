@@ -4,14 +4,11 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.PaymentStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.exception.PaymentAlreadyApprovedException;
-import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,8 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import javax.management.relation.Relation;
 
 import java.util.Optional;
 

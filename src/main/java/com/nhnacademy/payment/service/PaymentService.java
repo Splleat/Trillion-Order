@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 public interface PaymentService {
     PaymentResponse savePayment(TossPaymentResponseDto response, Order order);
 
-    void updatePaymentCanceledStatus(Payment payment);
+    void updatePaymentCanceledStatus(Payment payment, Integer cancelAmount);
 
     Payment getPaymentByOrderNumber(String orderNumber);
 

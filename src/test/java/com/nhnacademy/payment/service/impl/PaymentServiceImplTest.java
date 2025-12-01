@@ -7,7 +7,6 @@ import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -212,4 +211,6 @@ class PaymentServiceImplTest {
         assertEquals("test_paymentKey",result.paymentKey());
         assertEquals(1L,result.paymentId());
     }
+
+    
 }

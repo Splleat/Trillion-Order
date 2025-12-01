@@ -7,8 +7,8 @@ import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
-import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
+import com.nhnacademy.payment.exception.PaymentStateConflictException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +40,11 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentApprovedAt(LocalDateTime.parse(response.getApprovedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .paymentReceipt(response.getReceipt().getUrl())
                 .order(order)
+                .totalAmount(response.getTotalAmount()) //결제 승인당시 최종 금액 -> 불변
                 .build();
 
         paymentRepository.save(savePayment);
+
         savePayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.COMPLETED);
         orderRepository.save(order);
 
@@ -53,17 +55,21 @@ public class PaymentServiceImpl implements PaymentService {
     //결제 취소시
     @Override
     @Transactional
-    public void updatePaymentCanceledStatus(Payment payment) {
+    public void updatePaymentCanceledStatus(Payment payment, Integer cancelAmount) {
 
         Payment findPayment = paymentRepository.findById((payment.getPaymentId())).orElseThrow(
                 () -> new PaymentNotFoundException(payment.getPaymentKey()));
 
         if(findPayment.getPaymentStatus().equals(PaymentStatus.CANCELED)) {
-            throw new PaymentAlreadyCanceledException("이미 결제 취소된 상품입니다.: "  +payment.getPaymentKey());
+            throw new PaymentStateConflictException("이미 전체 취소된 결제 건 입니다.");
         }
 
-        findPayment.cancelPayment();
-        findPayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.CANCELED);
+        findPayment.cancelPayment(cancelAmount);
+
+        if(findPayment.getPaymentStatus() == PaymentStatus.CANCELED) {
+            findPayment.getOrder().setPaymentStatus(com.nhnacademy.order.order.domain.PaymentStatus.CANCELED);
+        }
+        //todo 주문의 결제 상태에 부분취소를 같이 추가한다면 partial canceled 상태 업데이트 해주고 아니면 그냥 completed 유지.
     }
 
     //결제 정보 반환 -> 서버에서 처리할때만 사용할듯
@@ -82,7 +88,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentById(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(
-                () -> new PaymentNotFoundException("결제 정보가 존재하지 않습니다.")
+                () -> new PaymentNotFoundException("결제 정보가 존재하지 않습니다."+paymentId)
         );
 
         return PaymentResponse.from(payment);

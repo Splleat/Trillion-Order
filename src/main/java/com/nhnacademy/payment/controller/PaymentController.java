@@ -2,6 +2,7 @@ package com.nhnacademy.payment.controller;
 
 import com.nhnacademy.payment.domain.Payment;
 import com.nhnacademy.payment.domain.PaymentStatus;
+import com.nhnacademy.payment.dto.reqeust.PaymentCancelRequestDto;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.service.PaymentService;
@@ -36,13 +37,14 @@ public class PaymentController {
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<?> cancelPayment(@RequestBody Map<String, String> requestBody) {
-        String orderNumber= requestBody.get("orderNumber");
-        String cancelReason = requestBody.get("cancelReason");
+    public ResponseEntity<?> cancelPayment(@RequestBody PaymentCancelRequestDto request) {
+        paymentFlowService.cancelPayment(
+                request.orderNumber(),
+                request.cancelReason(),
+                request.cancelAmount() // null이면 서비스가 알아서 전액 취소로 처리함
+        );
 
-        paymentFlowService.cancelPayment(orderNumber, cancelReason);
-
-        return ResponseEntity.ok("결제 취소 완료");
+        return ResponseEntity.ok("결제 취소 요청이 정상적으로 처리되었습니다.");
     }
 
     @GetMapping

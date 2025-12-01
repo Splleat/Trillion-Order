@@ -5,6 +5,7 @@ import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
+import com.nhnacademy.payment.exception.PaymentNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler({
         OrderNotFoundException.class,
-        PackagingNotFoundException.class
+        PackagingNotFoundException.class,
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(Exception ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "NOT_FOUND");

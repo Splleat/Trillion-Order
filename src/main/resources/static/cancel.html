@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <title>결제 취소 테스트</title>
+  <title>결제 취소 테스트 (부분 취소)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body { padding-top: 50px; background-color: #f9f9f9; }
@@ -13,18 +13,23 @@
 <div class="container">
   <div class="card shadow-sm mx-auto" style="max-width: 500px;">
     <div class="card-header bg-danger text-white text-center">
-      <h4 class="mb-0">결제 취소 요청</h4>
+      <h4 class="mb-0">결제 취소 / 부분 취소</h4>
     </div>
     <div class="card-body p-4">
       <div class="mb-3">
         <label for="orderNumber" class="form-label fw-bold">주문 번호</label>
         <input type="text" class="form-control" id="orderNumber" placeholder="예: ORD-xxxx..." required>
-        <div class="form-text">DB에 저장된 'orderNumber'를 정확히 입력하세요.</div>
       </div>
 
       <div class="mb-3">
         <label for="cancelReason" class="form-label fw-bold">취소 사유</label>
         <input type="text" class="form-control" id="cancelReason" value="단순 변심" required>
+      </div>
+
+      <div class="mb-4">
+        <label for="cancelAmount" class="form-label fw-bold">취소할 금액 (선택)</label>
+        <input type="number" class="form-control" id="cancelAmount" placeholder="비워두면 전액 취소됩니다">
+        <div class="form-text text-danger">※ 금액을 입력하면 해당 금액만 부분 취소됩니다.</div>
       </div>
 
       <button id="btn-cancel" class="btn btn-danger w-100 py-2 fw-bold">결제 취소하기</button>
@@ -38,11 +43,15 @@
   document.getElementById("btn-cancel").addEventListener("click", async function() {
     const orderNumber = document.getElementById("orderNumber").value;
     const cancelReason = document.getElementById("cancelReason").value;
+    const cancelAmountVal = document.getElementById("cancelAmount").value;
 
     if (!orderNumber) {
       alert("주문 번호를 입력해주세요.");
       return;
     }
+
+    // 금액이 있으면 숫자로 변환, 비어있으면 null
+    const cancelAmount = cancelAmountVal ? Number(cancelAmountVal) : null;
 
     const resultArea = document.getElementById("result-area");
     const btn = this;
@@ -53,7 +62,6 @@
     btn.innerText = "처리 중...";
 
     try {
-      // [수정] 상대 경로 사용 (포트 번호 하드코딩 제거)
       const response = await fetch('/payments/cancel', {
         method: 'POST',
         headers: {
@@ -61,7 +69,8 @@
         },
         body: JSON.stringify({
           orderNumber: orderNumber,
-          cancelReason: cancelReason
+          cancelReason: cancelReason,
+          cancelAmount: cancelAmount // [핵심] 금액 전송 (null이면 백엔드에서 전액 취소 처리)
         }),
       });
 
@@ -73,9 +82,9 @@
         resultArea.innerHTML = `<strong>✅ 성공!</strong><br>${text}`;
       } else {
         resultArea.classList.add("alert-danger");
-        // JSON 에러 메시지 파싱 시도
         try {
           const jsonErr = JSON.parse(text);
+          // PaymentErrorResponse의 메시지 출력
           resultArea.innerHTML = `<strong>❌ 실패!</strong><br>${jsonErr.message || text}`;
         } catch (e) {
           resultArea.innerHTML = `<strong>❌ 실패!</strong><br>${text}`;
