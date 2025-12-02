@@ -1,6 +1,5 @@
 package com.nhnacademy.order.order.domain;
 
-import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import jakarta.persistence.*;
@@ -17,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
