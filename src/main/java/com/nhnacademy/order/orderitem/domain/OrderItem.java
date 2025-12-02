@@ -57,6 +57,8 @@ public class OrderItem {
 
     public void ship() {
         this.orderItemStatus = OrderItemStatus.SHIPPED;
-        this.shippingDate = LocalDateTime.now();
+        if (this.shippingDate == null) {
+            this.shippingDate = LocalDateTime.now();
+        }
     }
 }

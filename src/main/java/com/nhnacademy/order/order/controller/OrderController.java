@@ -39,20 +39,18 @@ public class OrderController {
 
     // 주문 전체 조회 (관리자)
     @GetMapping("/orders/admin")
-    @PreAuthorize("@securityService.isAdmin(#userInfo)")
     public ResponseEntity<Page<OrderResponse>> getAllOrderByAdmin(Pageable pageable,
                                                                   UserInfo userInfo) {
-        Page<OrderResponse> response = orderService.findAllOrders(pageable);
+        Page<OrderResponse> response = orderService.findAllOrders(userInfo, pageable);
 
         return ResponseEntity.ok(response);
     }
 
     // 주문 전체 조회 (회원)
     @GetMapping("/orders")
-    @PreAuthorize("@securityService.isAuthenticated(#userInfo)")
     public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable,
                                                                      UserInfo userInfo) {
-        Page<OrderResponse> response = orderService.findAllOrderByMemberId(pageable, userInfo.userId());
+        Page<OrderResponse> response = orderService.findAllOrderByMemberId(userInfo, pageable);
 
         return ResponseEntity.ok(response);
     }
@@ -61,10 +59,7 @@ public class OrderController {
     @PostMapping("/orders")
     public ResponseEntity<OrderResponse> createOrder(@RequestBody @Valid OrderCreateRequest request,
                                                      UserInfo userInfo) {
-        // 비회원인 경우 userId가 null
-        Long userId = (userInfo == null) ? null : userInfo.userId();
-
-        OrderResponse createdOrderResponse = orderService.createOrder(userId, request);
+        OrderResponse createdOrderResponse = orderService.createOrder(userInfo, request);
 
         URI locationUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -77,10 +72,9 @@ public class OrderController {
 
     // 주문 단건 조회 (회원)
     @GetMapping("/orders/{orderId}")
-    @PreAuthorize("@securityService.isOrderOwner(#orderId, #userInfo)")
     public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable Long orderId,
                                                             UserInfo userInfo) {
-        OrderResponse response = orderService.findOrderByOrderId(orderId);
+        OrderResponse response = orderService.findOrderByOrderId(userInfo, orderId);
 
         return ResponseEntity.ok(response);
     }
@@ -95,11 +89,10 @@ public class OrderController {
 
     // 주문 상품 상태 변경 (회원, 관리자)
     @PatchMapping("/orders/{orderId}/items/{orderItemId}")
-    @PreAuthorize("@securityService.isAuthenticated(#userInfo)")
     public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable Long orderId, @PathVariable Long orderItemId,
                                                                         @RequestBody OrderItemStatusPatchRequest request,
                                                                         UserInfo userInfo) {
-        orderService.patchOrderItemStatus(userInfo.userId(), orderId, orderItemId, request);
+        orderService.patchOrderItemStatus(userInfo, orderId, orderItemId, request);
 
         return ResponseEntity.ok().build();
     }

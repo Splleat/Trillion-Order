@@ -2,11 +2,13 @@ package com.nhnacademy.order.order.domain;
 
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
+import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +82,13 @@ public class Order {
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrder(this);
+    }
+
+    public OrderItem findOrderItemInOrder(Long orderItemId) {
+        return this.getOrderItems().stream()
+                .filter(orderItem -> orderItem.getOrderItemId().equals(orderItemId))
+                .findFirst()
+                .orElseThrow(() -> new OrderItemNotFoundException("존재하지 않는 주문 상품 ID: " + orderItemId));
     }
 
     public void reflectItemStatusChange() {

@@ -24,12 +24,16 @@ public class NonMemberOrderItemRefundOrchestrator {
     private final BookService bookService;
     // private final PaymentService paymentService;
 
-    public void processNonMemberItemRefund(Order order, OrderItem orderItem) {
+    public void processNonMemberItemRefund(Order order, OrderItem orderItem, int deliveryFee) {
         NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(order.getOrderId(), orderItem.getOrderItemId());
 
         UUID sagaId = saga.getSagaId();
 
         Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+
+        // TODO: 환불 요청 DTO에서 quantity도 받아서 처리?
+
+        int refundMoney = Math.max(orderItem.getPrice() - deliveryFee, 0);
 
         // 1. 사가 시작
         sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STARTED);

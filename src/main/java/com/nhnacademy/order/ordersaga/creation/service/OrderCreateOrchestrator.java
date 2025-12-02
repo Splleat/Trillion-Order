@@ -48,7 +48,7 @@ public class OrderCreateOrchestrator {
             // 3. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
-            if (Objects.nonNull(couponId)) {
+            if (couponId != null) {
                 // 4. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
                 couponService.applyCoupon(sagaId, memberId, couponId);
 

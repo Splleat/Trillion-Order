@@ -1,1 +1,12 @@
 com/nhnacademy/order/OrderApplicationTests.class
+com/nhnacademy/order/order/controller/OrderControllerTest.class
+com/nhnacademy/order/order/service/OrderServiceCreateTest.class
+com/nhnacademy/payment/service/impl/PaymentFlowServiceTest.class
+com/nhnacademy/order/order/service/OrderServiceSecurityTest.class
+com/nhnacademy/order/order/service/OrderServiceFindTest.class
+com/nhnacademy/order/orderitem/repository/OrderItemRepositoryTest.class
+com/nhnacademy/order/delivery/repository/DeliveryPolicyRepositoryTest.class
+com/nhnacademy/order/order/repository/OrderRepositoryTest.class
+com/nhnacademy/order/order/service/OrderServiceUpdateTest.class
+com/nhnacademy/payment/controller/PaymentControllerTest.class
+com/nhnacademy/payment/service/impl/PaymentServiceImplTest.class

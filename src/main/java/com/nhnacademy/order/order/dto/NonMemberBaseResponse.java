@@ -25,6 +25,7 @@ public record NonMemberBaseResponse(
             orderNumber,
             orderDate,
             orderStatus,
+            totalPrice, // 비회원은 originPrice = totalPrice임
             totalPrice,
             deliveryFee,
             ordererInfo,
