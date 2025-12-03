@@ -1,10 +1,7 @@
 package com.nhnacademy.order.ordersaga.cancellation.domain;
 
 import com.nhnacademy.order.ordersaga.domain.OrderSaga;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

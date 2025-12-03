@@ -25,7 +25,6 @@
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/delivery/exception/PolicyNotConfiguredException.java
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/delivery/repository/DeliveryPolicyRepository.java
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/order/controller/OrderController.java
-/Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/order/controller/OrderControllerTest.java
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/order/domain/Order.java
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/order/domain/OrderDetails.java
 /Users/sss/IdeaProjects/order/src/main/java/com/nhnacademy/order/order/domain/OrderStatus.java
