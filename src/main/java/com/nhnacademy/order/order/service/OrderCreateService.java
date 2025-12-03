@@ -1,7 +1,5 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
-import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
@@ -47,7 +45,7 @@ public class OrderCreateService {
 
         itemCreateRequests.stream()
                 .map(request ->
-                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingPriceMap.get(request.packagingId())))
+                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingPriceMap.getOrDefault(request.packagingId(), 0)))
                 .forEach(order::addOrderItem);
 
         return orderRepository.save(order);

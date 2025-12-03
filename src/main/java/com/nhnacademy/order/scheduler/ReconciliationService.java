@@ -10,11 +10,13 @@ import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
 import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
+import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.OrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.repository.OrderItemRefundSagaRepository;
+import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class ReconciliationService {
     private final OrderCancelService orderCancelService;
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderItemRefundService orderItemRefundService;
+    private final OrderCancelOrchestrator orderCancelOrchestrator;
+    private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
 
     @Transactional
     public void compensateStuckCreationOrder(Order order) {
@@ -84,18 +88,26 @@ public class ReconciliationService {
     @Transactional
     public void processStuckCancelSagaRetry(OrderCancelSaga saga) {
         try {
-            // TODO: 주문 취소 재시도 로직 추가 필요
+            log.info("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 시작: {}", saga.getOrderId());
+            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
+                orderCancelOrchestrator.processCancelOrder(order.getMemberId(), order);
+            });
         } catch (Exception e) {
-            log.error("[도메인 스케줄러] 멈춰있는 주문 취소 사가 재시도 실패: {}", saga.getOrderId(), e);
+            log.error("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 실패: {}", saga.getOrderId(), e);
         }
     }
 
     @Transactional
     public void processStuckRefundItemSagaRetry(OrderItemRefundSaga saga) {
         try {
-            // TODO: 주문 환불 재시도 로직 추가 필요
+            log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 시작: {}", saga.getOrderItemId());
+            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
+                OrderItem orderItem = order.findOrderItemInOrder(saga.getOrderItemId());
+                int deliveryFee = order.getOrderDetails().deliveryFee();
+                orderItemRefundOrchestrator.processItemRefund(order.getMemberId(), order, orderItem, deliveryFee);
+            });
         } catch (Exception e) {
-            log.error("[도메인 스케줄러] 멈춰있는 주문 취소 사가 재시도 실패: {}", saga.getOrderId(), e);
+            log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 실패: {}", saga.getOrderId(), e);
         }
     }
 
