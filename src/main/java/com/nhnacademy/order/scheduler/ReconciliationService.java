@@ -89,9 +89,7 @@ public class ReconciliationService {
     public void processStuckCancelSagaRetry(OrderCancelSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 시작: {}", saga.getOrderId());
-            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
-                orderCancelOrchestrator.processCancelOrder(order.getMemberId(), order);
-            });
+            // TODO: 주문 취소 사가 재시도 로직 구현 필요
         } catch (Exception e) {
             log.error("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 실패: {}", saga.getOrderId(), e);
         }
@@ -101,11 +99,7 @@ public class ReconciliationService {
     public void processStuckRefundItemSagaRetry(OrderItemRefundSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 시작: {}", saga.getOrderItemId());
-            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
-                OrderItem orderItem = order.findOrderItemInOrder(saga.getOrderItemId());
-                int deliveryFee = order.getOrderDetails().deliveryFee();
-                orderItemRefundOrchestrator.processItemRefund(order.getMemberId(), order, orderItem, deliveryFee);
-            });
+            // TODO: 주문 상품 환불 사가 재시도 로직 구현 필요
         } catch (Exception e) {
             log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 실패: {}", saga.getOrderId(), e);
         }
