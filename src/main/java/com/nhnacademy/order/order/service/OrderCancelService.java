@@ -15,6 +15,11 @@ public class OrderCancelService {
     @Transactional
     public void completeOrder(Order order) {
 
+        // 이미 처리된 주문은 다시 처리하지 않음
+        if (order.getOrderStatus() == OrderStatus.AWAITING_CANCELLATION) {
+            return;
+        }
+
         order.setOrderStatus(OrderStatus.CANCELED);
 
         orderRepository.save(order);

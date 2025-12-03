@@ -68,18 +68,30 @@ public class OrderCreateOrchestrator {
             sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         } catch (Exception e) {
-            // 9. 사가의 상태를 COMPENSATE로 설정 (보상 트랜잭션 진행 중 서버 오류에도 다시 동작하기 위함)
-            sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPENSATED);
+            // 9. 보상 트랜잭션 시작
+            compensate(saga, order);
 
-            // 10. 보상 트랜잭션 시작
-            compensate(saga, memberId, quantityMap, couponId, pointUsage);
-
-            // 11. RestControllerAdvice에서 ErrorResponse 생성을 위한 예외 던지기
+            // 10. RestControllerAdvice에서 ErrorResponse 생성을 위한 예외 던지기
             throw new OrderCreateFailureException("주문 생성 실패" + order.getOrderId());
         }
     }
 
-    private void compensate(OrderCreateSaga saga, Long memberId, Map<Long, Integer> quantityMap, Long couponId, int pointUsage) {
+    public void compensate(OrderCreateSaga saga, Order order) {
+        // 이미 처리된 사가에 대해 재시도 하지 않음
+        if (saga.getOverallStatus() == SagaStatus.COMPLETED_COMPENSATED || saga.getOverallStatus() == SagaStatus.FAILED) {
+            return;
+        }
+
+        // 1. 사가의 상태를 COMPENSATE로 설정 (보상 트랜잭션 진행 중 서버 오류에도 다시 동작하기 위함)
+        sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPENSATED);
+
+        int pointUsage = order.getOrderDetails().pointUsage();
+        Long memberId = order.getMemberId();
+        Long couponId = order.getOrderDetails().couponId();
+
+        Map<Long, Integer> quantityMap = order.getOrderItems().stream()
+                .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
+
         // 1. 마지막으로 수행한 사가 단계 확인
         CreateSagaStep currentStep = saga.getLastCompletedStep();
 
@@ -108,7 +120,7 @@ public class OrderCreateOrchestrator {
             bookService.increaseStocks(sagaId, quantityMap);
         }
 
-        // 3. 보상 트랜잭션 완료 (COMPENSATE -> FAILED)
-        sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.FAILED);
+        // 3. 보상 트랜잭션 완료 (COMPENSATE -> COMPLETED_COMPENSATED)
+        sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED_COMPENSATED);
     }
 }

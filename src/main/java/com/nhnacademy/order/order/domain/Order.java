@@ -1,5 +1,6 @@
 package com.nhnacademy.order.order.domain;
 
+import com.nhnacademy.order.common.entity.BaseTimeEntity;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 
-public class Order {
+public class Order extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
@@ -67,7 +68,7 @@ public class Order {
             prefix + UUID.randomUUID(),
             memberId,
             encryptedPassword,
-            OrderStatus.PENDING,
+            OrderStatus.CREATING,
             ordererInfo,
             receiverInfo,
             orderDetails,

@@ -61,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
     // Service
     private final OrderCreateService orderCreateService;
     private final OrderCancelService orderCancelService;
+    private final OrderFinalizerService orderFinalizerService;
 
     // 사가 패턴
     private final OrderCreateOrchestrator orderCreateOrchestrator;
@@ -72,30 +73,6 @@ public class OrderServiceImpl implements OrderService {
     private final PasswordEncoder passwordEncoder;
 
     private static final String ORDER_NOT_FOUND_MESSAGE = "존재하지 않는 주문 ID: ";
-
-    // DTO (List<OrderItemCreateRequest>) -> Entity (List<OrderItem>)
-    private List<OrderItem> buildOrderItems(List<OrderItemCreateRequest> requests, Map<Long, BookResponse> bookInfoMap) {
-        List<Long> orderPackagingIds = requests.stream()
-                .map(OrderItemCreateRequest::packagingId)
-                .filter(Objects::nonNull)
-                .toList();
-
-        Map<Long, Integer> packagingPriceMap = packagingRepository.findAllById(orderPackagingIds).stream()
-                .collect(Collectors.toMap(Packaging::getPackagingId, Packaging::getPackagingPrice));
-
-        return requests.stream()
-                .map(request -> {
-                    int bookPrice = bookInfoMap.get(request.bookId()).price();
-                    int packagingPrice = 0;
-
-                    if (request.packagingId() != null) {
-                        packagingPrice = packagingPriceMap.getOrDefault(request.packagingId(), 0);
-                    }
-
-                    return OrderItem.create(null, request.bookId(), request.quantity(), bookPrice, packagingPrice);
-                })
-                .toList();
-    }
 
     // 배송비 결정
     private int determineDeliveryFee(int finalTotalPrice) {
@@ -158,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
     // 주문 생성
     @Override
     public OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request) {
-        // 1. OrderDetails 값이 불완전한 초기 Order 생성
+        // 1. 불완전한 초기 Order 생성 (OrderStatus: CREATING)
         String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
                 .map(passwordEncoder::encode)
                 .orElse(null);
@@ -169,58 +146,27 @@ public class OrderServiceImpl implements OrderService {
         // 비회원인 경우 userId가 null
         Long userId = (userInfo != null) ? userInfo.userId() : null;
 
-        Order order = orderCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails);
+        Order order = orderCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
 
         try {
             // 2. 오케스트레이션 사가 시작 (재고 감소 -> 쿠폰 사용 -> 포인트 사용)
             orderCreateOrchestrator.processCreateOrder(userId, order);
 
-            // TODO: 사가가 성공한 이후에 서버가 종료된다면?
+            // 3. 후처리 대기 상태로 변경 (OrderStatus: CREATING -> AWAITING_POST_PROCESSING)
+            order.setOrderStatus(OrderStatus.AWAITING_POST_PROCESSING);
+            orderRepository.save(order);
 
-            // 3. 초기 결제 금액, 최종 결제 금액, 배송비 연산
-            List<Long> bookIds = request.orderItems().stream()
-                    .map(OrderItemCreateRequest::bookId)
-                    .toList();
-
-            Map<Long, BookResponse> bookResponseMap = bookService.getBookInfos(bookIds);
-
-            List<OrderItem> orderItems = buildOrderItems(request.orderItems(), bookResponseMap);
-
-            // 순수 금액 (도서 * 재고 + 포장비)
-            int originPrice = orderItems.stream()
-                    .mapToInt(orderItem -> orderItem.getPrice() * orderItem.getQuantity() + orderItem.getPackagingPrice())
-                    .sum();
-
-            // 최종 결제 금액 (originPrice - (쿠폰 할인액 + 사용 포인트) + 배송비)
-            int totalPrice = originPrice;
-
-            int couponDiscount = 0;
-
-            if (request.couponId() != null) {
-                couponDiscount = couponService.calculateDiscount(request.couponId(), totalPrice);
-            }
-
-            totalPrice -= couponDiscount;
-
-            int deliveryFee = determineDeliveryFee(totalPrice);
-
-            totalPrice += deliveryFee;
-
-            int pointUsage = request.pointUsage();
-
-            totalPrice -= pointUsage;
-
-            // 최종 금액이 음수가 되지 않도록 설정
-            totalPrice = Math.max(0, totalPrice);
-
-            // 4. 연산한 값들을 최종적으로 Order에 반영 후 저장
-            orderCreateService.completeOrder(order, originPrice, totalPrice, deliveryFee, orderItems);
         } catch (Exception e) {
-            // 5. 주문 생성 실패 (사가 패턴 실패 or 주문 생성 중 오류 발생)
+            // TODO: 예외 세분화 필요
             log.error("주문 ID: {} - 생성 실패: {}", order.getOrderId(), e.getMessage(), e);
-            orderCreateService.createFailureOrder(order);
+
+            order.setOrderStatus(OrderStatus.CREATION_FAILED);
+            orderRepository.save(order);
             throw e;
         }
+
+        // 4. 최종 처리 실행 (OrderStatus: AWAITING_POST_PROCESSING -> PENDING)
+        orderFinalizerService.finalizeOrderCreation(order);
 
         return OrderResponse.create(order);
     }

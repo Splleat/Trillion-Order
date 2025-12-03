@@ -1,10 +1,12 @@
 package com.nhnacademy.order.orderitem.repository;
 
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
@@ -35,4 +37,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         WHERE oi.order.orderId IN :orderIds
     """)
     List<OrderItemResponse> findAllByOrderIds(List<Long> orderIds);
+
+    List<OrderItem> findAllByOrderItemStatusAndUpdatedAtBefore(OrderItemStatus orderItemStatus, LocalDateTime modifiedAt);
 }
