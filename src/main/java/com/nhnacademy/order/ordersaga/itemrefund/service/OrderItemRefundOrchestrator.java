@@ -119,8 +119,6 @@ public class OrderItemRefundOrchestrator {
             if (currentStep.ordinal() < ItemRefundSagaStep.STOCK_INCREASED.ordinal()) {
                 bookService.increaseStocks(sagaId, quantityMap);
                 sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.STOCK_INCREASED);
-
-                currentStep = ItemRefundSagaStep.STOCK_INCREASED;
             }
 
             sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.COMPLETED);

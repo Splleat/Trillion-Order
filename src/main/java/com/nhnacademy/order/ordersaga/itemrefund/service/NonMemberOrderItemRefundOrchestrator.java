@@ -97,7 +97,7 @@ public class NonMemberOrderItemRefundOrchestrator {
             if (currentStep.ordinal() < NonMemberRefundSagaStep.STOCK_INCREASED.ordinal()) {
                 bookService.increaseStocks(sagaId, quantityMap);
 
-                currentStep = NonMemberRefundSagaStep.STOCK_INCREASED;
+                sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
             }
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
