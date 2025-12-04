@@ -85,15 +85,25 @@ public class ReconciliationService {
             log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (비회원) 재시도 실패: {}", saga.getOrderItemId(), e);
         }
     }
-
     @Transactional
-    public void compensateForCreateSagaBridgingFailure(OrderCreateSaga saga) {
+    public void processCompletedCompensateSagaBridge(OrderCreateSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
                 orderCompensateService.compensateOrder(order, saga);
             });
         } catch (Exception e) {
-            log.error("[도메인 스케줄러] 완료된 주문 생성 사가 브릿징 실패: {}", saga.getOrderId(), e);
+            log.error("[사가 스케줄러] 완료된 보상 성공 주문 생성 사가 브릿징 실패: {}", saga.getOrderId(), e);
+        }
+    }
+
+    @Transactional
+    public void compensateForCreateSagaBridgingFailure(OrderCreateSaga saga) {
+        try {
+            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
+                orderCreateOrchestrator.compensate(saga, order);
+            });
+        } catch (Exception e) {
+            log.error("[도메인 스케줄러] 완료된 주문 생성 사가 보상 실패: {}", saga.getOrderId(), e);
         }
     }
 

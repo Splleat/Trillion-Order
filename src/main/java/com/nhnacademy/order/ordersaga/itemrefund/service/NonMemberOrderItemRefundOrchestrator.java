@@ -6,18 +6,16 @@ import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
-import com.nhnacademy.order.order.service.OrderItemUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.exception.OrderItemRefundFailureException;
+import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberOrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberRefundSagaStep;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
-import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -33,6 +31,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final OrderItemUpdateService orderItemUpdateService;
+    private final OrderItemRefundService orderItemRefundService;
 
     public void processNonMemberItemRefund(Order order, OrderItem orderItem) {
         if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND &&
@@ -66,7 +65,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
 
-            orderItemUpdateService.updateStatus(orderItem, OrderItemStatus.RETURNED);
+            orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
         } catch (Exception e) {
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.FAILED);
             throw new OrderItemRefundFailureException("주문 상품 환불 실패: " + orderItem.getOrderItemId());
@@ -104,7 +103,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
 
-            orderItemUpdateService.updateStatus(orderItem, OrderItemStatus.RETURNED);
+            orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
         } catch (Exception e) {
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.FAILED);
             log.error("비회원 주문 상품 환불 사가 재시도 실패: {}", sagaId, e);

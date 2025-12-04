@@ -8,7 +8,6 @@ import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
-import com.nhnacademy.order.order.service.OrderItemUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
@@ -21,9 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -35,10 +32,7 @@ public class OrderItemRefundOrchestrator {
     private final CouponService couponService;
     private final BookService bookService;
 
-
-
     private final DeliveryPolicyRepository deliveryPolicyRepository;
-    private final OrderItemUpdateService orderItemUpdateService;
     private final OrderItemRefundService orderItemRefundService;
 
     public void processItemRefund(Long memberId, Order order, OrderItem orderItem) {
@@ -129,10 +123,9 @@ public class OrderItemRefundOrchestrator {
                 currentStep = ItemRefundSagaStep.STOCK_INCREASED;
             }
 
-            sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
-
             orderItemRefundService.completeOrderItem(orderItem, saga);
         } catch (Exception e) {
+
             sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.FAILED);
             log.error("회원 주문 상품 환불 사가 재시도 실패: {}", sagaId, e);
         }

@@ -33,7 +33,7 @@ public class OrderFinalizerService {
     public void finalizeOrderCreation(Order order, OrderCreateSaga saga) {
 
         // 이미 처리된 주문은 다시 처리하지 않음
-        if (order.getOrderStatus() != OrderStatus.PENDING) {
+        if (order.getOrderStatus() == OrderStatus.PENDING) {
             return;
         }
 
