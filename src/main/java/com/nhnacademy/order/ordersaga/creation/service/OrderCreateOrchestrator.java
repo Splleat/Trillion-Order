@@ -44,36 +44,45 @@ public class OrderCreateOrchestrator {
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
 
         try {
-            // 2. 도서 API에 재고 감소 요청
+            // 2. 재고 감소 중
+            sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASING);
+
+            // 3. 도서 API에 재고 감소 요청
             bookService.decreaseStocks(sagaId, quantityMap);
 
-            // 3. 사가 상태 업데이트 (재고 감소 성공)
+            // 4. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
             if (couponId != null) {
-                // 4. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
+                // 5. 쿠폰 사용 중
+                sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLYING);
+
+                // 6. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
                 couponService.applyCoupon(sagaId, memberId, couponId);
 
-                // 5. 사가 상태 업데이트 (쿠폰 적용)
+                // 7. 사가 상태 업데이트 (쿠폰 적용)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
             }
 
             if (pointUsage > 0) {
-                // 6. 사용 포인트가 존재하면 멤버 API에 포인트 감소 요청
+                // 8. 포인트 사용 중
+                sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
+
+                // 9. 사용 포인트가 존재하면 멤버 API에 포인트 감소 요청
                 memberService.decreasePoint(sagaId, memberId, pointUsage);
 
-                // 7. 사가 상태 업데이트 (포인트 감소 성공)
+                // 10. 사가 상태 업데이트 (포인트 감소 성공)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
             }
 
-            // 8. 사가 성공
+            // 11. 사가 성공
             sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         } catch (Exception e) {
-            // 9. 보상 트랜잭션 시작
+            // 12. 보상 트랜잭션 시작
             compensate(saga, order);
 
-            // 10. RestControllerAdvice에서 ErrorResponse 생성을 위한 예외 던지기
+            // 13. RestControllerAdvice에서 ErrorResponse 생성을 위한 예외 던지기
             throw new OrderCreateFailureException("주문 생성 실패" + order.getOrderId());
         }
     }
@@ -100,7 +109,7 @@ public class OrderCreateOrchestrator {
         UUID sagaId = saga.getSagaId();
 
         // 2. 역순으로 보상 트랜잭션 시작
-        if (currentStep == CreateSagaStep.POINT_USED) {
+        if (currentStep == CreateSagaStep.POINT_USING || currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
                 memberService.increasePoint(sagaId, memberId, pointUsage);
             }
@@ -109,7 +118,7 @@ public class OrderCreateOrchestrator {
             currentStep = CreateSagaStep.COUPON_APPLIED;
         }
 
-        if (currentStep == CreateSagaStep.COUPON_APPLIED) {
+        if (currentStep == CreateSagaStep.COUPON_APPLYING || currentStep == CreateSagaStep.COUPON_APPLIED) {
             if (couponId != null) {
                 couponService.withdrawCoupon(sagaId, memberId, couponId);
             }
@@ -118,7 +127,7 @@ public class OrderCreateOrchestrator {
             currentStep = CreateSagaStep.STOCK_DECREASED;
         }
 
-        if (currentStep == CreateSagaStep.STOCK_DECREASED) {
+        if (currentStep == CreateSagaStep.STOCK_DECREASING || currentStep == CreateSagaStep.STOCK_DECREASED) {
             bookService.increaseStocks(sagaId, quantityMap);
         }
 
