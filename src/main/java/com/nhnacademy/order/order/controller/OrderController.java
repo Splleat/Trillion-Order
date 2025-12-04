@@ -13,7 +13,7 @@
 package com.nhnacademy.order.order.controller;
 
 import com.nhnacademy.order.common.dto.UserInfo;
-import com.nhnacademy.order.order.dto.NonMemberGetRequest;
+import com.nhnacademy.order.order.dto.NonMemberOrderGetRequest;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.service.OrderService;
@@ -80,7 +80,7 @@ public class OrderController {
 
     // 주문 단건 조회 (비회원)
     @PostMapping("/orders/non-members/")
-    public ResponseEntity<OrderResponse> getOrderForNonMember(@RequestBody @Valid NonMemberGetRequest request) {
+    public ResponseEntity<OrderResponse> getOrderForNonMember(@RequestBody @Valid NonMemberOrderGetRequest request) {
         OrderResponse response = orderService.findOrderByOrderNumber(request.orderNumber(), request.nonMemberPassword());
 
         return ResponseEntity.ok(response);

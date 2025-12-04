@@ -18,7 +18,6 @@ import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestr
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,7 +34,6 @@ public class ReconciliationService {
     private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     private final OrderCompensateService orderCompensateService;
 
-    @Transactional
     public void processStuckCreateSagaCompensation(OrderCreateSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 생성 사가 보상 처리 시작: {}", saga.getOrderId());
@@ -47,7 +45,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processStuckCancelSagaRetry(OrderCancelSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 시작: {}", saga.getOrderId());
@@ -59,7 +56,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processStuckRefundItemSagaRetry(OrderItemRefundSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (회원) 재시도 시작: {}", saga.getOrderItemId());
@@ -74,7 +70,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processStuckNonMemberRefundItemSagaRetry(NonMemberOrderItemRefundSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (비회원) 재시도 시작: {}", saga.getOrderItemId());
@@ -85,7 +80,7 @@ public class ReconciliationService {
             log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (비회원) 재시도 실패: {}", saga.getOrderItemId(), e);
         }
     }
-    @Transactional
+
     public void processCompletedCompensateSagaBridge(OrderCreateSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
@@ -96,7 +91,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void compensateForCreateSagaBridgingFailure(OrderCreateSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
@@ -107,7 +101,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processCompletedCancelSagaBridge(OrderCancelSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
@@ -120,7 +113,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processCompletedRefundSagaBridge(OrderItemRefundSaga saga) {
         try {
             orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {
@@ -133,7 +125,6 @@ public class ReconciliationService {
         }
     }
 
-    @Transactional
     public void processCompletedNonMemberRefundSagaBridge(NonMemberOrderItemRefundSaga saga) {
         try {
             orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {

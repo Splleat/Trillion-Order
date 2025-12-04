@@ -1,17 +1,15 @@
 package com.nhnacademy.order.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.domain.OrdererInfo;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
-import com.nhnacademy.order.order.dto.NonMemberGetRequest;
+import com.nhnacademy.order.order.dto.NonMemberOrderGetRequest;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
-import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -144,7 +141,7 @@ class OrderControllerTest {
     @Test
     @DisplayName("비회원 주문 단건 조회 - POST /api/orders/non-members/")
     void getOrderForNonMember_Success() throws Exception {
-        NonMemberGetRequest request = new NonMemberGetRequest("ORD-20251202-12345", "password123");
+        NonMemberOrderGetRequest request = new NonMemberOrderGetRequest("ORD-20251202-12345", "password123");
         given(orderService.findOrderByOrderNumber(eq("ORD-20251202-12345"), eq("password123"))).willReturn(orderResponse);
 
         mockMvc.perform(post("/api/orders/non-members/")

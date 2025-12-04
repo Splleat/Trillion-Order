@@ -3,6 +3,7 @@ package com.nhnacademy.order.orderitem.dto;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 
+// TODO: bookName 추가
 public record OrderItemResponse(
     Long orderId,
     Long bookId,

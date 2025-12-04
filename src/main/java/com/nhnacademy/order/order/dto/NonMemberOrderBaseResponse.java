@@ -6,7 +6,7 @@ import com.nhnacademy.order.order.domain.ReceiverInfo;
 
 import java.time.LocalDateTime;
 
-public record NonMemberBaseResponse(
+public record NonMemberOrderBaseResponse(
     Long orderId,
     String nonMemberPassword,
     Long memberId,
