@@ -4,7 +4,7 @@ import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.OrdererInfo;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
-import com.nhnacademy.order.order.dto.NonMemberBaseResponse;
+import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
@@ -97,7 +97,7 @@ class OrderServiceFindTest {
         String orderNumber = "ORD-NON-MEMBER-123";
         String rawPassword = "password1234";
         String encodedPassword = "encoded-password";
-        NonMemberBaseResponse dummyResponse = new NonMemberBaseResponse(
+        NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
                 OrderStatus.PENDING, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")
@@ -121,7 +121,7 @@ class OrderServiceFindTest {
         String orderNumber = "ORD-NON-MEMBER-123";
         String wrongPassword = "wrong-password";
         String encodedPassword = "encoded-password";
-        NonMemberBaseResponse dummyResponse = new NonMemberBaseResponse(
+        NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
                 OrderStatus.PENDING, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")

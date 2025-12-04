@@ -3,11 +3,8 @@ package com.nhnacademy.order.order.service;
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.order.common.dto.UserInfo;
-import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
-import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
-import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
 import com.nhnacademy.order.order.domain.*;
-import com.nhnacademy.order.order.dto.NonMemberBaseResponse;
+import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
@@ -45,7 +42,6 @@ public class OrderServiceImpl implements OrderService {
     // Repository
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final DeliveryPolicyRepository deliveryPolicyRepository;
 
     // Service
     private final OrderCreateService orderCreateService;
@@ -186,12 +182,11 @@ public class OrderServiceImpl implements OrderService {
 
             return OrderResponse.create(orderBaseResponse, items);
         });
-
     }
 
     // 주문 상품 상태 변경 (회원 & 관리자)
     @Override
-    @CheckAuth(role = AuthRole.MEMBER)
+    @CheckAuth(role = AuthRole.MEMBER, checkOrderOwner = true)
     @Transactional
     public void patchOrderItemStatus(UserInfo userInfo, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
 
@@ -217,14 +212,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword) {
-        Optional<NonMemberBaseResponse> nonMemberBaseResponseOptional = orderRepository.findNonMemberOrderByOrderNumber(orderNumber);
+        Optional<NonMemberOrderBaseResponse> nonMemberBaseResponseOptional = orderRepository.findNonMemberOrderByOrderNumber(orderNumber);
 
-        return nonMemberBaseResponseOptional.map(nonMemberBaseResponse -> {
-            nonMemberPasswordCheck(nonMemberPassword, nonMemberBaseResponse.nonMemberPassword());
+        return nonMemberBaseResponseOptional.map(nonMemberOrderBaseResponse -> {
+            nonMemberPasswordCheck(nonMemberPassword, nonMemberOrderBaseResponse.nonMemberPassword());
 
-            List<OrderItemResponse> items = orderItemRepository.findOrderItemByOrder_OrderId(nonMemberBaseResponse.orderId());
+            List<OrderItemResponse> items = orderItemRepository.findOrderItemByOrder_OrderId(nonMemberOrderBaseResponse.orderId());
 
-            return OrderResponse.create(nonMemberBaseResponse.toOrderBaseResponse(), items);
+            return OrderResponse.create(nonMemberOrderBaseResponse.toOrderBaseResponse(), items);
         }).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderNumber));
     }
 

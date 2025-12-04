@@ -1,7 +1,7 @@
 package com.nhnacademy.order.order.repository;
 
 import com.nhnacademy.order.order.domain.*;
-import com.nhnacademy.order.order.dto.NonMemberBaseResponse;
+import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import org.junit.jupiter.api.BeforeEach;
@@ -186,11 +186,11 @@ class OrderRepositoryTest {
         entityManager.clear();
 
         // when
-        Optional<NonMemberBaseResponse> resultOptional = orderRepository.findNonMemberOrderByOrderNumber(nonMemberOrder.getOrderNumber());
+        Optional<NonMemberOrderBaseResponse> resultOptional = orderRepository.findNonMemberOrderByOrderNumber(nonMemberOrder.getOrderNumber());
 
         // then
         assertThat(resultOptional).isPresent();
-        NonMemberBaseResponse response = resultOptional.get();
+        NonMemberOrderBaseResponse response = resultOptional.get();
         assertThat(response.orderNumber()).isEqualTo(nonMemberOrder.getOrderNumber());
         assertThat(response.nonMemberPassword()).isEqualTo("encrypted-password");
     }
@@ -202,7 +202,7 @@ class OrderRepositoryTest {
         String nonExistentOrderNumber = "NonExistent-123";
 
         // when
-        Optional<NonMemberBaseResponse> resultOptional = orderRepository.findNonMemberOrderByOrderNumber(nonExistentOrderNumber);
+        Optional<NonMemberOrderBaseResponse> resultOptional = orderRepository.findNonMemberOrderByOrderNumber(nonExistentOrderNumber);
 
         // then
         assertThat(resultOptional).isEmpty();

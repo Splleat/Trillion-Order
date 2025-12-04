@@ -2,7 +2,7 @@ package com.nhnacademy.order.order.repository;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
-import com.nhnacademy.order.order.dto.NonMemberBaseResponse;
+import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,7 +74,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, Long memberId);
 
     @Query("""
-        SELECT new com.nhnacademy.order.order.dto.NonMemberBaseResponse(
+        SELECT new com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse(
             o.orderId,
             o.nonMemberPassword,
             o.memberId,
@@ -89,7 +89,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         WHERE o.orderNumber = :orderNumber
     """)
-    Optional<NonMemberBaseResponse> findNonMemberOrderByOrderNumber(String orderNumber);
+    Optional<NonMemberOrderBaseResponse> findNonMemberOrderByOrderNumber(String orderNumber);
 
     List<Order> findAllByOrderStatusAndUpdatedAtBefore(OrderStatus orderStatus, LocalDateTime modifiedAt);
 }
