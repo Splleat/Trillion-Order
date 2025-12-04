@@ -123,6 +123,8 @@ public class OrderItemRefundOrchestrator {
                 currentStep = ItemRefundSagaStep.STOCK_INCREASED;
             }
 
+            sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
+
             orderItemRefundService.completeOrderItem(orderItem, saga);
         } catch (Exception e) {
 

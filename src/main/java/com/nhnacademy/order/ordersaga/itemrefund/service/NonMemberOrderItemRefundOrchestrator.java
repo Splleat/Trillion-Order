@@ -30,7 +30,6 @@ public class NonMemberOrderItemRefundOrchestrator {
     // private final PaymentService paymentService;
 
     private final DeliveryPolicyRepository deliveryPolicyRepository;
-    private final OrderItemUpdateService orderItemUpdateService;
     private final OrderItemRefundService orderItemRefundService;
 
     public void processNonMemberItemRefund(Order order, OrderItem orderItem) {
