@@ -130,7 +130,7 @@ public class OrderCreateOrchestrator {
         if (currentStep == CreateSagaStep.STOCK_DECREASING || currentStep == CreateSagaStep.STOCK_DECREASED) {
             bookService.increaseStocks(sagaId, quantityMap);
         }
-        sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
+        sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STARTED);
 
         // 3. 보상 트랜잭션 완료 (COMPENSATE -> COMPLETED_COMPENSATED)
         sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED_COMPENSATED);
