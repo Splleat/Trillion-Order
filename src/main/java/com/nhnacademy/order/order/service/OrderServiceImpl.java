@@ -1,8 +1,5 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.order.common.dto.UserInfo;
@@ -21,21 +18,18 @@ import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
-import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
+import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
-import com.nhnacademy.order.packaging.domain.Packaging;
-import com.nhnacademy.order.packaging.repository.PackagingRepository;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,16 +45,10 @@ public class OrderServiceImpl implements OrderService {
     // Repository
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final PackagingRepository packagingRepository;
     private final DeliveryPolicyRepository deliveryPolicyRepository;
-
-    // Client
-    private final BookService bookService;
-    private final CouponService couponService;
 
     // Service
     private final OrderCreateService orderCreateService;
-    private final OrderCancelService orderCancelService;
     private final OrderFinalizerService orderFinalizerService;
 
     // 사가 패턴
@@ -73,16 +61,6 @@ public class OrderServiceImpl implements OrderService {
     private final PasswordEncoder passwordEncoder;
 
     private static final String ORDER_NOT_FOUND_MESSAGE = "존재하지 않는 주문 ID: ";
-
-    // 배송비 결정
-    private int determineDeliveryFee(int finalTotalPrice) {
-        DeliveryPolicy deliveryPolicy = deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()
-                .orElseThrow(() -> new PolicyNotConfiguredException("배송 정책이 설정되지 않음"));
-
-        return (finalTotalPrice >= deliveryPolicy.getDeliveryPolicyThreshold())
-                ? 0
-                : deliveryPolicy.getDeliveryPolicyFee();
-    }
 
     // 비회원 주문 비밀번호 확인
     private void nonMemberPasswordCheck(String nonMemberPassword, String orderPassword) {
@@ -102,23 +80,21 @@ public class OrderServiceImpl implements OrderService {
             throw new AccessDeniedException("주문 상품 상태 변경 권한이 없음");
         }
 
-        // TODO: 여기도 수정 필요함. updateStatus()가 된 이후에 서버가 종료된다면??
-
-        strategy.updateStatus(order, orderItemId);
-
-        // 단건 환불
+        // 이제 단건 환불인 경우는 사가에서 상태 변경을 처리
         if (strategy == OrderItemStatusUpdateStrategy.RETURNED) {
-            OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
 
-            int deliveryFee = determineDeliveryFee(0);
+            OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
 
             // 회원
             if (userInfo != null) {
-                orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem, deliveryFee);
+                orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
             } else {
                 // 비회원
-                nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem, deliveryFee);
+                nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
             }
+        } else {
+            // 단건 환불이 아닌 경우 바로 상태 변경
+            strategy.updateStatus(order, orderItemId);
         }
     }
 
@@ -148,25 +124,23 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
 
+        OrderCreateSaga saga = OrderCreateSaga.create(order.getOrderId());
+
         try {
             // 2. 오케스트레이션 사가 시작 (재고 감소 -> 쿠폰 사용 -> 포인트 사용)
-            orderCreateOrchestrator.processCreateOrder(userId, order);
+            orderCreateOrchestrator.processCreateOrder(saga, order);
 
-            // 3. 후처리 대기 상태로 변경 (OrderStatus: CREATING -> AWAITING_POST_PROCESSING)
-            order.setOrderStatus(OrderStatus.AWAITING_POST_PROCESSING);
-            orderRepository.save(order);
-
+            // 3. 최종 처리 실행 (OrderStatus: CREATING -> PENDING)
+            orderFinalizerService.finalizeOrderCreation(order, saga);
         } catch (Exception e) {
             // TODO: 예외 세분화 필요
             log.error("주문 ID: {} - 생성 실패: {}", order.getOrderId(), e.getMessage(), e);
+            orderCreateOrchestrator.compensate(saga, order);
 
             order.setOrderStatus(OrderStatus.CREATION_FAILED);
             orderRepository.save(order);
-            throw e;
+            throw e; // 주문 생성 실패는 사용자에게 알려야 함
         }
-
-        // 4. 최종 처리 실행 (OrderStatus: AWAITING_POST_PROCESSING -> PENDING)
-        orderFinalizerService.finalizeOrderCreation(order);
 
         return OrderResponse.create(order);
     }
@@ -256,12 +230,12 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 전체 취소
     @Override
-    @PreAuthorize("@securityService.isOrderOwner(#userInfo, #orderId)")
     @CheckAuth(role = AuthRole.MEMBER, checkOrderOwner = true)
     public void cancelOrder(UserInfo userInfo, Long orderId) {
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        // 1. 주문이 취소 가능한 상태인지 확인
         boolean orderCancellable = order.getOrderItems().stream()
                 .allMatch(orderItem -> orderItem.getOrderItemStatus() == OrderItemStatus.PREPARING);
 
@@ -270,11 +244,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         try {
+            // 2. 주문 취소 사가 진행
             orderCancelOrchestrator.processCancelOrder(userInfo.userId(), order);
 
-            // TODO: 사가가 완료된 이후 서버가 종료된다면?
+            // 사가 완료 전에 서버가 종료되면 스케줄러가 사가 재시도
 
-            orderCancelService.completeOrder(order);
+            // 이제 주문 취소 사가가 완료된 주문에 대해, 스케줄러가 상태를 변경함 (도메인 상태만 바꾸면 되기 때문임)
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
             // 오케스트레이터 내부에서 이미 FAILED 처리 및 로깅 되었음.
@@ -283,6 +258,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    // 비회원 주문 취소
     @Override
     public void cancelOrderForNonMember(Long orderId, String nonMemberPassword) {
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
@@ -290,12 +266,21 @@ public class OrderServiceImpl implements OrderService {
 
         nonMemberPasswordCheck(nonMemberPassword, order.getNonMemberPassword());
 
+        // 1. 주문이 취소 가능한 상태인지 확인
+        boolean orderCancellable = order.getOrderItems().stream()
+                .allMatch(orderItem -> orderItem.getOrderItemStatus() == OrderItemStatus.PREPARING);
+
+        if (!orderCancellable) {
+            throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품이 포함되어 있음");
+        }
+
         try {
+            // 2. 주문 취소 사가 진행
             orderCancelOrchestrator.processCancelOrder(null, order);
 
-            // TODO: 사가가 완료된 이후 서버가 종료된다면?
+            // 사가 완료 전에 서버가 종료되면 스케줄러가 사가 재시도
 
-            orderCancelService.completeOrder(order);
+            // 이제 주문 취소 사가가 완료된 주문에 대해, 스케줄러가 상태를 변경함 (도메인 상태만 바꾸면 되기 때문임)
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
         }

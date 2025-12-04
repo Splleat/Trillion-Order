@@ -3,7 +3,7 @@ package com.nhnacademy.order.ordersaga.cancellation.service;
 import com.nhnacademy.order.client.service.BookService;
 import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
-import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
+import com.nhnacademy.order.order.service.OrderCancelService;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.order.domain.Order;
@@ -12,13 +12,14 @@ import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.order.exception.OrderCancelFailureException;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class OrderCancelOrchestrator {
@@ -28,6 +29,8 @@ public class OrderCancelOrchestrator {
     private final CouponService couponService;
     private final BookService bookService;
     // private final PaymentService paymentService;
+
+    private final OrderCancelService orderCancelService;
 
     public void processCancelOrder(Long memberId, Order order) {
         OrderCancelSaga saga = OrderCancelSaga.create(order.getOrderId());
@@ -71,12 +74,75 @@ public class OrderCancelOrchestrator {
             // 6. 사가 성공
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
 
+            // 7. 사가 - 도메인 브릿징 완료 (주문 상태 변경 -> 사가 브릿징 설정)
+            orderCancelService.cancelOrder(order, saga);
+
         } catch (Exception e) {
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.FAILED);
             // 주문 취소나 환불은 고객이 결정한 시점에서 반드시 달성되어야 하는 요청 -> 보상 로직 필요 없음!
             // 재시도나 수동 개입을 통해 반드시 달성시켜야 함
             // 스케줄러를 사용해 재시도하거나, 배치 서버를 사용해 상태가 FAILED인 사가를 재시작
             throw new OrderCancelFailureException("주문 전체 취소 실패: " + order.getOrderId());
+        }
+    }
+
+    public void retry(OrderCancelSaga saga, Order order) {
+        // 이미 처리된 사가에 대해 재시도 하지 않음
+        if (saga.getOverallStatus() == SagaStatus.COMPLETED) {
+            return;
+        }
+
+        UUID sagaId = saga.getSagaId();
+
+        Long memberId = order.getMemberId();
+
+        int pointUsage = order.getOrderDetails().pointUsage();
+
+        Long couponId = order.getOrderDetails().couponId();
+
+        Map<Long, Integer> quantityMap = order.getOrderItems().stream()
+                .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
+
+        CancelSagaStep currentStep = saga.getLastCompletedStep();
+
+        try {
+
+            if (currentStep.ordinal() < CancelSagaStep.PAYMENT_CANCELED.ordinal()) {
+                // TODO: 환불 로직 추가
+                sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.PAYMENT_CANCELED);
+
+                currentStep = CancelSagaStep.PAYMENT_CANCELED;
+            }
+
+            if (memberId != null) {
+                if (pointUsage > 0 && currentStep.ordinal() < CancelSagaStep.POINT_REFUNDED.ordinal()) {
+                    memberService.increasePoint(sagaId, memberId, pointUsage);
+                    sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
+
+                    currentStep = CancelSagaStep.POINT_REFUNDED;
+                }
+
+                if (couponId != null && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
+                    couponService.withdrawCoupon(sagaId, memberId, couponId);
+                    sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
+
+                    currentStep = CancelSagaStep.COUPON_RESTORED;
+                }
+            }
+
+            if (currentStep.ordinal() < CancelSagaStep.STOCK_INCREASED.ordinal()) {
+                bookService.increaseStocks(sagaId, quantityMap);
+                sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STOCK_INCREASED);
+
+                currentStep = CancelSagaStep.STOCK_INCREASED;
+            }
+
+            sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
+
+            orderCancelService.cancelOrder(order, saga);
+        } catch (Exception e) {
+            sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.FAILED);
+            log.error("주문 취소 사가 재시도 실패: {}", sagaId, e);
         }
     }
 }
