@@ -36,7 +36,7 @@ public class PaymentFlowService {
                 .orElseThrow(() -> new OrderNotFoundException(request.orderNumber()));
 
         //view에서 뿌린 금액과 db에 저장된 금액이 일치하지 않을 시?
-        if(request.amount().equals(order.getOrderDetails().totalPrice())){
+        if(!request.amount().equals(order.getOrderDetails().totalPrice())){
             throw new PaymentValidationException("주문 금액과 결제 금액이 일치 하지 않습니다.");
         }
 
