@@ -103,12 +103,12 @@ public class OrderCreateOrchestrator {
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
 
-        // 1. 마지막으로 수행한 사가 단계 확인
+        // 2. 마지막으로 수행한 사가 단계 확인
         CreateSagaStep currentStep = saga.getLastCompletedStep();
 
         UUID sagaId = saga.getSagaId();
 
-        // 2. 역순으로 보상 트랜잭션 시작
+        // 3. 역순으로 보상 트랜잭션 시작
         if (currentStep == CreateSagaStep.POINT_USING || currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
                 memberService.increasePoint(sagaId, memberId, pointUsage);
@@ -130,12 +130,12 @@ public class OrderCreateOrchestrator {
         if (currentStep == CreateSagaStep.STOCK_DECREASING || currentStep == CreateSagaStep.STOCK_DECREASED) {
             bookService.increaseStocks(sagaId, quantityMap);
         }
-        sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
+        sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STARTED);
 
-        // 3. 보상 트랜잭션 완료 (COMPENSATE -> COMPLETED_COMPENSATED)
+        // 4. 보상 트랜잭션 완료 (COMPENSATE -> COMPLETED_COMPENSATED)
         sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED_COMPENSATED);
 
-        // 4. 사가 - 도메인 연결
+        // 5. 사가 - 도메인 연결
         orderCompensateService.compensateOrder(order, saga);
     }
 }

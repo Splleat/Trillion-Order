@@ -5,6 +5,7 @@ import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaReposit
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.ordersaga.itemrefund.repository.NonMemberOrderItemRefundSagaRepository;
 import com.nhnacademy.order.ordersaga.itemrefund.repository.OrderItemRefundSagaRepository;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +31,7 @@ public class ReconciliationScheduler {
 
     // 멈춰있거나 완료된 사가를 처리
     @Scheduled(fixedRate = 300000)
+    @SchedulerLock(name = "ReconciliationScheduler.reconcileSagaState") // 분산 락 설정 -> 서버가 여러 개여도 하나의 스케줄러만 실행
     public void reconcileSagaState() {
         // 변경 시간(updatedAt)이 1분이 지난 대상만 처리 (수정 가능)
         // @Scheduled가 사용된 메서드는 매개변수 사용 불가능
