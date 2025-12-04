@@ -245,11 +245,10 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             // 2. 주문 취소 사가 진행
+            // 이제 주문 취소 사가가 완료된 주문에 대해, 주문 상태 변경 및 브릿징까지 동기적으로 처리
             orderCancelOrchestrator.processCancelOrder(userInfo.userId(), order);
 
             // 사가 완료 전에 서버가 종료되면 스케줄러가 사가 재시도
-
-            // 이제 주문 취소 사가가 완료된 주문에 대해, 스케줄러가 상태를 변경함 (도메인 상태만 바꾸면 되기 때문임)
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
             // 오케스트레이터 내부에서 이미 FAILED 처리 및 로깅 되었음.
@@ -276,11 +275,10 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             // 2. 주문 취소 사가 진행
+            // 이제 주문 취소 사가가 완료된 주문에 대해, 주문 상태 변경 및 브릿징까지 동기적으로 처리
             orderCancelOrchestrator.processCancelOrder(null, order);
 
             // 사가 완료 전에 서버가 종료되면 스케줄러가 사가 재시도
-
-            // 이제 주문 취소 사가가 완료된 주문에 대해, 스케줄러가 상태를 변경함 (도메인 상태만 바꾸면 되기 때문임)
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
         }

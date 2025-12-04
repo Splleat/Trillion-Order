@@ -71,8 +71,11 @@ public class ReconciliationScheduler {
 
     // 사가가 완료되고 도메인에 반영되기 전에 서버가 멈춘 경우 처리
     private void bridgeCompletedSagas(LocalDateTime cutOffTime) {
-        orderCreateSagaRepository.findAllByOverallStatusInAndBridgedFalseAndUpdatedAtBefore(List.of(SagaStatus.COMPLETED, SagaStatus.COMPLETED_COMPENSATED), cutOffTime)
+        orderCreateSagaRepository.findAllByOverallStatusInAndBridgedFalseAndUpdatedAtBefore(SagaStatus.COMPLETED, cutOffTime)
                 .forEach(reconciliationService::compensateForCreateSagaBridgingFailure);
+
+        orderCreateSagaRepository.findAllByOverallStatusInAndBridgedFalseAndUpdatedAtBefore(SagaStatus.COMPLETED_COMPENSATED, cutOffTime)
+                .forEach(reconciliationService::processCompletedCompensateSagaBridge);
 
         orderCancelSagaRepository.findAllByOverallStatusAndBridgedFalseAndUpdatedAtBefore(SagaStatus.COMPLETED, cutOffTime)
                 .forEach(reconciliationService::processCompletedCancelSagaBridge);

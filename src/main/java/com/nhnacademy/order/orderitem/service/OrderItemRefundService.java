@@ -20,7 +20,6 @@ public class OrderItemRefundService {
 
     @Transactional
     public void completeOrderItem(OrderItem orderItem, OrderItemRefundSaga saga) {
-
         if (orderItem.getOrderItemStatus() == OrderItemStatus.RETURNED) {
             if (!saga.isBridged()) {
                 saga.setBridged(true);
