@@ -133,8 +133,6 @@ public class OrderCancelOrchestrator {
             if (currentStep.ordinal() < CancelSagaStep.STOCK_INCREASED.ordinal()) {
                 bookService.increaseStocks(sagaId, quantityMap);
                 sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STOCK_INCREASED);
-
-                currentStep = CancelSagaStep.STOCK_INCREASED;
             }
 
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
