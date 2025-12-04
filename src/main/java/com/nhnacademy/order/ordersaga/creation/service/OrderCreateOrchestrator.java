@@ -5,6 +5,7 @@ import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
+import com.nhnacademy.order.order.service.OrderCompensateService;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
@@ -24,14 +25,15 @@ public class OrderCreateOrchestrator {
     private final MemberService memberService;
     private final CouponService couponService;
     private final BookService bookService;
+    private final OrderCompensateService orderCompensateService;
 
-    public void processCreateOrder(Long memberId, Order order) {
-        OrderCreateSaga saga = OrderCreateSaga.create(order.getOrderId());
-
+    public void processCreateOrder(OrderCreateSaga saga, Order order) {
         // 1. 사가 시작
         sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STARTED);
 
         UUID sagaId = saga.getSagaId();
+
+        Long memberId = order.getMemberId();
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
@@ -78,7 +80,7 @@ public class OrderCreateOrchestrator {
 
     public void compensate(OrderCreateSaga saga, Order order) {
         // 이미 처리된 사가에 대해 재시도 하지 않음
-        if (saga.getOverallStatus() == SagaStatus.COMPLETED_COMPENSATED || saga.getOverallStatus() == SagaStatus.FAILED) {
+        if (saga.getOverallStatus() == SagaStatus.COMPLETED_COMPENSATED) {
             return;
         }
 
@@ -122,5 +124,8 @@ public class OrderCreateOrchestrator {
 
         // 3. 보상 트랜잭션 완료 (COMPENSATE -> COMPLETED_COMPENSATED)
         sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED_COMPENSATED);
+
+        // 4. 사가 - 도메인 연결
+        orderCompensateService.compensateOrder(order, saga);
     }
 }

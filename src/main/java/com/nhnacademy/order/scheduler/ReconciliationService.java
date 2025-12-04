@@ -1,21 +1,19 @@
 package com.nhnacademy.order.scheduler;
 
-import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.order.service.OrderCancelService;
-import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.order.service.OrderCompensateService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
-import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
-import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
+import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberOrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.OrderItemRefundSaga;
-import com.nhnacademy.order.ordersaga.itemrefund.repository.OrderItemRefundSagaRepository;
+import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,59 +27,23 @@ public class ReconciliationService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderCreateSagaRepository orderCreateSagaRepository;
-    private final OrderCancelSagaRepository orderCancelSagaRepository;
-    private final OrderItemRefundSagaRepository orderItemRefundSagaRepository;
     private final OrderCancelService orderCancelService;
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderItemRefundService orderItemRefundService;
     private final OrderCancelOrchestrator orderCancelOrchestrator;
     private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
-
-    @Transactional
-    public void compensateStuckCreationOrder(Order order) {
-        try {
-            orderCreateSagaRepository.findByOrderId(order.getOrderId()).ifPresentOrElse(saga -> {
-                orderCreateOrchestrator.compensate(saga, order);
-                order.setOrderStatus(OrderStatus.CREATION_FAILED);
-                orderRepository.save(order);
-                log.info("[도메인 스케줄러] AWAITING_POST_PROCESSING 상태 주문 보상 처리 성공: {}", order.getOrderId());
-            }, () -> {
-                log.warn("[도메인 스케줄러] AWAITING_POST_PROCESSING 상태 주문에 대한 생성 사가를 찾을 수 없어 FAILED 처리: {}", order.getOrderId());
-                order.setOrderStatus(OrderStatus.CREATION_FAILED);
-                orderRepository.save(order);
-            });
-        } catch (Exception e) {
-            log.error("[도메인 스케줄러] AWAITING_POST_PROCESSING 상태 주문 보상 처리 실패: {}", order.getOrderId(), e);
-        }
-    }
-
-    @Transactional
-    public void processStuckCancellationOrder(Order order) {
-        try {
-            orderCancelService.completeOrder(order);
-        } catch (Exception e) {
-            log.error("[도메인 스케줄러] 주문 취소 최종 처리 실패: {}", order.getOrderId(), e);
-        }
-    }
-
-    @Transactional
-    public void processStuckRefundOrderItem(OrderItem orderItem) {
-        try {
-            orderItemRefundService.completeOrderItem(orderItem);
-        } catch (Exception e) {
-            log.error("[도메인 스케줄러] 주문 상품 환불 최종 처리 실패: {}", orderItem.getOrderItemId(), e);
-        }
-    }
+    private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
+    private final OrderCompensateService orderCompensateService;
 
     @Transactional
     public void processStuckCreateSagaCompensation(OrderCreateSaga saga) {
         try {
+            log.info("[사가 스케줄러] 멈춰있는 주문 생성 사가 보상 처리 시작: {}", saga.getOrderId());
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
                 orderCreateOrchestrator.compensate(saga, order);
             });
         } catch (Exception e) {
-            log.error("[도메인 스케줄러] 멈춰있는 주문 생성 사가 보상 처리 실패: {}", saga.getOrderId(), e);
+            log.error("[사가 스케줄러] 멈춰있는 주문 생성 사가 보상 처리 실패: {}", saga.getOrderId(), e);
         }
     }
 
@@ -89,7 +51,9 @@ public class ReconciliationService {
     public void processStuckCancelSagaRetry(OrderCancelSaga saga) {
         try {
             log.info("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 시작: {}", saga.getOrderId());
-            // TODO: 주문 취소 사가 재시도 로직 구현 필요
+            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
+                orderCancelOrchestrator.retry(saga, order);
+            });
         } catch (Exception e) {
             log.error("[사가 스케줄러] 멈춰있는 주문 취소 사가 재시도 실패: {}", saga.getOrderId(), e);
         }
@@ -98,10 +62,27 @@ public class ReconciliationService {
     @Transactional
     public void processStuckRefundItemSagaRetry(OrderItemRefundSaga saga) {
         try {
-            log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 시작: {}", saga.getOrderItemId());
-            // TODO: 주문 상품 환불 사가 재시도 로직 구현 필요
+            log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (회원) 재시도 시작: {}", saga.getOrderItemId());
+            orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
+                orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {
+                    orderItemRefundOrchestrator.retry(saga, order, orderItem);
+                });
+            });
+
         } catch (Exception e) {
-            log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 재시도 실패: {}", saga.getOrderId(), e);
+            log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (회원) 재시도 실패: {}", saga.getOrderItemId(), e);
+        }
+    }
+
+    @Transactional
+    public void processStuckNonMemberRefundItemSagaRetry(NonMemberOrderItemRefundSaga saga) {
+        try {
+            log.info("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (비회원) 재시도 시작: {}", saga.getOrderItemId());
+            orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {
+                nonMemberOrderItemRefundOrchestrator.retry(saga, orderItem);
+            });
+        } catch (Exception e) {
+            log.error("[사가 스케줄러] 멈춰있는 주문 상품 환불 사가 (비회원) 재시도 실패: {}", saga.getOrderItemId(), e);
         }
     }
 
@@ -109,12 +90,10 @@ public class ReconciliationService {
     public void compensateForCreateSagaBridgingFailure(OrderCreateSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
-                orderCreateOrchestrator.compensate(saga, order);
-                order.setOrderStatus(OrderStatus.CREATION_FAILED);
-                orderRepository.save(order);
+                orderCompensateService.compensateOrder(order, saga);
             });
         } catch (Exception e) {
-            log.error("[도메인 스케줄러] 완료되었으나 브릿징 안된 주문 생성 사가 보상 처리 실패: {}", saga.getOrderId(), e);
+            log.error("[도메인 스케줄러] 완료된 주문 생성 사가 브릿징 실패: {}", saga.getOrderId(), e);
         }
     }
 
@@ -122,11 +101,8 @@ public class ReconciliationService {
     public void processCompletedCancelSagaBridge(OrderCancelSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
-                if (order.getOrderStatus() == OrderStatus.PENDING) {
-                    order.setOrderStatus(OrderStatus.AWAITING_CANCELLATION);
-                    orderRepository.save(order);
-                    saga.setBridged(true);
-                    orderCancelSagaRepository.save(saga);
+                if (order.getOrderStatus() != OrderStatus.CANCELED) {
+                    orderCancelService.cancelOrder(order, saga);
                 }
             });
         } catch (Exception e) {
@@ -138,15 +114,25 @@ public class ReconciliationService {
     public void processCompletedRefundSagaBridge(OrderItemRefundSaga saga) {
         try {
             orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {
-                if (orderItem.getOrderItemStatus() == OrderItemStatus.DELIVERED) {
-                    orderItem.setOrderItemStatus(OrderItemStatus.AWAITING_REFUND_FINALIZATION);
-                    orderItemRepository.save(orderItem);
-                    saga.setBridged(true);
-                    orderItemRefundSagaRepository.save(saga);
+                if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURNED) {
+                    orderItemRefundService.completeOrderItem(orderItem, saga);
                 }
             });
         } catch (Exception e) {
             log.error("[도메인 스케줄러] 완료된 주문 상품 환불 사가 브릿징 실패: {}", saga.getOrderItemId(), e);
+        }
+    }
+
+    @Transactional
+    public void processCompletedNonMemberRefundSagaBridge(NonMemberOrderItemRefundSaga saga) {
+        try {
+            orderItemRepository.findById(saga.getOrderItemId()).ifPresent(orderItem -> {
+                if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURNED) {
+                    orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
+                }
+            });
+        } catch (Exception e) {
+            log.error("[도메인 스케줄러] 완료된 주문 상품 환불 사가 (비회원) 브릿징 실패: {}", saga.getOrderItemId(), e);
         }
     }
 }

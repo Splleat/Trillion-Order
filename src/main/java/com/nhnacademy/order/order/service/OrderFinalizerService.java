@@ -10,6 +10,8 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
+import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +27,13 @@ public class OrderFinalizerService {
     private final BookService bookService;
     private final CouponService couponService;
     private final OrderRepository orderRepository;
+    private final OrderCreateSagaRepository orderCreateSagaRepository;
 
     @Transactional
-    public void finalizeOrderCreation(Order order) {
+    public void finalizeOrderCreation(Order order, OrderCreateSaga saga) {
 
         // 이미 처리된 주문은 다시 처리하지 않음
-        if (order.getOrderStatus() != OrderStatus.AWAITING_POST_PROCESSING) {
+        if (order.getOrderStatus() != OrderStatus.PENDING) {
             return;
         }
 
@@ -83,6 +86,10 @@ public class OrderFinalizerService {
         order.setOrderStatus(OrderStatus.PENDING);
 
         orderRepository.save(order);
+
+        // 사가 - 도메인 연결
+        saga.setBridged(true);
+        orderCreateSagaRepository.save(saga);
     }
 
     // 배송비 결정

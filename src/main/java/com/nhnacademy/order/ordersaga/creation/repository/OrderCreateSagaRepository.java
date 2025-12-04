@@ -10,6 +10,6 @@ import java.util.Optional;
 
 public interface OrderCreateSagaRepository extends JpaRepository<OrderCreateSaga, Long> {
     List<OrderCreateSaga> findAllByOverallStatusInAndUpdatedAtBefore(List<SagaStatus> sagaStatuses, LocalDateTime updatedAt);
-    List<OrderCreateSaga> findAllByOverallStatusAndBridgedFalseAndUpdatedAtBefore(SagaStatus sagaStatus, LocalDateTime updatedAt);
+    List<OrderCreateSaga> findAllByOverallStatusInAndBridgedFalseAndUpdatedAtBefore(List<SagaStatus> sagaStatuses, LocalDateTime updatedAt);
     Optional<OrderCreateSaga> findByOrderId(Long orderId);
 }

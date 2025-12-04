@@ -73,19 +73,20 @@ public enum OrderItemStatusUpdateStrategy {
     RETURNED(OrderItemStatus.RETURNED, Role.ADMIN) {
         @Override
         public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
-            // 반품 요청 상태가 아니면 반품 완료 불가
-            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) &&
-            !orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_DAMAGED)) {
-                throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItemId);
-            }
-
-            // 상태 변경
-            orderItem.setOrderItemStatus(OrderItemStatus.RETURNED);
-
-            // 주문 전체 상태 업데이트
-            order.reflectItemStatusChange();
+            // 이제 반품은 사가에 의해서 이루어짐
+//            OrderItem orderItem = findOrderItem(order, orderItemId);
+//
+//            // 반품 요청 상태가 아니면 반품 완료 불가
+//            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) &&
+//            !orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_DAMAGED)) {
+//                throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItemId);
+//            }
+//
+//            // 상태 변경
+//            orderItem.setOrderItemStatus(OrderItemStatus.RETURNED);
+//
+//            // 주문 전체 상태 업데이트
+//            order.reflectItemStatusChange();
         }
     },
     CANCELED(OrderItemStatus.CANCELED, Role.DISABLE) {
