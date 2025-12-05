@@ -3,6 +3,7 @@ package com.nhnacademy.order.ordersaga.cancellation.service;
 import com.nhnacademy.order.client.service.BookService;
 import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.service.OrderCancelService;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
@@ -33,10 +34,8 @@ public class OrderCancelOrchestrator {
     private final OrderCancelService orderCancelService;
 
     public void processCancelOrder(Long memberId, Order order) {
-        OrderCancelSaga saga = OrderCancelSaga.create(order.getOrderId());
-
-        // 1. 사가 시작
-        sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STARTED);
+        // 1. 사가 시작 (사가 생성과 동시에 주문 상태를 '주문 취소 중'으로 변경 -> 사용자 경험 향상)
+        OrderCancelSaga saga = orderCancelService.cancelStart(order);
 
         UUID sagaId = saga.getSagaId();
 
@@ -90,6 +89,10 @@ public class OrderCancelOrchestrator {
         // 이미 처리된 사가에 대해 재시도 하지 않음
         if (saga.getOverallStatus() == SagaStatus.COMPLETED) {
             return;
+        }
+
+        if (order.getOrderStatus() != OrderStatus.CANCELED) {
+            orderCancelService.cancelStart(order);
         }
 
         UUID sagaId = saga.getSagaId();

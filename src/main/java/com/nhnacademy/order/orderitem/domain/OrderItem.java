@@ -20,7 +20,6 @@ public class OrderItem extends BaseTimeEntity {
     @Column(name = "orderitem_id")
     private Long orderItemId;
 
-
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
@@ -28,6 +27,8 @@ public class OrderItem extends BaseTimeEntity {
 
     @Column(name = "book_id")
     private Long bookId;
+
+    private String bookName;
 
     private int quantity;
 
@@ -44,21 +45,11 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 
-    public static OrderItem create(Order order, Long bookId, int quantity, int price, LocalDateTime shippingDate, int packagingPrice) {
-        return new OrderItem(
-            order,
-            bookId,
-            quantity,
-            price,
-            shippingDate,
-            packagingPrice
-        );
-    }
-
     public static OrderItem createInitial(Order order, Long bookId, int quantity, LocalDateTime shippingDate, int packagingPrice) {
         return new OrderItem(
             order,
             bookId,
+            null,
             quantity,
             null,
             shippingDate,
@@ -66,10 +57,11 @@ public class OrderItem extends BaseTimeEntity {
         );
     }
 
-    private OrderItem(Order order, Long bookId, int quantity, Integer price, LocalDateTime shippingDate, Integer packagingPrice) {
+    private OrderItem(Order order, Long bookId, String bookName, int quantity, Integer price, LocalDateTime shippingDate, Integer packagingPrice) {
         this.orderItemId = null;
         this.order = order;
         this.bookId = bookId;
+        this.bookName = bookName;
         this.quantity = quantity;
         this.price = price;
         this.shippingDate = shippingDate;
@@ -77,7 +69,8 @@ public class OrderItem extends BaseTimeEntity {
         this.orderItemStatus = OrderItemStatus.PREPARING;
     }
 
-    public void completeOrderItem(int price) {
+    public void completeOrderItem(String bookName, int price) {
+        this.bookName = bookName;
         this.price = price;
     }
 

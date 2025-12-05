@@ -1,5 +1,6 @@
 package com.nhnacademy.order.scheduler;
 
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.order.service.OrderCancelService;
