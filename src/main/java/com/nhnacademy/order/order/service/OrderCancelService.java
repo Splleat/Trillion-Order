@@ -4,8 +4,10 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
+import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
 import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
+import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCancelService {
     private final OrderRepository orderRepository;
     private final OrderCancelSagaRepository orderCancelSagaRepository;
+    private final SagaUpdateService sagaUpdateService;
+
+    @Transactional
+    public OrderCancelSaga cancelStart(Order order) {
+        if (order.getOrderStatus() == OrderStatus.CANCELING) {
+            return orderCancelSagaRepository.findByOrderId(order.getOrderId())
+                    .orElseThrow(() -> new IllegalStateException("주문의 상태는 'CANCELING'이지만, 사가가 존재하지 않는 오류 발생"));
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELING);
+        orderRepository.save(order);
+
+        OrderCancelSaga saga = OrderCancelSaga.create(order.getOrderId());
+        sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STARTED);
+
+        return saga;
+    }
 
     @Transactional
     public void cancelOrder(Order order, OrderCancelSaga saga) {

@@ -1,11 +1,14 @@
 package com.nhnacademy.order.common.handler;
 
+import com.nhnacademy.order.client.exception.ExternalServiceException;
 import com.nhnacademy.order.common.dto.ErrorResponse;
+import com.nhnacademy.order.common.exception.AccessDeniedException;
+import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -55,6 +58,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleStatusTransitionException(OrderStatusTransitionException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "INVALID_STATUS_TRANSITION");
         return ResponseEntity.status(409).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+            OrderCreateFailureException.class
+    })
+    public ResponseEntity<ErrorResponse> handleOrderCreateFailureException(ExternalServiceException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "SERVICE_UNAVAILABLE");
+        return ResponseEntity.status(503).body(errorResponse);
     }
 
     @ExceptionHandler({

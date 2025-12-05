@@ -3,10 +3,10 @@ package com.nhnacademy.order.orderitem.dto;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 
-// TODO: bookName 추가
 public record OrderItemResponse(
     Long orderId,
     Long bookId,
+    String bookName,
     int quantity,
     int price,
     int packagingPrice,
@@ -16,6 +16,7 @@ public record OrderItemResponse(
         return new OrderItemResponse(
             orderItem.getOrder().getOrderId(),
             orderItem.getBookId(),
+            orderItem.getBookName(),
             orderItem.getQuantity(),
             orderItem.getPrice(),
             orderItem.getPackagingPrice(),

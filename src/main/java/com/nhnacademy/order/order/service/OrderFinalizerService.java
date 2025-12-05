@@ -47,9 +47,10 @@ public class OrderFinalizerService {
 
         // OrderItem 완성
         orderItems.forEach(orderItem -> {
+                    String bookName = bookResponseMap.get(orderItem.getBookId()).bookName();
                     int price = bookResponseMap.get(orderItem.getBookId()).price();
 
-                    orderItem.completeOrderItem(price);
+                    orderItem.completeOrderItem(bookName, price);
                 });
 
         // 순수 금액 계산 (도서 * 재고 + 포장비)

@@ -1,5 +1,7 @@
 package com.nhnacademy.order.scheduler;
 
+import com.nhnacademy.order.order.domain.OrderStatus;
+import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
@@ -18,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class ReconciliationScheduler {
+    private final OrderRepository orderRepository;
     private final OrderCreateSagaRepository orderCreateSagaRepository;
     private final OrderCancelSagaRepository orderCancelSagaRepository;
     private final OrderItemRefundSagaRepository orderItemRefundSagaRepository;

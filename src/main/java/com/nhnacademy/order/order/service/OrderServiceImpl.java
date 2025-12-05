@@ -82,11 +82,18 @@ public class OrderServiceImpl implements OrderService {
             OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
 
             // 회원
-            if (userInfo != null) {
-                orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
-            } else {
-                // 비회원
-                nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
+            try {
+                if (userInfo != null) {
+                    orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
+                } else {
+                    // 비회원
+                    nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
+                }
+            } catch (Exception e) {
+                log.error("주문 상품 환불 처리 실패: {}", e.getMessage(), e);
+                // 예외를 삼켜서 사용자는 모르게 함
+                // '환불 요청' -> '관리자 승인' -> '환불' 순서로 진행되기 때문에 환불 중 오류가 발생해도 '환불 요청' 상태 유지
+                // 스케줄러가 알아서 다시 환불 처리함
             }
         } else {
             // 단건 환불이 아닌 경우 바로 상태 변경
@@ -128,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
 
             // 3. 최종 처리 실행 (OrderStatus: CREATING -> PENDING)
             orderFinalizerService.finalizeOrderCreation(order, saga);
-        } catch (Exception e) {
+        } catch (Exception e) { // 아마 무조건 OrderCreateFailureException
             // TODO: 예외 세분화 필요
             log.error("주문 ID: {} - 생성 실패: {}", order.getOrderId(), e.getMessage(), e);
             orderCreateOrchestrator.compensate(saga, order);
@@ -240,15 +247,12 @@ public class OrderServiceImpl implements OrderService {
 
         try {
             // 2. 주문 취소 사가 진행
-            // 이제 주문 취소 사가가 완료된 주문에 대해, 주문 상태 변경 및 브릿징까지 동기적으로 처리
             orderCancelOrchestrator.processCancelOrder(userInfo.userId(), order);
-
-            // 사가 완료 전에 서버가 종료되면 스케줄러가 사가 재시도
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);
-            // 오케스트레이터 내부에서 이미 FAILED 처리 및 로깅 되었음.
-            // completeOrder 실패 -> 아마 스케줄러나 배치 서버로 처리해야 할듯?
-            // throw e; -> 사용자는 실패 여부를 알 필요 없음. 재시도를 통해 반드시 달성
+            // 사가 시작과 동시에 주문 상태가 '취소 처리 중'으로 변경
+            // 만약 실패하더라도 스케줄러가 실패한 사가를 재시도
+            // 사용자에게는 이미 '취소 처리 중'으로 보이므로 별도의 예외를 던지지 않아도 됨
         }
     }
 

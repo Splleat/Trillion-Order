@@ -17,6 +17,6 @@ public class ResilienceFallbackHandler {
             log.error("[{}] 요청 실패 - {}", serviceName, operationName);
         }
 
-        throw new ExternalServiceException(serviceName + " 서비스 오류: " + operationName);
+        throw new ExternalServiceException(serviceName + " 서비스 오류: " + operationName, throwable);
     }
 }
