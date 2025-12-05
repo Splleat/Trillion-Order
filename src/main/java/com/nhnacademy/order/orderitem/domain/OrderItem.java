@@ -41,6 +41,7 @@ public class OrderItem extends BaseTimeEntity {
 
     @Setter
     @Column(name = "orderitem_status")
+    @Enumerated(value = EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 
     public static OrderItem create(Order order, Long bookId, int quantity, int price, LocalDateTime shippingDate, int packagingPrice) {
