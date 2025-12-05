@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             OrderCreateFailureException.class
     })
-    public ResponseEntity<ErrorResponse> handleOrderCreateFailureException(ExternalServiceException ex) {
+    public ResponseEntity<ErrorResponse> handleOrderCreateFailureException(OrderCreateFailureException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "SERVICE_UNAVAILABLE");
         return ResponseEntity.status(503).body(errorResponse);
     }
