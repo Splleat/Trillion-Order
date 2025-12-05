@@ -100,7 +100,6 @@ public class OrderController {
     @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
                                                                           @RequestBody NonMemberOrderItemStatusPatchRequest request) {
-
         orderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         return ResponseEntity.ok().build();
