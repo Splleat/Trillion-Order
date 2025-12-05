@@ -50,21 +50,4 @@ public class OrderCreateService {
 
         return orderRepository.save(order);
     }
-
-    // 주문 생성 완료
-    @Transactional
-    public void completeOrder(Order order, int originPrice, int totalPrice, int deliveryFee, List<OrderItem> orderItems) {
-
-        order.completeOrder(originPrice, totalPrice, deliveryFee);
-
-        orderItems.forEach(order::addOrderItem);
-
-        orderRepository.save(order);
-    }
-
-    // 주문 생성 실패
-    @Transactional
-    public void createFailureOrder(Order order) {
-        order.setOrderStatus(OrderStatus.CREATION_FAILED);
-    }
 }

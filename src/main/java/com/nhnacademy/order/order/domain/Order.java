@@ -42,6 +42,7 @@ public class Order extends BaseTimeEntity {
 
     @Setter
     @Column(name = "order_status")
+    @Enumerated(value = EnumType.STRING)
     private OrderStatus orderStatus;
 
     @Embedded
