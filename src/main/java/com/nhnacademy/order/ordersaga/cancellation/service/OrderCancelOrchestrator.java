@@ -3,15 +3,14 @@ package com.nhnacademy.order.ordersaga.cancellation.service;
 import com.nhnacademy.order.client.service.BookService;
 import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
-import com.nhnacademy.order.order.domain.OrderStatus;
-import com.nhnacademy.order.order.service.OrderCancelService;
-import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
-import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.order.domain.Order;
+import com.nhnacademy.order.order.exception.OrderCancelFailureException;
+import com.nhnacademy.order.order.service.OrderCancelService;
+import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
-import com.nhnacademy.order.order.exception.OrderCancelFailureException;
-import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -89,10 +88,6 @@ public class OrderCancelOrchestrator {
         // 이미 처리된 사가에 대해 재시도 하지 않음
         if (saga.getOverallStatus() == SagaStatus.COMPLETED) {
             return;
-        }
-
-        if (order.getOrderStatus() != OrderStatus.CANCELED) {
-            orderCancelService.cancelStart(order);
         }
 
         UUID sagaId = saga.getSagaId();

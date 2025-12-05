@@ -47,8 +47,10 @@ public class OrderFinalizerService {
 
         // OrderItem 완성
         orderItems.forEach(orderItem -> {
-                    String bookName = bookResponseMap.get(orderItem.getBookId()).bookName();
-                    int price = bookResponseMap.get(orderItem.getBookId()).price();
+                    BookResponse bookResponse = bookResponseMap.get(orderItem.getBookId());
+
+                    String bookName = bookResponse.bookName();
+                    int price = bookResponse.price();
 
                     orderItem.completeOrderItem(bookName, price);
                 });
