@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 비회원 주문 비밀번호 확인
     private void nonMemberPasswordCheck(String nonMemberPassword, String orderPassword) {
-        if (!passwordEncoder.matches(nonMemberPassword, orderPassword)) {
+        if (nonMemberPassword != null && !passwordEncoder.matches(nonMemberPassword, orderPassword)) {
             throw new OrderPasswordMismatchException("비회원 주문번호 불일치");
         }
     }
@@ -72,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
         String role = (userInfo != null) ? userInfo.role() : null;
 
+        // TODO: NPE 수정 필요
         if (!strategy.hasPermission(role)) {
             throw new AccessDeniedException("주문 상품 상태 변경 권한이 없음");
         }

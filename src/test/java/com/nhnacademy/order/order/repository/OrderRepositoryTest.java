@@ -50,8 +50,13 @@ class OrderRepositoryTest {
         entityManager.persist(order3);
 
         // OrderItem 객체들 생성 및 저장 (order1에 연결)
-        order1Item1 = OrderItem.create(order1, 101L, 2, 15000, 0);
-        OrderItem order1Item2 = OrderItem.create(order1, 102L, 1, 25000, 0);
+        order1Item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, 0);
+        order1Item1.completeOrderItem("테스트 책 101", 15000);
+        entityManager.persist(order1Item1);
+
+        OrderItem order1Item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, 0);
+        order1Item2.completeOrderItem("테스트 책 102", 25000);
+        entityManager.persist(order1Item2);
 
         entityManager.persist(order1Item1);
         entityManager.persist(order1Item2);
