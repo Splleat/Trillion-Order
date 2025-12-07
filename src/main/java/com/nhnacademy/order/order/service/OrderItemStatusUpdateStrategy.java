@@ -134,7 +134,7 @@ public enum OrderItemStatusUpdateStrategy {
 
         // 관리자만 가능
         if (this.requiredRole == Role.ADMIN) {
-            return userRole.equals("ADMIN");
+            return "ADMIN".equals(userRole);
         }
 
         // 그 외에는 모두 가능

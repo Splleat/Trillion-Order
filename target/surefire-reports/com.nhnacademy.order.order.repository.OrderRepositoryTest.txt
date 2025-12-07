@@ -1,16 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.nhnacademy.order.order.repository.OrderRepositoryTest
 -------------------------------------------------------------------------------
-Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.461 s <<< FAILURE! -- in com.nhnacademy.order.order.repository.OrderRepositoryTest
-com.nhnacademy.order.order.repository.OrderRepositoryTest.findAllBaseOrderByMemberId_Success_WithResults -- Time elapsed: 0.046 s <<< FAILURE!
-java.lang.AssertionError: 
-
-Expected size: 2 but was: 3 in:
-[OrderBaseResponse[orderId=1, memberId=1, orderNumber=ORD-SAMPLE-001, orderDate=2025-12-05T17:54:02.846112, orderStatus=PENDING, originPrice=55000, totalPrice=56000, deliveryFee=3000, ordererInfo=OrdererInfo[ordererName=테스트 주문자, ordererContact=010-1234-5678], receiverInfo=ReceiverInfo[receiverName=테스트 수령인, receiverContact=010-9876-5432, receiverAddress=광주광역시 동구 제봉로 92]],
-    OrderBaseResponse[orderId=8, memberId=1, orderNumber=ORD-4a109802-7114-4b04-bb61-2cb42f55c1e8, orderDate=2025-12-05T17:54:03.816943, orderStatus=CREATING, originPrice=0, totalPrice=0, deliveryFee=0, ordererInfo=OrdererInfo[ordererName=홍길동, ordererContact=010-1234-5678], receiverInfo=ReceiverInfo[receiverName=이순신, receiverContact=010-9876-5432, receiverAddress=서울]],
-    OrderBaseResponse[orderId=10, memberId=1, orderNumber=ORD-e9e7b368-c91f-4f8b-a5c5-3e8d766a08b2, orderDate=2025-12-05T17:54:03.816943, orderStatus=CREATING, originPrice=0, totalPrice=0, deliveryFee=0, ordererInfo=OrdererInfo[ordererName=홍길동, ordererContact=010-1234-5678], receiverInfo=ReceiverInfo[receiverName=이순신, receiverContact=010-9876-5432, receiverAddress=서울]]]
-	at com.nhnacademy.order.order.repository.OrderRepositoryTest.findAllBaseOrderByMemberId_Success_WithResults(OrderRepositoryTest.java:223)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.293 s -- in com.nhnacademy.order.order.repository.OrderRepositoryTest
