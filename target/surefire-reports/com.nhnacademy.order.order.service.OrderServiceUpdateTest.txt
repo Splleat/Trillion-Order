@@ -1,12 +1,11 @@
 -------------------------------------------------------------------------------
 Test set: com.nhnacademy.order.order.service.OrderServiceUpdateTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.140 s <<< FAILURE! -- in com.nhnacademy.order.order.service.OrderServiceUpdateTest
-com.nhnacademy.order.order.service.OrderServiceUpdateTest.patchOrderItemStatusForNonMember_Success_ReturnRequest -- Time elapsed: 0.010 s <<< ERROR!
-java.lang.NullPointerException: Cannot invoke "String.equals(Object)" because "userRole" is null
-	at com.nhnacademy.order.order.service.OrderItemStatusUpdateStrategy.hasPermission(OrderItemStatusUpdateStrategy.java:137)
-	at com.nhnacademy.order.order.service.OrderServiceImpl.updateOrderItemStatus(OrderServiceImpl.java:75)
-	at com.nhnacademy.order.order.service.OrderServiceImpl.patchOrderItemStatusForNonMember(OrderServiceImpl.java:215)
+Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.110 s <<< FAILURE! -- in com.nhnacademy.order.order.service.OrderServiceUpdateTest
+com.nhnacademy.order.order.service.OrderServiceUpdateTest.patchOrderItemStatusForNonMember_Success_ReturnRequest -- Time elapsed: 0.015 s <<< ERROR!
+org.springframework.security.access.AccessDeniedException: 주문 상품 상태 변경 권한이 없음
+	at com.nhnacademy.order.order.service.OrderServiceImpl.updateOrderItemStatus(OrderServiceImpl.java:77)
+	at com.nhnacademy.order.order.service.OrderServiceImpl.patchOrderItemStatusForNonMember(OrderServiceImpl.java:216)
 	at com.nhnacademy.order.order.service.OrderServiceUpdateTest.patchOrderItemStatusForNonMember_Success_ReturnRequest(OrderServiceUpdateTest.java:95)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)

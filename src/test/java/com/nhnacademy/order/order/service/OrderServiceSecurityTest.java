@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.when;
         "spring.cloud.config.enabled=false",
         "toss.secret-key=dummy-secret-key-for-test"
 })
+@Sql("/schema.sql")
 class OrderServiceSecurityTest {
 
     @Autowired

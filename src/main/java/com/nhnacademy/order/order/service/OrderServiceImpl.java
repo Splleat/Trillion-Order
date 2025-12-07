@@ -72,7 +72,6 @@ public class OrderServiceImpl implements OrderService {
 
         String role = (userInfo != null) ? userInfo.role() : null;
 
-        // TODO: NPE 수정 필요
         if (!strategy.hasPermission(role)) {
             throw new AccessDeniedException("주문 상품 상태 변경 권한이 없음");
         }

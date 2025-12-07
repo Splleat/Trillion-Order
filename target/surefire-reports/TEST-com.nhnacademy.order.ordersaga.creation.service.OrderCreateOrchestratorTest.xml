@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.155" tests="9" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestratorTest" time="0.134" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -48,7 +48,7 @@
     <property name="localRepository" value="C:\Users\skyap\.m2\repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="C:\Users\skyap\AppData\Local\Temp\"/>
-    <property name="com.zaxxer.hikari.pool_number" value="4"/>
+    <property name="com.zaxxer.hikari.pool_number" value="3"/>
     <property name="java.version" value="21.0.1"/>
     <property name="user.dir" value="C:\Users\skyap\IdeaProjects\order"/>
     <property name="os.arch" value="amd64"/>
@@ -66,16 +66,23 @@
     <property name="java.class.version" value="65.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[order-service] "/>
   </properties>
-  <testcase name="confirmPayment_Success" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.093"/>
-  <testcase name="confirmPayment_Failure2" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.002"/>
-  <testcase name="confirmPayment_Failure3" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.004"/>
-  <testcase name="confirmPayment_Failure4" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.005">
-    <system-out><![CDATA[2025-12-07T18:31:49.435+09:00 ERROR 18452 --- [order-service] [           main] c.n.p.service.impl.PaymentFlowService    : 결제 정보 저장 중 오류 발생 결제 취소 : ORD_test 
+  <testcase name="processCreateOrder_Success_WithCouponAndPoint" classname="com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestratorTest" time="0.133">
+    <system-out><![CDATA[&amp#27;[35m[Hibernate]&amp#27;[0m 
+    /* <criteria> */ &amp#27;[34mselect&amp#27;[0m
+        nmoirs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"bridged"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"created_at"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"last_completed_step"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"order_id"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"order_item_id"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"overall_status"&amp#27;[0m,
+        nmoirs1_0.&amp#27;[32m"updated_at"&amp#27;[0m 
+    &amp#27;[34mfrom&amp#27;[0m
+        &amp#27;[32m"non_member_order_item_refund_saga"&amp#27;[0m nmoirs1_0 
+    &amp#27;[34mwhere&amp#27;[0m
+        nmoirs1_0.&amp#27;[32m"overall_status"&amp#27;[0m=? 
+        &amp#27;[34mand&amp#27;[0m &amp#27;[34mnot&amp#27;[0m(nmoirs1_0.&amp#27;[32m"bridged"&amp#27;[0m) 
+        &amp#27;[34mand&amp#27;[0m nmoirs1_0.&amp#27;[32m"updated_at"&amp#27;[0m<?
 ]]></system-out>
   </testcase>
-  <testcase name="confirmPayment_Failure5" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.003"/>
-  <testcase name="confirmPayment_Failure" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.002"/>
-  <testcase name="cancelPayment_Failure_Pending" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.041"/>
-  <testcase name="cancelPayment_Success" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.002"/>
-  <testcase name="cancelPayment_Failure" classname="com.nhnacademy.payment.service.impl.PaymentFlowServiceTest" time="0.002"/>
 </testsuite>

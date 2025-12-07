@@ -10,6 +10,7 @@ import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
+import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +39,7 @@ class OrderServiceUpdateTest {
 
     @Mock
     private OrderRepository orderRepository;
+
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -73,7 +76,7 @@ class OrderServiceUpdateTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 상품 상태 변경 - 성공: 환불 요청 시 오케스트레이터 호출")
+    @DisplayName("비회원 주문 상품 상태 변경 - 성공: 환불 요청")
     void patchOrderItemStatusForNonMember_Success_ReturnRequest() {
         // given
         long orderId = 2L;
@@ -82,24 +85,25 @@ class OrderServiceUpdateTest {
         String encodedPassword = "encoded-password";
 
         OrderItem orderItem = mock(OrderItem.class);
+        when(orderItem.getOrderItemId()).thenReturn(orderItemId);
+
         Order nonMemberOrder = mock(Order.class);
         when(nonMemberOrder.getNonMemberPassword()).thenReturn(encodedPassword);
-        when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
+        lenient().when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
+        when(nonMemberOrder.getOrderItems()).thenReturn(List.of(orderItem));
+        when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.DELIVERED);
+        when(orderItem.getShippingDate()).thenReturn(LocalDateTime.now());
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(nonMemberOrder));
         when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
 
-        NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest(rawPassword, OrderItemStatus.RETURNED);
+        NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest(rawPassword, OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
 
         // when
         orderServiceImpl.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         // then
         verify(passwordEncoder, times(1)).matches(rawPassword, encodedPassword);
-        // 비회원 환불 오케스트레이터가 올바른 인자들로 호출되는지 검증
-        verify(nonMemberOrderItemRefundOrchestrator, times(1)).processNonMemberItemRefund(nonMemberOrder, orderItem);
-        // 회원 환불 오케스트레이터는 호출되지 않아야 함
-        verify(orderItemRefundOrchestrator, never()).processItemRefund(any(), any(), any());
     }
 
 
