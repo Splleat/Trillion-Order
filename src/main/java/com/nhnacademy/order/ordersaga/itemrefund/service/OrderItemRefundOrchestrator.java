@@ -3,6 +3,7 @@ package com.nhnacademy.order.ordersaga.itemrefund.service;
 import com.nhnacademy.order.client.service.BookService;
 import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -41,12 +42,12 @@ public class OrderItemRefundOrchestrator {
             throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItem.getOrderItemId());
         }
 
-        OrderItemRefundSaga saga = OrderItemRefundSaga.create(order.getOrderId(), orderItem.getOrderItemId());
+        UUID sagaId = SagaContext.get();
+
+        OrderItemRefundSaga saga = OrderItemRefundSaga.create(sagaId, order.getOrderId(), orderItem.getOrderItemId());
 
         // 1. 사가 시작
         sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.STARTED);
-
-        UUID sagaId = saga.getSagaId();
 
         // 단순하게 API를 유지하기 위해서 단일 상품임에도 맵을 만들어서 사용
         Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());

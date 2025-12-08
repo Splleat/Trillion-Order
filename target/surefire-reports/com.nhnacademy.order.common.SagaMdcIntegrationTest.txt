@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------------
+Test set: com.nhnacademy.order.common.SagaMdcIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 12.47 s <<< FAILURE! -- in com.nhnacademy.order.common.SagaMdcIntegrationTest
+com.nhnacademy.order.common.SagaMdcIntegrationTest.createOrder_shouldPropagateSagaIdInFeignHeader -- Time elapsed: 0.261 s <<< FAILURE!
+com.github.tomakehurst.wiremock.client.VerificationException: 
+Expected at least one request matching: {
+  "urlPath" : "/books/stock/decrease",
+  "method" : "POST",
+  "headers" : {
+    "X-SAGA-ID" : {
+      "matches" : "[a-f0-9\\-]+"
+    }
+  }
+}
+Requests received: [ ]
+	at com.github.tomakehurst.wiremock.client.WireMock.verificationExceptionForNearMisses(WireMock.java:746)
+	at com.github.tomakehurst.wiremock.client.WireMock.verifyThat(WireMock.java:733)
+	at com.github.tomakehurst.wiremock.client.WireMock.verifyThat(WireMock.java:709)
+	at com.github.tomakehurst.wiremock.WireMockServer.verify(WireMockServer.java:288)
+	at com.github.tomakehurst.wiremock.junit.DslWrapper.verify(DslWrapper.java:301)
+	at com.nhnacademy.order.common.SagaMdcIntegrationTest.createOrder_shouldPropagateSagaIdInFeignHeader(SagaMdcIntegrationTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

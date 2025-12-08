@@ -5,8 +5,6 @@ import com.nhnacademy.order.client.service.CouponService;
 import com.nhnacademy.order.client.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
-import com.nhnacademy.order.order.domain.OrdererInfo;
-import com.nhnacademy.order.order.domain.ReceiverInfo;
 import com.nhnacademy.order.order.service.OrderCompensateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
@@ -24,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,10 +69,10 @@ class OrderCreateOrchestratorTest {
         order.addOrderItem(orderItem);
 
         // Given: A saga is created for this order
-        saga = OrderCreateSaga.create(order.getOrderId());
+        mockSagaId = UUID.randomUUID();
+        saga = OrderCreateSaga.create(mockSagaId, order.getOrderId());
         
         // Simulate JPA generating the UUID for the sagaId
-        mockSagaId = UUID.randomUUID();
         ReflectionTestUtils.setField(saga, "sagaId", mockSagaId);
     }
 

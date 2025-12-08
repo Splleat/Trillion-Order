@@ -1,5 +1,7 @@
 package com.nhnacademy.order.order.service;
 
+import com.nhnacademy.order.common.aop.SagaIdContext;
+import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
@@ -12,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @RequiredArgsConstructor
 @Service
 public class OrderCancelService {
@@ -19,6 +23,7 @@ public class OrderCancelService {
     private final OrderCancelSagaRepository orderCancelSagaRepository;
     private final SagaUpdateService sagaUpdateService;
 
+    @SagaIdContext
     @Transactional
     public OrderCancelSaga cancelStart(Order order) {
         if (order.getOrderStatus() == OrderStatus.CANCELING) {
@@ -29,7 +34,9 @@ public class OrderCancelService {
         order.setOrderStatus(OrderStatus.CANCELING);
         orderRepository.save(order);
 
-        OrderCancelSaga saga = OrderCancelSaga.create(order.getOrderId());
+        UUID sagaId = SagaContext.get();
+
+        OrderCancelSaga saga = OrderCancelSaga.create(sagaId, order.getOrderId());
         sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STARTED);
 
         return saga;

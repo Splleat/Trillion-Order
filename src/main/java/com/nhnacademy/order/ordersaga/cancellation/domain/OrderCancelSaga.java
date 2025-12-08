@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @NoArgsConstructor
 @Entity
@@ -15,12 +17,12 @@ public class OrderCancelSaga extends OrderSaga {
     @Enumerated(EnumType.STRING)
     private CancelSagaStep lastCompletedStep;
 
-    private OrderCancelSaga(Long orderId) {
-        super(orderId);
+    private OrderCancelSaga(UUID sagaId, Long orderId) {
+        super(sagaId, orderId);
         this.lastCompletedStep = CancelSagaStep.STARTED;
     }
 
-    public static OrderCancelSaga create(Long orderId) {
-        return new OrderCancelSaga(orderId);
+    public static OrderCancelSaga create(UUID sagaId, Long orderId) {
+        return new OrderCancelSaga(sagaId, orderId);
     }
 }
