@@ -117,7 +117,7 @@ public class OrderController {
     @DeleteMapping("/orders/non-members/{orderId}")
     public ResponseEntity<Void> cancelOrderForNonMember(@PathVariable Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
-        orderService.cancelOrderForNonMember(orderId, request.getNonMemberPassword());
+        orderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
         return ResponseEntity.noContent().build();
     }
 }
