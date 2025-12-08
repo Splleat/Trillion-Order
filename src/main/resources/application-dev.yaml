@@ -4,9 +4,6 @@ server:
 spring:
   application:
     name: order-service
-  sql:
-    init:
-      mode: never
 
   # JPA, Datasource, H2 설정
   datasource:
