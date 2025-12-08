@@ -19,6 +19,7 @@ import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
+import com.nhnacademy.order.order.dto.NonMemberOrderCancelRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -103,5 +104,20 @@ public class OrderController {
         orderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         return ResponseEntity.ok().build();
+    }
+
+    // 주문 취소 (회원)
+    @DeleteMapping("/orders/{orderId}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId, UserInfo userInfo) {
+        orderService.cancelOrder(userInfo, orderId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 주문 취소 (비회원)
+    @DeleteMapping("/orders/non-members/{orderId}")
+    public ResponseEntity<Void> cancelOrderForNonMember(@PathVariable Long orderId,
+                                                        @RequestBody @Valid NonMemberOrderCancelRequest request) {
+        orderService.cancelOrderForNonMember(orderId, request.getNonMemberPassword());
+        return ResponseEntity.noContent().build();
     }
 }

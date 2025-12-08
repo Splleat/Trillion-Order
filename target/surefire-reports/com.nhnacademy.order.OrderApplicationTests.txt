@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.nhnacademy.order.OrderApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.183 s -- in com.nhnacademy.order.OrderApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.653 s -- in com.nhnacademy.order.OrderApplicationTests

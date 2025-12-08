@@ -1,13 +1,11 @@
 package com.nhnacademy.order.common.handler;
 
-import com.nhnacademy.order.client.exception.ExternalServiceException;
 import com.nhnacademy.order.common.dto.ErrorResponse;
 import com.nhnacademy.order.common.exception.AccessDeniedException;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

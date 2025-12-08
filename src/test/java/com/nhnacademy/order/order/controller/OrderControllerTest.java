@@ -11,6 +11,7 @@ import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
+import com.nhnacademy.order.order.dto.NonMemberOrderCancelRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -168,7 +169,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /api/orders/non-members/{orderId}/items/{orderItemId}")
+    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /api/orders/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusForNonMember_Success() throws Exception {
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("password123", OrderItemStatus.CANCELED);
 
@@ -179,5 +180,32 @@ class OrderControllerTest {
                 .andExpect(status().isOk());
 
         verify(orderService).patchOrderItemStatusForNonMember(eq(1L), eq(1L), any(NonMemberOrderItemStatusPatchRequest.class));
+    }
+
+    @Test
+    @DisplayName("회원 주문 취소 - DELETE /api/orders/{orderId}")
+    void cancelOrder_Success() throws Exception {
+        mockMvc.perform(delete("/api/orders/{orderId}", 1L)
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "MEMBER"))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(orderService).cancelOrder(any(), eq(1L));
+    }
+
+    @Test
+    @DisplayName("비회원 주문 취소 - DELETE /api/orders/non-members/{orderId}")
+    void cancelOrderForNonMember_Success() throws Exception {
+        NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest();
+        cancelRequest.setNonMemberPassword("password123");
+
+        mockMvc.perform(delete("/api/orders/non-members/{orderId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cancelRequest)))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(orderService).cancelOrderForNonMember(eq(1L), eq("password123"));
     }
 }
