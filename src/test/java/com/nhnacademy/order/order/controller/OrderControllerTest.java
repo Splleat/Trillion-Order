@@ -169,7 +169,7 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /api/orders/{orderId}/items/{orderItemId}")
+    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /api/orders/non-members/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusForNonMember_Success() throws Exception {
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("password123", OrderItemStatus.CANCELED);
 
@@ -197,8 +197,7 @@ class OrderControllerTest {
     @Test
     @DisplayName("비회원 주문 취소 - DELETE /api/orders/non-members/{orderId}")
     void cancelOrderForNonMember_Success() throws Exception {
-        NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest();
-        cancelRequest.setNonMemberPassword("password123");
+        NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest("password123");
 
         mockMvc.perform(delete("/api/orders/non-members/{orderId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
