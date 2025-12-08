@@ -53,6 +53,7 @@ com/nhnacademy/order/orderitem/dto/NonMemberOrderItemStatusPatchRequest.class
 com/nhnacademy/payment/exception/PaymentNotFoundException.class
 com/nhnacademy/order/ordersaga/service/SagaUpdateService.class
 com/nhnacademy/payment/domain/Payment$PaymentBuilder.class
+com/nhnacademy/order/order/controller/OrderControllerImpl.class
 com/nhnacademy/order/orderitem/dto/OrderItemStatusPatchRequest.class
 com/nhnacademy/order/order/dto/OrderResponse.class
 com/nhnacademy/order/ordersaga/creation/service/OrderCreateOrchestrator.class
@@ -88,6 +89,7 @@ com/nhnacademy/order/ordersaga/itemrefund/domain/NonMemberRefundSagaStep.class
 com/nhnacademy/order/order/service/OrderService.class
 com/nhnacademy/order/client/dto/BookResponse.class
 com/nhnacademy/order/ordersaga/cancellation/service/OrderCancelOrchestrator.class
+com/nhnacademy/order/common/config/SwaggerConfig.class
 com/nhnacademy/order/order/dto/OrderCreateRequest.class
 com/nhnacademy/OrderApplication.class
 com/nhnacademy/payment/domain/Payment.class

@@ -1,7 +1,7 @@
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/OrderApplicationTests.java
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/client/BookClientTest.java
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/delivery/repository/DeliveryPolicyRepositoryTest.java
-/Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/order/controller/OrderControllerTest.java
+/Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/order/controller/OrderControllerImplTest.java
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/order/repository/OrderRepositoryTest.java
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/order/service/OrderServiceCreateTest.java
 /Users/sss/IdeaProjects/order/src/test/java/com/nhnacademy/order/order/service/OrderServiceFindTest.java
