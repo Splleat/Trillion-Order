@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.nhnacademy.payment.controller.PaymentControllerTest" time="1.754" tests="5" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.nhnacademy.order.common.SagaMdcIntegrationTest" time="12.473" tests="1" errors="0" skipped="0" failures="1">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -53,7 +53,7 @@
     <property name="java.io.tmpdir" value="C:\Users\skyap\AppData\Local\Temp\"/>
     <property name="wiremock.org.eclipse.jetty.http.HttpGenerator.STRICT" value="true"/>
     <property name="catalina.home" value="C:\Users\skyap\AppData\Local\Temp\tomcat.0.7605343592145840036"/>
-    <property name="com.zaxxer.hikari.pool_number" value="5"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="21.0.1"/>
     <property name="user.dir" value="C:\Users\skyap\IdeaProjects\order"/>
     <property name="os.arch" value="amd64"/>
@@ -73,10 +73,31 @@
     <property name="java.class.version" value="65.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[order-service] "/>
   </properties>
-  <testcase name="createConfirmPaymentSuccess" classname="com.nhnacademy.payment.controller.PaymentControllerTest" time="0.025">
-    <system-out><![CDATA[2025-12-08T23:38:36.082+09:00  INFO 12060 --- [order-service] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.nhnacademy.payment.controller.PaymentControllerTest]: PaymentControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2025-12-08T23:38:36.097+09:00  INFO 12060 --- [order-service] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.nhnacademy.OrderApplication for test class com.nhnacademy.payment.controller.PaymentControllerTest
-2025-12-08T23:38:36.099+09:00  INFO 12060 --- [order-service] [           main] o.s.b.d.r.RestartApplicationListener     : Restart disabled due to context in which it is running
+  <testcase name="createOrder_shouldPropagateSagaIdInFeignHeader" classname="com.nhnacademy.order.common.SagaMdcIntegrationTest" time="0.261">
+    <failure message="Expected at least one request matching: {&#10;  &quot;urlPath&quot; : &quot;/books/stock/decrease&quot;,&#10;  &quot;method&quot; : &quot;POST&quot;,&#10;  &quot;headers&quot; : {&#10;    &quot;X-SAGA-ID&quot; : {&#10;      &quot;matches&quot; : &quot;[a-f0-9\\-]+&quot;&#10;    }&#10;  }&#10;}&#10;Requests received: [ ]" type="com.github.tomakehurst.wiremock.client.VerificationException"><![CDATA[com.github.tomakehurst.wiremock.client.VerificationException: 
+Expected at least one request matching: {
+  "urlPath" : "/books/stock/decrease",
+  "method" : "POST",
+  "headers" : {
+    "X-SAGA-ID" : {
+      "matches" : "[a-f0-9\\-]+"
+    }
+  }
+}
+Requests received: [ ]
+	at com.github.tomakehurst.wiremock.client.WireMock.verificationExceptionForNearMisses(WireMock.java:746)
+	at com.github.tomakehurst.wiremock.client.WireMock.verifyThat(WireMock.java:733)
+	at com.github.tomakehurst.wiremock.client.WireMock.verifyThat(WireMock.java:709)
+	at com.github.tomakehurst.wiremock.WireMockServer.verify(WireMockServer.java:288)
+	at com.github.tomakehurst.wiremock.junit.DslWrapper.verify(DslWrapper.java:301)
+	at com.nhnacademy.order.common.SagaMdcIntegrationTest.createOrder_shouldPropagateSagaIdInFeignHeader(SagaMdcIntegrationTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure>
+    <system-out><![CDATA[23:38:15.878 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.nhnacademy.order.common.SagaMdcIntegrationTest]: SagaMdcIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+23:38:16.000 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.nhnacademy.OrderApplication for test class com.nhnacademy.order.common.SagaMdcIntegrationTest
+23:38:16.674 [main] INFO org.springframework.boot.devtools.restart.RestartApplicationListener -- Restart disabled due to context in which it is running
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -87,172 +108,178 @@
 
  :: Spring Boot ::                (v3.5.7)
 
-2025-12-08T23:38:36.117+09:00  INFO 12060 --- [order-service] [           main] c.n.p.controller.PaymentControllerTest   : Starting PaymentControllerTest using Java 21.0.1 with PID 12060 (started by skyap in C:\Users\skyap\IdeaProjects\order)
-2025-12-08T23:38:36.118+09:00  INFO 12060 --- [order-service] [           main] c.n.p.controller.PaymentControllerTest   : The following 1 profile is active: "dev"
-2025-12-08T23:38:36.309+09:00  INFO 12060 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-12-08T23:38:36.335+09:00  INFO 12060 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 9 JPA repository interfaces.
-2025-12-08T23:38:36.368+09:00  INFO 12060 --- [order-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=b6c19100-fcf5-3b62-905c-9832ff99d09b
-2025-12-08T23:38:36.561+09:00  INFO 12060 --- [order-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-12-08T23:38:36.562+09:00  INFO 12060 --- [order-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration numeric_boolean -> org.hibernate.type.BasicTypeReference@3cc148d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.NumericBooleanConverter -> org.hibernate.type.BasicTypeReference@3cc148d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration true_false -> org.hibernate.type.BasicTypeReference@172f88b1
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.TrueFalseConverter -> org.hibernate.type.BasicTypeReference@172f88b1
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration yes_no -> org.hibernate.type.BasicTypeReference@51ea9f02
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.YesNoConverter -> org.hibernate.type.BasicTypeReference@51ea9f02
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte -> org.hibernate.type.BasicTypeReference@37b17938
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte -> org.hibernate.type.BasicTypeReference@37b17938
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Byte -> org.hibernate.type.BasicTypeReference@37b17938
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration binary -> org.hibernate.type.BasicTypeReference@54ba7b3f
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte[] -> org.hibernate.type.BasicTypeReference@54ba7b3f
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration [B -> org.hibernate.type.BasicTypeReference@54ba7b3f
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration binary_wrapper -> org.hibernate.type.BasicTypeReference@3f3b0b19
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration wrapper-binary -> org.hibernate.type.BasicTypeReference@3f3b0b19
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration image -> org.hibernate.type.BasicTypeReference@3aac9173
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration blob -> org.hibernate.type.BasicTypeReference@6e847a7
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Blob -> org.hibernate.type.BasicTypeReference@6e847a7
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_blob -> org.hibernate.type.BasicTypeReference@18cb7c6
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_blob_wrapper -> org.hibernate.type.BasicTypeReference@6608072d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration short -> org.hibernate.type.BasicTypeReference@38f12596
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration short -> org.hibernate.type.BasicTypeReference@38f12596
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Short -> org.hibernate.type.BasicTypeReference@38f12596
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration integer -> org.hibernate.type.BasicTypeReference@7ce09850
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration int -> org.hibernate.type.BasicTypeReference@7ce09850
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Integer -> org.hibernate.type.BasicTypeReference@7ce09850
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration long -> org.hibernate.type.BasicTypeReference@1836228d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration long -> org.hibernate.type.BasicTypeReference@1836228d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Long -> org.hibernate.type.BasicTypeReference@1836228d
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float -> org.hibernate.type.BasicTypeReference@3e216fc9
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float -> org.hibernate.type.BasicTypeReference@3e216fc9
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Float -> org.hibernate.type.BasicTypeReference@3e216fc9
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double -> org.hibernate.type.BasicTypeReference@fcd300e
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double -> org.hibernate.type.BasicTypeReference@fcd300e
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Double -> org.hibernate.type.BasicTypeReference@fcd300e
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration big_integer -> org.hibernate.type.BasicTypeReference@77971bbf
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.math.BigInteger -> org.hibernate.type.BasicTypeReference@77971bbf
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration big_decimal -> org.hibernate.type.BasicTypeReference@5e9c6d8a
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.math.BigDecimal -> org.hibernate.type.BasicTypeReference@5e9c6d8a
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration character -> org.hibernate.type.BasicTypeReference@6b760eb7
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration char -> org.hibernate.type.BasicTypeReference@6b760eb7
-2025-12-08T23:38:36.562+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Character -> org.hibernate.type.BasicTypeReference@6b760eb7
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration character_nchar -> org.hibernate.type.BasicTypeReference@ddd0e97
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration string -> org.hibernate.type.BasicTypeReference@42d8b670
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.String -> org.hibernate.type.BasicTypeReference@42d8b670
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration nstring -> org.hibernate.type.BasicTypeReference@7f15639c
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration characters -> org.hibernate.type.BasicTypeReference@24cdc97f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration char[] -> org.hibernate.type.BasicTypeReference@24cdc97f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration [C -> org.hibernate.type.BasicTypeReference@24cdc97f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration wrapper-characters -> org.hibernate.type.BasicTypeReference@4101d2c7
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration text -> org.hibernate.type.BasicTypeReference@466d87a1
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ntext -> org.hibernate.type.BasicTypeReference@12300573
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration clob -> org.hibernate.type.BasicTypeReference@58fcb07b
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Clob -> org.hibernate.type.BasicTypeReference@58fcb07b
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration nclob -> org.hibernate.type.BasicTypeReference@1724c649
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.NClob -> org.hibernate.type.BasicTypeReference@1724c649
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob -> org.hibernate.type.BasicTypeReference@3d5e1b83
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob_char_array -> org.hibernate.type.BasicTypeReference@2fd79ac6
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob_character_array -> org.hibernate.type.BasicTypeReference@1215982f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob -> org.hibernate.type.BasicTypeReference@233202aa
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob_character_array -> org.hibernate.type.BasicTypeReference@6e7d874c
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob_char_array -> org.hibernate.type.BasicTypeReference@7d6f31ef
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Duration -> org.hibernate.type.BasicTypeReference@43051a8d
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Duration -> org.hibernate.type.BasicTypeReference@43051a8d
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalDateTime -> org.hibernate.type.BasicTypeReference@70916715
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalDateTime -> org.hibernate.type.BasicTypeReference@70916715
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalDate -> org.hibernate.type.BasicTypeReference@72d4d9ac
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalDate -> org.hibernate.type.BasicTypeReference@72d4d9ac
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalTime -> org.hibernate.type.BasicTypeReference@76b06e50
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalTime -> org.hibernate.type.BasicTypeReference@76b06e50
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTime -> org.hibernate.type.BasicTypeReference@1d0ac379
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.OffsetDateTime -> org.hibernate.type.BasicTypeReference@1d0ac379
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTimeWithTimezone -> org.hibernate.type.BasicTypeReference@66d8a602
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@32950acc
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTime -> org.hibernate.type.BasicTypeReference@47a22020
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.OffsetTime -> org.hibernate.type.BasicTypeReference@47a22020
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeUtc -> org.hibernate.type.BasicTypeReference@cf822a6
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeWithTimezone -> org.hibernate.type.BasicTypeReference@2fb36d8d
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@35eac1dd
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTime -> org.hibernate.type.BasicTypeReference@639f5460
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.ZonedDateTime -> org.hibernate.type.BasicTypeReference@639f5460
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTimeWithTimezone -> org.hibernate.type.BasicTypeReference@2e3fa7a7
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@1a5478e8
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration date -> org.hibernate.type.BasicTypeReference@7953a656
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Date -> org.hibernate.type.BasicTypeReference@7953a656
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration time -> org.hibernate.type.BasicTypeReference@60f6c148
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Time -> org.hibernate.type.BasicTypeReference@60f6c148
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration timestamp -> org.hibernate.type.BasicTypeReference@3327406e
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Timestamp -> org.hibernate.type.BasicTypeReference@3327406e
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Date -> org.hibernate.type.BasicTypeReference@3327406e
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar -> org.hibernate.type.BasicTypeReference@a8dedda
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Calendar -> org.hibernate.type.BasicTypeReference@a8dedda
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.GregorianCalendar -> org.hibernate.type.BasicTypeReference@a8dedda
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar_date -> org.hibernate.type.BasicTypeReference@6e089bcb
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar_time -> org.hibernate.type.BasicTypeReference@38a2fbc3
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration instant -> org.hibernate.type.BasicTypeReference@318ff889
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Instant -> org.hibernate.type.BasicTypeReference@318ff889
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid -> org.hibernate.type.BasicTypeReference@5409305f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.UUID -> org.hibernate.type.BasicTypeReference@5409305f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration pg-uuid -> org.hibernate.type.BasicTypeReference@5409305f
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid-binary -> org.hibernate.type.BasicTypeReference@7e753fd6
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid-char -> org.hibernate.type.BasicTypeReference@51a6af38
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration class -> org.hibernate.type.BasicTypeReference@1f234e35
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Class -> org.hibernate.type.BasicTypeReference@1f234e35
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration currency -> org.hibernate.type.BasicTypeReference@2350e46
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Currency -> org.hibernate.type.BasicTypeReference@2350e46
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Currency -> org.hibernate.type.BasicTypeReference@2350e46
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration locale -> org.hibernate.type.BasicTypeReference@55691a59
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Locale -> org.hibernate.type.BasicTypeReference@55691a59
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration serializable -> org.hibernate.type.BasicTypeReference@3152a0a3
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.io.Serializable -> org.hibernate.type.BasicTypeReference@3152a0a3
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration timezone -> org.hibernate.type.BasicTypeReference@3405025a
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.TimeZone -> org.hibernate.type.BasicTypeReference@3405025a
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZoneOffset -> org.hibernate.type.BasicTypeReference@1e686da2
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.ZoneOffset -> org.hibernate.type.BasicTypeReference@1e686da2
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration url -> org.hibernate.type.BasicTypeReference@3ce17e4
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.net.URL -> org.hibernate.type.BasicTypeReference@3ce17e4
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration vector -> org.hibernate.type.BasicTypeReference@27bde886
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float_vector -> org.hibernate.type.BasicTypeReference@3b3639f9
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double_vector -> org.hibernate.type.BasicTypeReference@66ee4640
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte_vector -> org.hibernate.type.BasicTypeReference@156c1c4e
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration row_version -> org.hibernate.type.BasicTypeReference@5ddd3fbd
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration object -> org.hibernate.type.JavaObjectType@74a680d3
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Object -> org.hibernate.type.JavaObjectType@74a680d3
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration null -> org.hibernate.type.NullType@7b2f18cd
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_date -> org.hibernate.type.BasicTypeReference@7d4838
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_time -> org.hibernate.type.BasicTypeReference@2572a56
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_timestamp -> org.hibernate.type.BasicTypeReference@52ed6bae
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar -> org.hibernate.type.BasicTypeReference@115a5be
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar_date -> org.hibernate.type.BasicTypeReference@6b43112c
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar_time -> org.hibernate.type.BasicTypeReference@50fd8388
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_binary -> org.hibernate.type.BasicTypeReference@69743222
-2025-12-08T23:38:36.563+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_serializable -> org.hibernate.type.BasicTypeReference@45e042e7
-2025-12-08T23:38:36.570+09:00  INFO 12060 --- [order-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-12-08T23:38:36.571+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Starting...
-2025-12-08T23:38:36.571+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-5 - Added connection conn69: url=jdbc:h2:mem:test user=TEST
-2025-12-08T23:38:36.571+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Start completed.
-2025-12-08T23:38:36.571+09:00  WARN 12060 --- [order-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-12-08T23:38:36.572+09:00  INFO 12060 --- [order-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-5)']
+2025-12-08T23:38:16.946+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.SagaMdcIntegrationTest  : Starting SagaMdcIntegrationTest using Java 21.0.1 with PID 12060 (started by skyap in C:\Users\skyap\IdeaProjects\order)
+2025-12-08T23:38:16.946+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.SagaMdcIntegrationTest  : The following 1 profile is active: "dev"
+2025-12-08T23:38:18.236+09:00  INFO 12060 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-08T23:38:18.388+09:00  INFO 12060 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 142 ms. Found 9 JPA repository interfaces.
+2025-12-08T23:38:18.708+09:00  INFO 12060 --- [order-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=0992c078-a439-331a-8622-a47af3fa73dc
+2025-12-08T23:38:20.838+09:00  INFO 12060 --- [order-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2025-12-08T23:38:20.855+09:00  INFO 12060 --- [order-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-08T23:38:20.855+09:00  INFO 12060 --- [order-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.48]
+2025-12-08T23:38:20.953+09:00  INFO 12060 --- [order-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-08T23:38:20.954+09:00  INFO 12060 --- [order-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3840 ms
+2025-12-08T23:38:21.746+09:00  INFO 12060 --- [order-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-08T23:38:21.898+09:00  INFO 12060 --- [order-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.33.Final
+2025-12-08T23:38:21.940+09:00  INFO 12060 --- [order-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-12-08T23:38:22.079+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
+2025-12-08T23:38:22.079+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
+2025-12-08T23:38:22.079+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Boolean -> org.hibernate.type.BasicTypeReference@79b3f1c6
+2025-12-08T23:38:22.079+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration numeric_boolean -> org.hibernate.type.BasicTypeReference@3cc148d
+2025-12-08T23:38:22.079+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.NumericBooleanConverter -> org.hibernate.type.BasicTypeReference@3cc148d
+2025-12-08T23:38:22.080+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration true_false -> org.hibernate.type.BasicTypeReference@172f88b1
+2025-12-08T23:38:22.080+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.TrueFalseConverter -> org.hibernate.type.BasicTypeReference@172f88b1
+2025-12-08T23:38:22.080+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration yes_no -> org.hibernate.type.BasicTypeReference@51ea9f02
+2025-12-08T23:38:22.080+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.YesNoConverter -> org.hibernate.type.BasicTypeReference@51ea9f02
+2025-12-08T23:38:22.080+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte -> org.hibernate.type.BasicTypeReference@37b17938
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte -> org.hibernate.type.BasicTypeReference@37b17938
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Byte -> org.hibernate.type.BasicTypeReference@37b17938
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration binary -> org.hibernate.type.BasicTypeReference@54ba7b3f
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte[] -> org.hibernate.type.BasicTypeReference@54ba7b3f
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration [B -> org.hibernate.type.BasicTypeReference@54ba7b3f
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration binary_wrapper -> org.hibernate.type.BasicTypeReference@3f3b0b19
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration wrapper-binary -> org.hibernate.type.BasicTypeReference@3f3b0b19
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration image -> org.hibernate.type.BasicTypeReference@3aac9173
+2025-12-08T23:38:22.081+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration blob -> org.hibernate.type.BasicTypeReference@6e847a7
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Blob -> org.hibernate.type.BasicTypeReference@6e847a7
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_blob -> org.hibernate.type.BasicTypeReference@18cb7c6
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_blob_wrapper -> org.hibernate.type.BasicTypeReference@6608072d
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration short -> org.hibernate.type.BasicTypeReference@38f12596
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration short -> org.hibernate.type.BasicTypeReference@38f12596
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Short -> org.hibernate.type.BasicTypeReference@38f12596
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration integer -> org.hibernate.type.BasicTypeReference@7ce09850
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration int -> org.hibernate.type.BasicTypeReference@7ce09850
+2025-12-08T23:38:22.082+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Integer -> org.hibernate.type.BasicTypeReference@7ce09850
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration long -> org.hibernate.type.BasicTypeReference@1836228d
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration long -> org.hibernate.type.BasicTypeReference@1836228d
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Long -> org.hibernate.type.BasicTypeReference@1836228d
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float -> org.hibernate.type.BasicTypeReference@3e216fc9
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float -> org.hibernate.type.BasicTypeReference@3e216fc9
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Float -> org.hibernate.type.BasicTypeReference@3e216fc9
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double -> org.hibernate.type.BasicTypeReference@fcd300e
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double -> org.hibernate.type.BasicTypeReference@fcd300e
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Double -> org.hibernate.type.BasicTypeReference@fcd300e
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration big_integer -> org.hibernate.type.BasicTypeReference@77971bbf
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.math.BigInteger -> org.hibernate.type.BasicTypeReference@77971bbf
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration big_decimal -> org.hibernate.type.BasicTypeReference@5e9c6d8a
+2025-12-08T23:38:22.083+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.math.BigDecimal -> org.hibernate.type.BasicTypeReference@5e9c6d8a
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration character -> org.hibernate.type.BasicTypeReference@6b760eb7
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration char -> org.hibernate.type.BasicTypeReference@6b760eb7
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Character -> org.hibernate.type.BasicTypeReference@6b760eb7
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration character_nchar -> org.hibernate.type.BasicTypeReference@ddd0e97
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration string -> org.hibernate.type.BasicTypeReference@42d8b670
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.String -> org.hibernate.type.BasicTypeReference@42d8b670
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration nstring -> org.hibernate.type.BasicTypeReference@7f15639c
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration characters -> org.hibernate.type.BasicTypeReference@24cdc97f
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration char[] -> org.hibernate.type.BasicTypeReference@24cdc97f
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration [C -> org.hibernate.type.BasicTypeReference@24cdc97f
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration wrapper-characters -> org.hibernate.type.BasicTypeReference@4101d2c7
+2025-12-08T23:38:22.084+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration text -> org.hibernate.type.BasicTypeReference@466d87a1
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ntext -> org.hibernate.type.BasicTypeReference@12300573
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration clob -> org.hibernate.type.BasicTypeReference@58fcb07b
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Clob -> org.hibernate.type.BasicTypeReference@58fcb07b
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration nclob -> org.hibernate.type.BasicTypeReference@1724c649
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.NClob -> org.hibernate.type.BasicTypeReference@1724c649
+2025-12-08T23:38:22.085+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob -> org.hibernate.type.BasicTypeReference@3d5e1b83
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob_char_array -> org.hibernate.type.BasicTypeReference@2fd79ac6
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_clob_character_array -> org.hibernate.type.BasicTypeReference@1215982f
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob -> org.hibernate.type.BasicTypeReference@233202aa
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob_character_array -> org.hibernate.type.BasicTypeReference@6e7d874c
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration materialized_nclob_char_array -> org.hibernate.type.BasicTypeReference@7d6f31ef
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Duration -> org.hibernate.type.BasicTypeReference@43051a8d
+2025-12-08T23:38:22.086+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Duration -> org.hibernate.type.BasicTypeReference@43051a8d
+2025-12-08T23:38:22.087+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalDateTime -> org.hibernate.type.BasicTypeReference@70916715
+2025-12-08T23:38:22.087+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalDateTime -> org.hibernate.type.BasicTypeReference@70916715
+2025-12-08T23:38:22.087+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalDate -> org.hibernate.type.BasicTypeReference@72d4d9ac
+2025-12-08T23:38:22.087+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalDate -> org.hibernate.type.BasicTypeReference@72d4d9ac
+2025-12-08T23:38:22.087+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration LocalTime -> org.hibernate.type.BasicTypeReference@76b06e50
+2025-12-08T23:38:22.088+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.LocalTime -> org.hibernate.type.BasicTypeReference@76b06e50
+2025-12-08T23:38:22.088+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTime -> org.hibernate.type.BasicTypeReference@1d0ac379
+2025-12-08T23:38:22.088+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.OffsetDateTime -> org.hibernate.type.BasicTypeReference@1d0ac379
+2025-12-08T23:38:22.088+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTimeWithTimezone -> org.hibernate.type.BasicTypeReference@66d8a602
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetDateTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@32950acc
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTime -> org.hibernate.type.BasicTypeReference@47a22020
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.OffsetTime -> org.hibernate.type.BasicTypeReference@47a22020
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeUtc -> org.hibernate.type.BasicTypeReference@cf822a6
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeWithTimezone -> org.hibernate.type.BasicTypeReference@2fb36d8d
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration OffsetTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@35eac1dd
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTime -> org.hibernate.type.BasicTypeReference@639f5460
+2025-12-08T23:38:22.089+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.ZonedDateTime -> org.hibernate.type.BasicTypeReference@639f5460
+2025-12-08T23:38:22.090+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTimeWithTimezone -> org.hibernate.type.BasicTypeReference@2e3fa7a7
+2025-12-08T23:38:22.090+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZonedDateTimeWithoutTimezone -> org.hibernate.type.BasicTypeReference@1a5478e8
+2025-12-08T23:38:22.090+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration date -> org.hibernate.type.BasicTypeReference@7953a656
+2025-12-08T23:38:22.090+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Date -> org.hibernate.type.BasicTypeReference@7953a656
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration time -> org.hibernate.type.BasicTypeReference@60f6c148
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Time -> org.hibernate.type.BasicTypeReference@60f6c148
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration timestamp -> org.hibernate.type.BasicTypeReference@3327406e
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.sql.Timestamp -> org.hibernate.type.BasicTypeReference@3327406e
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Date -> org.hibernate.type.BasicTypeReference@3327406e
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar -> org.hibernate.type.BasicTypeReference@a8dedda
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Calendar -> org.hibernate.type.BasicTypeReference@a8dedda
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.GregorianCalendar -> org.hibernate.type.BasicTypeReference@a8dedda
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar_date -> org.hibernate.type.BasicTypeReference@6e089bcb
+2025-12-08T23:38:22.091+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration calendar_time -> org.hibernate.type.BasicTypeReference@38a2fbc3
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration instant -> org.hibernate.type.BasicTypeReference@318ff889
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Instant -> org.hibernate.type.BasicTypeReference@318ff889
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid -> org.hibernate.type.BasicTypeReference@5409305f
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.UUID -> org.hibernate.type.BasicTypeReference@5409305f
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration pg-uuid -> org.hibernate.type.BasicTypeReference@5409305f
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid-binary -> org.hibernate.type.BasicTypeReference@7e753fd6
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration uuid-char -> org.hibernate.type.BasicTypeReference@51a6af38
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration class -> org.hibernate.type.BasicTypeReference@1f234e35
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Class -> org.hibernate.type.BasicTypeReference@1f234e35
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration currency -> org.hibernate.type.BasicTypeReference@2350e46
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Currency -> org.hibernate.type.BasicTypeReference@2350e46
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Currency -> org.hibernate.type.BasicTypeReference@2350e46
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration locale -> org.hibernate.type.BasicTypeReference@55691a59
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.Locale -> org.hibernate.type.BasicTypeReference@55691a59
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration serializable -> org.hibernate.type.BasicTypeReference@3152a0a3
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.io.Serializable -> org.hibernate.type.BasicTypeReference@3152a0a3
+2025-12-08T23:38:22.092+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration timezone -> org.hibernate.type.BasicTypeReference@3405025a
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.util.TimeZone -> org.hibernate.type.BasicTypeReference@3405025a
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration ZoneOffset -> org.hibernate.type.BasicTypeReference@1e686da2
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.ZoneOffset -> org.hibernate.type.BasicTypeReference@1e686da2
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration url -> org.hibernate.type.BasicTypeReference@3ce17e4
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.net.URL -> org.hibernate.type.BasicTypeReference@3ce17e4
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration vector -> org.hibernate.type.BasicTypeReference@27bde886
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration float_vector -> org.hibernate.type.BasicTypeReference@3b3639f9
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration double_vector -> org.hibernate.type.BasicTypeReference@66ee4640
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration byte_vector -> org.hibernate.type.BasicTypeReference@156c1c4e
+2025-12-08T23:38:22.093+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration row_version -> org.hibernate.type.BasicTypeReference@5ddd3fbd
+2025-12-08T23:38:22.108+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration object -> org.hibernate.type.JavaObjectType@74a680d3
+2025-12-08T23:38:22.108+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.lang.Object -> org.hibernate.type.JavaObjectType@74a680d3
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration null -> org.hibernate.type.NullType@7b2f18cd
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_date -> org.hibernate.type.BasicTypeReference@18f7a872
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_time -> org.hibernate.type.BasicTypeReference@61defefb
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_timestamp -> org.hibernate.type.BasicTypeReference@648100de
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar -> org.hibernate.type.BasicTypeReference@676b85f3
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar_date -> org.hibernate.type.BasicTypeReference@42fa1554
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_calendar_time -> org.hibernate.type.BasicTypeReference@544502d6
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_binary -> org.hibernate.type.BasicTypeReference@382e7f70
+2025-12-08T23:38:22.111+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration imm_serializable -> org.hibernate.type.BasicTypeReference@3d1319b
+2025-12-08T23:38:22.218+09:00  INFO 12060 --- [order-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-08T23:38:22.268+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-08T23:38:22.430+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:test user=TEST
+2025-12-08T23:38:22.432+09:00  INFO 12060 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-08T23:38:22.450+09:00  WARN 12060 --- [order-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-08T23:38:22.472+09:00  INFO 12060 --- [order-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 2.3.232
 	Autocommit mode: undefined/unknown
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NCharTypeDescriptor) replaced previous registration(CharTypeDescriptor)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NVarcharTypeDescriptor) replaced previous registration(VarcharTypeDescriptor)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(LongNVarcharTypeDescriptor) replaced previous registration(LongVarcharTypeDescriptor)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NClobTypeDescriptor(DEFAULT)) replaced previous registration(ClobTypeDescriptor(DEFAULT))
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(TimestampUtcDescriptor) replaced previous registration(TimestampUtcDescriptor)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.DurationType -> basicType@170(java.time.Duration,3015)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Duration -> basicType@170(java.time.Duration,3015)
-2025-12-08T23:38:36.572+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Duration -> basicType@170(java.time.Duration,3015)
-2025-12-08T23:38:36.573+09:00 DEBUG 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Scoping TypeConfiguration [org.hibernate.type.spi.TypeConfiguration@257277fc] to MetadataBuildingContext [org.hibernate.boot.internal.MetadataBuildingContextRootImpl@32ddcd48]
-2025-12-08T23:38:36.625+09:00  INFO 12060 --- [order-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-12-08T23:38:36.625+09:00 DEBUG 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Scoping TypeConfiguration [org.hibernate.type.spi.TypeConfiguration@257277fc] to SessionFactoryImplementor [org.hibernate.internal.SessionFactoryImpl@e79a4ef]
+2025-12-08T23:38:22.482+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NCharTypeDescriptor) replaced previous registration(CharTypeDescriptor)
+2025-12-08T23:38:22.483+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NVarcharTypeDescriptor) replaced previous registration(VarcharTypeDescriptor)
+2025-12-08T23:38:22.483+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(LongNVarcharTypeDescriptor) replaced previous registration(LongVarcharTypeDescriptor)
+2025-12-08T23:38:22.485+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(NClobTypeDescriptor(DEFAULT)) replaced previous registration(ClobTypeDescriptor(DEFAULT))
+2025-12-08T23:38:22.486+09:00 DEBUG 12060 --- [order-service] [           main] o.h.t.d.jdbc.spi.JdbcTypeRegistry        : addDescriptor(TimestampUtcDescriptor) replaced previous registration(TimestampUtcDescriptor)
+2025-12-08T23:38:22.490+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration org.hibernate.type.DurationType -> basicType@1(java.time.Duration,3015)
+2025-12-08T23:38:22.490+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration Duration -> basicType@1(java.time.Duration,3015)
+2025-12-08T23:38:22.490+09:00 DEBUG 12060 --- [order-service] [           main] org.hibernate.type.BasicTypeRegistry     : Adding type registration java.time.Duration -> basicType@1(java.time.Duration,3015)
+2025-12-08T23:38:22.493+09:00 DEBUG 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Scoping TypeConfiguration [org.hibernate.type.spi.TypeConfiguration@ef64a8f] to MetadataBuildingContext [org.hibernate.boot.internal.MetadataBuildingContextRootImpl@3a2cc282]
+2025-12-08T23:38:23.538+09:00  INFO 12060 --- [order-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-08T23:38:23.539+09:00 DEBUG 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Scoping TypeConfiguration [org.hibernate.type.spi.TypeConfiguration@ef64a8f] to SessionFactoryImplementor [org.hibernate.internal.SessionFactoryImpl@6592f06]
 &amp#27;[35m[Hibernate]&amp#27;[0m 
     &amp#27;[34mdrop&amp#27;[0m &amp#27;[34mtable&amp#27;[0m &amp#27;[34mif&amp#27;[0m &amp#27;[34mexists&amp#27;[0m &amp#27;[32m"delivery_policy"&amp#27;[0m &amp#27;[34mcascade&amp#27;[0m 
 &amp#27;[35m[Hibernate]&amp#27;[0m 
@@ -393,21 +420,17 @@
        &amp#27;[34madd&amp#27;[0m &amp#27;[34mconstraint&amp#27;[0m &amp#27;[32m"FK6b0nsdjjc7log0i74wrfp2coo"&amp#27;[0m 
        &amp#27;[34mforeign&amp#27;[0m &amp#27;[34mkey&amp#27;[0m (&amp#27;[32m"order_id"&amp#27;[0m) 
        &amp#27;[34mreferences&amp#27;[0m &amp#27;[32m"order"&amp#27;[0m
-2025-12-08T23:38:36.633+09:00 TRACE 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Handling #sessionFactoryCreated from [org.hibernate.internal.SessionFactoryImpl@e79a4ef] for TypeConfiguration
-2025-12-08T23:38:36.633+09:00  INFO 12060 --- [order-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-12-08T23:38:36.756+09:00  INFO 12060 --- [order-service] [           main] o.s.c.openfeign.FeignClientFactoryBean   : For 'book-service' URL not provided. Will try picking an instance via load-balancing.
-2025-12-08T23:38:36.828+09:00  INFO 12060 --- [order-service] [           main] o.s.c.openfeign.FeignClientFactoryBean   : For 'coupon-service' URL not provided. Will try picking an instance via load-balancing.
-2025-12-08T23:38:36.839+09:00  INFO 12060 --- [order-service] [           main] o.s.c.openfeign.FeignClientFactoryBean   : For 'member-service' URL not provided. Will try picking an instance via load-balancing.
-2025-12-08T23:38:37.659+09:00  INFO 12060 --- [order-service] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:test'
-2025-12-08T23:38:37.690+09:00  INFO 12060 --- [order-service] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
-2025-12-08T23:38:37.690+09:00  INFO 12060 --- [order-service] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2025-12-08T23:38:37.694+09:00  INFO 12060 --- [order-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
-2025-12-08T23:38:37.700+09:00  INFO 12060 --- [order-service] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 10 ms
-2025-12-08T23:38:37.721+09:00  INFO 12060 --- [order-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
-2025-12-08T23:38:37.757+09:00  WARN 12060 --- [order-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
-2025-12-08T23:38:37.777+09:00  INFO 12060 --- [order-service] [           main] c.n.p.controller.PaymentControllerTest   : Started PaymentControllerTest in 1.678 seconds (process running for 22.553)
-2025-12-08T23:38:37.777+09:00  WARN 12060 --- [order-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /v3/api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
-2025-12-08T23:38:37.777+09:00  WARN 12060 --- [order-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
+2025-12-08T23:38:23.589+09:00 TRACE 12060 --- [order-service] [           main] o.h.type.spi.TypeConfiguration$Scope     : Handling #sessionFactoryCreated from [org.hibernate.internal.SessionFactoryImpl@6592f06] for TypeConfiguration
+2025-12-08T23:38:23.590+09:00  INFO 12060 --- [order-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-08T23:38:25.098+09:00  INFO 12060 --- [order-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-08T23:38:27.641+09:00  INFO 12060 --- [order-service] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:test'
+2025-12-08T23:38:27.708+09:00  INFO 12060 --- [order-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2025-12-08T23:38:27.762+09:00  WARN 12060 --- [order-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-12-08T23:38:27.777+09:00  INFO 12060 --- [order-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-12-08T23:38:27.899+09:00  INFO 12060 --- [order-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 50081 (http) with context path '/'
+2025-12-08T23:38:27.917+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.SagaMdcIntegrationTest  : Started SagaMdcIntegrationTest in 11.253 seconds (process running for 12.693)
+2025-12-08T23:38:27.975+09:00  WARN 12060 --- [order-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /v3/api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
+2025-12-08T23:38:27.976+09:00  WARN 12060 --- [order-service] [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
 &amp#27;[35m[Hibernate]&amp#27;[0m 
     /* <criteria> */ &amp#27;[34mselect&amp#27;[0m
         ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
@@ -422,6 +445,22 @@
     &amp#27;[34mwhere&amp#27;[0m
         ocs1_0.&amp#27;[32m"overall_status"&amp#27;[0m &amp#27;[34min&amp#27;[0m (?, ?) 
         &amp#27;[34mand&amp#27;[0m ocs1_0.&amp#27;[32m"updated_at"&amp#27;[0m<?
+2025-12-08T23:38:28.052+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] OrderServiceImpl.createOrder(..)
+2025-12-08T23:38:28.057+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] OrderCreateOrchestrator.processCreateOrder(..)
+2025-12-08T23:38:28.060+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] SagaUpdateService.updateCreateSagaStep(..)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    &amp#27;[34mselect&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"bridged"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"created_at"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"last_completed_step"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"order_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"overall_status"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"updated_at"&amp#27;[0m 
+    &amp#27;[34mfrom&amp#27;[0m
+        &amp#27;[32m"order_create_saga"&amp#27;[0m ocs1_0 
+    &amp#27;[34mwhere&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m=?
 &amp#27;[35m[Hibernate]&amp#27;[0m 
     /* <criteria> */ &amp#27;[34mselect&amp#27;[0m
         ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
@@ -543,207 +582,311 @@
         nmoirs1_0.&amp#27;[32m"overall_status"&amp#27;[0m=? 
         &amp#27;[34mand&amp#27;[0m &amp#27;[34mnot&amp#27;[0m(nmoirs1_0.&amp#27;[32m"bridged"&amp#27;[0m) 
         &amp#27;[34mand&amp#27;[0m nmoirs1_0.&amp#27;[32m"updated_at"&amp#27;[0m<?
+2025-12-08T23:38:28.104+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] SagaUpdateService.updateCreateSagaStep(..) (실행 시간: 44 ms)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    /* &amp#27;[34minsert&amp#27;[0m &amp#27;[34mfor&amp#27;[0m
+        com.nhnacademy.&amp#27;[34morder&amp#27;[0m.ordersaga.creation.domain.OrderCreateSaga */&amp#27;[34minsert&amp#27;[0m 
+    &amp#27;[34minto&amp#27;[0m
+        &amp#27;[32m"order_create_saga"&amp#27;[0m (&amp#27;[32m"bridged"&amp#27;[0m, &amp#27;[32m"created_at"&amp#27;[0m, &amp#27;[32m"last_completed_step"&amp#27;[0m, &amp#27;[32m"order_id"&amp#27;[0m, &amp#27;[32m"overall_status"&amp#27;[0m, &amp#27;[32m"updated_at"&amp#27;[0m, &amp#27;[32m"saga_id"&amp#27;[0m) 
+    &amp#27;[34mvalues&amp#27;[0m
+        (?, ?, ?, ?, ?, ?, ?)
+2025-12-08T23:38:28.116+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] SagaUpdateService.updateCreateSagaStep(..)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    &amp#27;[34mselect&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"bridged"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"created_at"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"last_completed_step"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"order_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"overall_status"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"updated_at"&amp#27;[0m 
+    &amp#27;[34mfrom&amp#27;[0m
+        &amp#27;[32m"order_create_saga"&amp#27;[0m ocs1_0 
+    &amp#27;[34mwhere&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.118+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] SagaUpdateService.updateCreateSagaStep(..) (실행 시간: 2 ms)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    /* &amp#27;[34mupdate&amp#27;[0m
+        &amp#27;[34mfor&amp#27;[0m com.nhnacademy.&amp#27;[34morder&amp#27;[0m.ordersaga.creation.domain.OrderCreateSaga */&amp#27;[34mupdate&amp#27;[0m &amp#27;[32m"order_create_saga"&amp#27;[0m 
+    &amp#27;[34mset&amp#27;[0m
+        &amp#27;[32m"bridged"&amp#27;[0m=?,
+        &amp#27;[32m"last_completed_step"&amp#27;[0m=?,
+        &amp#27;[32m"order_id"&amp#27;[0m=?,
+        &amp#27;[32m"overall_status"&amp#27;[0m=?,
+        &amp#27;[32m"updated_at"&amp#27;[0m=? 
+    &amp#27;[34mwhere&amp#27;[0m
+        &amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.134+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] BookService.decreaseStocks(..)
+2025-12-08T23:38:28.165+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] BookService.decreaseStocks(..) (실행 시간: 31 ms)
+2025-12-08T23:38:28.167+09:00 ERROR 12060 --- [order-service] [           main] c.n.o.c.h.ResilienceFallbackHandler      : [도서 API] 요청 실패 - 재고 감소
+2025-12-08T23:38:28.168+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] SagaUpdateService.updateCreateSagaStatus(..)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    &amp#27;[34mselect&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"bridged"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"created_at"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"last_completed_step"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"order_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"overall_status"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"updated_at"&amp#27;[0m 
+    &amp#27;[34mfrom&amp#27;[0m
+        &amp#27;[32m"order_create_saga"&amp#27;[0m ocs1_0 
+    &amp#27;[34mwhere&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.169+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] SagaUpdateService.updateCreateSagaStatus(..) (실행 시간: 1 ms)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    /* &amp#27;[34mupdate&amp#27;[0m
+        &amp#27;[34mfor&amp#27;[0m com.nhnacademy.&amp#27;[34morder&amp#27;[0m.ordersaga.creation.domain.OrderCreateSaga */&amp#27;[34mupdate&amp#27;[0m &amp#27;[32m"order_create_saga"&amp#27;[0m 
+    &amp#27;[34mset&amp#27;[0m
+        &amp#27;[32m"bridged"&amp#27;[0m=?,
+        &amp#27;[32m"last_completed_step"&amp#27;[0m=?,
+        &amp#27;[32m"order_id"&amp#27;[0m=?,
+        &amp#27;[32m"overall_status"&amp#27;[0m=?,
+        &amp#27;[32m"updated_at"&amp#27;[0m=? 
+    &amp#27;[34mwhere&amp#27;[0m
+        &amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.171+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] BookService.increaseStocks(..)
+2025-12-08T23:38:28.173+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] BookService.increaseStocks(..) (실행 시간: 2 ms)
+2025-12-08T23:38:28.173+09:00 ERROR 12060 --- [order-service] [           main] c.n.o.c.h.ResilienceFallbackHandler      : [도서 API] 요청 실패 - 재고 증가
+2025-12-08T23:38:28.173+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] OrderCreateOrchestrator.processCreateOrder(..) (실행 시간: 116 ms)
+2025-12-08T23:38:28.173+09:00 ERROR 12060 --- [order-service] [           main] c.n.o.order.service.OrderServiceImpl     : 주문 ID: 1 - 생성 실패: 도서 API 서비스 오류: 재고 증가
 
-MockHttpServletRequest:
-      HTTP Method = POST
-      Request URI = /payments/success
-       Parameters = {}
-          Headers = [Content-Type:"application/json;charset=UTF-8", Content-Length:"64"]
-             Body = {"paymentKey":"test_key","orderNumber":"ORD-123","amount":50000}
-    Session Attrs = {}
+com.nhnacademy.order.client.exception.ExternalServiceException: 도서 API 서비스 오류: 재고 증가
+	at com.nhnacademy.order.client.handler.ResilienceFallbackHandler.handle(ResilienceFallbackHandler.java:20) ~[classes/:na]
+	at com.nhnacademy.order.client.service.BookService.fallbackIncreaseStocks(BookService.java:58) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at io.github.resilience4j.spring6.fallback.FallbackMethod.invoke(FallbackMethod.java:218) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.fallback.FallbackMethod.fallback(FallbackMethod.java:165) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.fallback.DefaultFallbackDecorator.lambda$decorate$0(DefaultFallbackDecorator.java:40) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.fallback.FallbackExecutor.execute(FallbackExecutor.java:39) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.circuitbreaker.configure.CircuitBreakerAspect.circuitBreakerAroundAdvice(CircuitBreakerAspect.java:109) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at io.github.resilience4j.retry.Retry.lambda$decorateCheckedSupplier$1(Retry.java:135) ~[resilience4j-retry-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.retry.Retry.executeCheckedSupplier(Retry.java:350) ~[resilience4j-retry-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.retry.configure.RetryAspect.handleDefaultJoinPoint(RetryAspect.java:175) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.retry.configure.RetryAspect.proceed(RetryAspect.java:132) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.retry.configure.RetryAspect.lambda$retryAroundAdvice$0(RetryAspect.java:116) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.fallback.FallbackExecutor.execute(FallbackExecutor.java:37) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.retry.configure.RetryAspect.retryAroundAdvice(RetryAspect.java:117) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.client.service.BookService$$SpringCGLIB$$0.increaseStocks(<generated>) ~[classes/:na]
+	at com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator.compensate(OrderCreateOrchestrator.java:131) ~[classes/:na]
+	at com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator.processCreateOrder(OrderCreateOrchestrator.java:83) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.common.aop.LoggingAspect.logServiceExecution(LoggingAspect.java:25) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator$$SpringCGLIB$$0.processCreateOrder(<generated>) ~[classes/:na]
+	at com.nhnacademy.order.order.service.OrderServiceImpl.createOrder(OrderServiceImpl.java:138) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.common.aop.SagaMdcAspect.startSagaToMdc(SagaMdcAspect.java:42) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.common.aop.LoggingAspect.logServiceExecution(LoggingAspect.java:25) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.order.service.OrderServiceImpl$$SpringCGLIB$$0.createOrder(<generated>) ~[classes/:na]
+	at com.nhnacademy.order.common.SagaMdcIntegrationTest.createOrder_shouldPropagateSagaIdInFeignHeader(SagaMdcIntegrationTest.java:81) ~[test-classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775) ~[junit-platform-commons-1.12.2.jar:1.12.2]
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479) ~[junit-platform-commons-1.12.2.jar:1.12.2]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69) ~[junit-jupiter-engine-5.12.2.jar:5.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) ~[junit-platform-launcher-1.12.2.jar:1.12.2]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60) ~[surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52) ~[surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203) ~[surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168) ~[surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136) ~[surefire-junit-platform-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) ~[surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) ~[surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) ~[surefire-booter-3.5.4.jar:3.5.4]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) ~[surefire-booter-3.5.4.jar:3.5.4]
+Caused by: feign.RetryableException: Invalid HTTP method: PATCH executing PATCH http://localhost:50080/api/book/2
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.6.jar:na]
+	at feign.SynchronousMethodHandler.executeAndDecode(SynchronousMethodHandler.java:105) ~[feign-core-13.6.jar:na]
+	at feign.SynchronousMethodHandler.invoke(SynchronousMethodHandler.java:53) ~[feign-core-13.6.jar:na]
+	at feign.ReflectiveFeign$FeignInvocationHandler.invoke(ReflectiveFeign.java:104) ~[feign-core-13.6.jar:na]
+	at jdk.proxy2/jdk.proxy2.$Proxy248.increaseStocks(Unknown Source) ~[na:na]
+	at com.nhnacademy.order.client.service.BookService.increaseStocks(BookService.java:46) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at com.nhnacademy.order.common.aop.LoggingAspect.logServiceExecution(LoggingAspect.java:25) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.12.jar:6.2.12]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.2.12.jar:6.2.12]
+	at io.github.resilience4j.circuitbreaker.CircuitBreaker.lambda$decorateCheckedSupplier$0(CircuitBreaker.java:71) ~[resilience4j-circuitbreaker-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.circuitbreaker.CircuitBreaker.executeCheckedSupplier(CircuitBreaker.java:739) ~[resilience4j-circuitbreaker-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.circuitbreaker.configure.CircuitBreakerAspect.defaultHandling(CircuitBreakerAspect.java:179) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.circuitbreaker.configure.CircuitBreakerAspect.proceed(CircuitBreakerAspect.java:126) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.circuitbreaker.configure.CircuitBreakerAspect.lambda$circuitBreakerAroundAdvice$0(CircuitBreakerAspect.java:108) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	at io.github.resilience4j.spring6.fallback.DefaultFallbackDecorator.lambda$decorate$0(DefaultFallbackDecorator.java:36) ~[resilience4j-spring6-2.2.0.jar:2.2.0]
+	... 147 common frames omitted
+Caused by: java.net.ProtocolException: Invalid HTTP method: PATCH
+	at java.base/java.net.HttpURLConnection.setRequestMethod(HttpURLConnection.java:491) ~[na:na]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.setRequestMethod(HttpURLConnection.java:592) ~[na:na]
+	at feign.Client$Default.convertAndSend(Client.java:176) ~[feign-core-13.6.jar:na]
+	at feign.Client$Default.execute(Client.java:109) ~[feign-core-13.6.jar:na]
+	at feign.SynchronousMethodHandler.executeAndDecode(SynchronousMethodHandler.java:92) ~[feign-core-13.6.jar:na]
+	... 171 common frames omitted
 
-Handler:
-             Type = com.nhnacademy.payment.controller.PaymentController
-           Method = com.nhnacademy.payment.controller.PaymentController#createPaymentSuccess(PaymentRequestDto)
-
-Async:
-    Async started = false
-     Async result = null
-
-Resolved Exception:
-             Type = null
-
-ModelAndView:
-        View name = null
-             View = null
-            Model = null
-
-FlashMap:
-       Attributes = null
-
-MockHttpServletResponse:
-           Status = 200
-    Error message = null
-          Headers = [Content-Type:"application/json"]
-     Content type = application/json
-             Body = {"paymentId":1,"paymentKey":null,"orderNumber":"ORD-123","totalAmount":50000,"status":"DONE","requestedAt":null,"approvedAt":null,"receiptUrl":null}
-    Forwarded URL = null
-   Redirected URL = null
-          Cookies = []
+2025-12-08T23:38:28.178+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] OrderCreateOrchestrator.compensate(..)
+2025-12-08T23:38:28.178+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] SagaUpdateService.updateCreateSagaStatus(..)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    &amp#27;[34mselect&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"bridged"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"created_at"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"last_completed_step"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"order_id"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"overall_status"&amp#27;[0m,
+        ocs1_0.&amp#27;[32m"updated_at"&amp#27;[0m 
+    &amp#27;[34mfrom&amp#27;[0m
+        &amp#27;[32m"order_create_saga"&amp#27;[0m ocs1_0 
+    &amp#27;[34mwhere&amp#27;[0m
+        ocs1_0.&amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.180+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] SagaUpdateService.updateCreateSagaStatus(..) (실행 시간: 2 ms)
+&amp#27;[35m[Hibernate]&amp#27;[0m 
+    /* &amp#27;[34mupdate&amp#27;[0m
+        &amp#27;[34mfor&amp#27;[0m com.nhnacademy.&amp#27;[34morder&amp#27;[0m.ordersaga.creation.domain.OrderCreateSaga */&amp#27;[34mupdate&amp#27;[0m &amp#27;[32m"order_create_saga"&amp#27;[0m 
+    &amp#27;[34mset&amp#27;[0m
+        &amp#27;[32m"bridged"&amp#27;[0m=?,
+        &amp#27;[32m"last_completed_step"&amp#27;[0m=?,
+        &amp#27;[32m"order_id"&amp#27;[0m=?,
+        &amp#27;[32m"overall_status"&amp#27;[0m=?,
+        &amp#27;[32m"updated_at"&amp#27;[0m=? 
+    &amp#27;[34mwhere&amp#27;[0m
+        &amp#27;[32m"saga_id"&amp#27;[0m=?
+2025-12-08T23:38:28.181+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : ---> [시작] BookService.increaseStocks(..)
+2025-12-08T23:38:28.182+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] BookService.increaseStocks(..) (실행 시간: 0 ms)
+2025-12-08T23:38:28.182+09:00 ERROR 12060 --- [order-service] [           main] c.n.o.c.h.ResilienceFallbackHandler      : [도서 API] 요청 실패 - 재고 증가
+2025-12-08T23:38:28.182+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] OrderCreateOrchestrator.compensate(..) (실행 시간: 4 ms)
+2025-12-08T23:38:28.182+09:00  INFO 12060 --- [order-service] [           main] c.n.order.common.aop.LoggingAspect       : <--- [끝] OrderServiceImpl.createOrder(..) (실행 시간: 130 ms)
 ]]></system-out>
-  </testcase>
-  <testcase name="getPayments" classname="com.nhnacademy.payment.controller.PaymentControllerTest" time="0.011">
-    <system-out><![CDATA[2025-12-08T23:38:37.807+09:00  WARN 12060 --- [order-service] [           main] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
-	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
-	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
-
-
-MockHttpServletRequest:
-      HTTP Method = GET
-      Request URI = /payments
-       Parameters = {page=[0], size=[10]}
-          Headers = []
-             Body = null
-    Session Attrs = {}
-
-Handler:
-             Type = com.nhnacademy.payment.controller.PaymentController
-           Method = com.nhnacademy.payment.controller.PaymentController#getPayments(Pageable)
-
-Async:
-    Async started = false
-     Async result = null
-
-Resolved Exception:
-             Type = null
-
-ModelAndView:
-        View name = null
-             View = null
-            Model = null
-
-FlashMap:
-       Attributes = null
-
-MockHttpServletResponse:
-           Status = 200
-    Error message = null
-          Headers = [Content-Type:"application/json"]
-     Content type = application/json
-             Body = {"content":[{"paymentId":1,"paymentKey":null,"orderNumber":"ORD-123","totalAmount":50000,"status":"DONE","requestedAt":null,"approvedAt":null,"receiptUrl":null}],"pageable":{"pageNumber":0,"pageSize":10,"sort":[],"offset":0,"unpaged":false,"paged":true},"totalPages":1,"totalElements":1,"last":true,"size":10,"number":0,"sort":[],"numberOfElements":1,"first":true,"empty":false}
-    Forwarded URL = null
-   Redirected URL = null
-          Cookies = []
-]]></system-out>
-  </testcase>
-  <testcase name="cancelPaymentFull" classname="com.nhnacademy.payment.controller.PaymentControllerTest" time="0.009">
-    <system-out><![CDATA[
-MockHttpServletRequest:
-      HTTP Method = POST
-      Request URI = /payments/cancel
-       Parameters = {}
-          Headers = [Content-Type:"application/json;charset=UTF-8", Content-Length:"76"]
-             Body = {"orderNumber":"ORD-123","cancelReason":"전체 취소","cancelAmount":null}
-    Session Attrs = {}
-
-Handler:
-             Type = com.nhnacademy.payment.controller.PaymentController
-           Method = com.nhnacademy.payment.controller.PaymentController#cancelPayment(PaymentCancelRequestDto)
-
-Async:
-    Async started = false
-     Async result = null
-
-Resolved Exception:
-             Type = null
-
-ModelAndView:
-        View name = null
-             View = null
-            Model = null
-
-FlashMap:
-       Attributes = null
-
-MockHttpServletResponse:
-           Status = 200
-    Error message = null
-          Headers = [Content-Type:"text/plain;charset=UTF-8", Content-Length:"62"]
-     Content type = text/plain;charset=UTF-8
-             Body = 결제 취소 요청이 정상적으로 처리되었습니다.
-    Forwarded URL = null
-   Redirected URL = null
-          Cookies = []
-]]></system-out>
-  </testcase>
-  <testcase name="cancelPayment" classname="com.nhnacademy.payment.controller.PaymentControllerTest" time="0.006">
-    <system-out><![CDATA[
-MockHttpServletRequest:
-      HTTP Method = POST
-      Request URI = /payments/cancel
-       Parameters = {}
-          Headers = [Content-Type:"application/json;charset=UTF-8", Content-Length:"77"]
-             Body = {"orderNumber":"ORD-123","cancelReason":"단순 변심","cancelAmount":30000}
-    Session Attrs = {}
-
-Handler:
-             Type = com.nhnacademy.payment.controller.PaymentController
-           Method = com.nhnacademy.payment.controller.PaymentController#cancelPayment(PaymentCancelRequestDto)
-
-Async:
-    Async started = false
-     Async result = null
-
-Resolved Exception:
-             Type = null
-
-ModelAndView:
-        View name = null
-             View = null
-            Model = null
-
-FlashMap:
-       Attributes = null
-
-MockHttpServletResponse:
-           Status = 200
-    Error message = null
-          Headers = [Content-Type:"text/plain;charset=UTF-8", Content-Length:"62"]
-     Content type = text/plain;charset=UTF-8
-             Body = 결제 취소 요청이 정상적으로 처리되었습니다.
-    Forwarded URL = null
-   Redirected URL = null
-          Cookies = []
-]]></system-out>
-  </testcase>
-  <testcase name="getPaymentById" classname="com.nhnacademy.payment.controller.PaymentControllerTest" time="0.005">
-    <system-out><![CDATA[
-MockHttpServletRequest:
-      HTTP Method = GET
-      Request URI = /payments/1
-       Parameters = {}
-          Headers = []
-             Body = null
-    Session Attrs = {}
-
-Handler:
-             Type = com.nhnacademy.payment.controller.PaymentController
-           Method = com.nhnacademy.payment.controller.PaymentController#getPaymentById(Long)
-
-Async:
-    Async started = false
-     Async result = null
-
-Resolved Exception:
-             Type = null
-
-ModelAndView:
-        View name = null
-             View = null
-            Model = null
-
-FlashMap:
-       Attributes = null
-
-MockHttpServletResponse:
-           Status = 200
-    Error message = null
-          Headers = [Content-Type:"application/json"]
-     Content type = application/json
-             Body = {"paymentId":1,"paymentKey":null,"orderNumber":"ORD-123","totalAmount":50000,"status":"DONE","requestedAt":null,"approvedAt":null,"receiptUrl":null}
-    Forwarded URL = null
-   Redirected URL = null
-          Cookies = []
-]]></system-out>
+    <system-err><![CDATA[SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+SLF4J: Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+SLF4J: Ignoring binding found at [jar:file:/C:/Users/skyap/.m2/repository/org/wiremock/wiremock-standalone/3.0.1/wiremock-standalone-3.0.1.jar!/wiremock/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Ignoring binding found at [jar:file:/C:/Users/skyap/.m2/repository/com/github/tomakehurst/wiremock-jre8-standalone/2.35.1/wiremock-jre8-standalone-2.35.1.jar!/wiremock/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\skyap\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
   </testcase>
 </testsuite>

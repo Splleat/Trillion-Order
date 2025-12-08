@@ -1,6 +1,8 @@
 package com.nhnacademy.order.ordersaga.itemrefund.service;
 
 import com.nhnacademy.order.client.service.BookService;
+import com.nhnacademy.order.common.aop.SagaIdContext;
+import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -32,15 +34,16 @@ public class NonMemberOrderItemRefundOrchestrator {
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final OrderItemRefundService orderItemRefundService;
 
+    @SagaIdContext
     public void processNonMemberItemRefund(Order order, OrderItem orderItem) {
         if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND &&
                 orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_DAMAGED) {
             throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItem.getOrderItemId());
         }
 
-        NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(order.getOrderId(), orderItem.getOrderItemId());
+        UUID sagaId = SagaContext.get();
 
-        UUID sagaId = saga.getSagaId();
+        NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(sagaId, order.getOrderId(), orderItem.getOrderItemId());
 
         int deliveryFee = getDeliveryFee();
 

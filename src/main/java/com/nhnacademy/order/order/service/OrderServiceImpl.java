@@ -2,6 +2,8 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
+import com.nhnacademy.order.common.aop.SagaIdContext;
+import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
@@ -113,6 +115,7 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 생성
     @Override
+    @SagaIdContext
     public OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request) {
         // 1. 불완전한 초기 Order 생성 (OrderStatus: CREATING)
         String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
@@ -127,7 +130,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
 
-        OrderCreateSaga saga = OrderCreateSaga.create(order.getOrderId());
+        UUID sagaId = SagaContext.get();
+        OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());
 
         try {
             // 2. 오케스트레이션 사가 시작 (재고 감소 -> 쿠폰 사용 -> 포인트 사용)
