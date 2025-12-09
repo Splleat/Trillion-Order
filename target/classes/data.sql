@@ -23,7 +23,7 @@ INSERT INTO "order" ("order_number", "member_id", "non_member_password", "order_
                      "receiver_name", "receiver_contact", "receiver_address",
                      "order_date", "shipping_post_code", "delivery_date", "delivery_fee", "point_usage",
                      "origin_price", "total_price", "coupon_id")
-VALUES ('ORD-SAMPLE-002', null, '1234', 'PENDING',
+VALUES ('ORD-SAMPLE-002', null, '$2a$12$CHTyAGNLcQI9JdQHplZoCucsC1IgBdfnJPGg4R9WZ01sYOPrWYmR2', 'PENDING',
         '테스트 주문자', '010-1234-5678',
         '테스트 수령인', '010-9876-5432', '광주광역시 동구 제봉로 92',
         CURRENT_TIMESTAMP, '61452', CURRENT_TIMESTAMP + INTERVAL '3' DAY, 3000, 2000,

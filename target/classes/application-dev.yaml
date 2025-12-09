@@ -1,5 +1,5 @@
-#server:
-#  port:
+server:
+  port: 10407
 
 spring:
   application:

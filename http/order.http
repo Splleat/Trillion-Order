@@ -85,8 +85,8 @@ POST http://{{hostname}}/api/orders/non-members/
 Content-Type: application/json
 
 {
-  "orderNumber": "ORD-3a6e29ec-f84c-491d-a13e-8aeeb90ffa58",
-  "nonMemberPassword": "nonmemberpass"
+  "orderNumber": "ORD-SAMPLE-002",
+  "nonMemberPassword": "1234"
 }
 
 ### 주문 상품 상태 변경: 주문 취소 (회원)
