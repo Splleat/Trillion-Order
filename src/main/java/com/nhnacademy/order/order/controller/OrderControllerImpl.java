@@ -118,6 +118,7 @@ public class OrderControllerImpl implements OrderController {
     @DeleteMapping("/orders/{orderId}")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId, UserInfo userInfo) {
         orderService.cancelOrder(userInfo, orderId);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -127,6 +128,7 @@ public class OrderControllerImpl implements OrderController {
     public ResponseEntity<Void> cancelOrderForNonMember(@PathVariable Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
         orderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
+
         return ResponseEntity.noContent().build();
     }
 }

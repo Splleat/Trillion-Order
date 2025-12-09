@@ -48,7 +48,7 @@ public class OrderCreateOrchestrator {
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASING);
 
             // 3. 도서 API에 재고 감소 요청
-            bookService.decreaseStocks(sagaId, quantityMap);
+            bookService.decreaseStocks(quantityMap);
 
             // 4. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
@@ -58,7 +58,7 @@ public class OrderCreateOrchestrator {
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLYING);
 
                 // 6. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
-                couponService.applyCoupon(sagaId, memberId, couponId);
+                couponService.applyCoupon(memberId, couponId);
 
                 // 7. 사가 상태 업데이트 (쿠폰 적용)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
@@ -69,7 +69,7 @@ public class OrderCreateOrchestrator {
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
 
                 // 9. 사용 포인트가 존재하면 멤버 API에 포인트 감소 요청
-                memberService.decreasePoint(sagaId, memberId, pointUsage);
+                memberService.decreasePoint(memberId, pointUsage);
 
                 // 10. 사가 상태 업데이트 (포인트 감소 성공)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
@@ -111,7 +111,7 @@ public class OrderCreateOrchestrator {
         // 3. 역순으로 보상 트랜잭션 시작
         if (currentStep == CreateSagaStep.POINT_USING || currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
-                memberService.increasePoint(sagaId, memberId, pointUsage);
+                memberService.increasePoint(memberId, pointUsage);
             }
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
 
@@ -120,7 +120,7 @@ public class OrderCreateOrchestrator {
 
         if (currentStep == CreateSagaStep.COUPON_APPLYING || currentStep == CreateSagaStep.COUPON_APPLIED) {
             if (couponId != null) {
-                couponService.withdrawCoupon(sagaId, memberId, couponId);
+                couponService.withdrawCoupon(memberId, couponId);
             }
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
@@ -128,7 +128,7 @@ public class OrderCreateOrchestrator {
         }
 
         if (currentStep == CreateSagaStep.STOCK_DECREASING || currentStep == CreateSagaStep.STOCK_DECREASED) {
-            bookService.increaseStocks(sagaId, quantityMap);
+            bookService.increaseStocks(quantityMap);
         }
         sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STARTED);
 
