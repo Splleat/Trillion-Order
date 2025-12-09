@@ -99,17 +99,17 @@ class OrderCreateOrchestratorTest {
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
 
         // 2. Verify all external service calls were made with the correct sagaId
-        verify(bookService, times(1)).decreaseStocks(mockSagaId, quantityMap);
-        verify(couponService, times(1)).applyCoupon(mockSagaId, order.getMemberId(), order.getOrderDetails().couponId());
-        verify(memberService, times(1)).decreasePoint(mockSagaId, order.getMemberId(), order.getOrderDetails().pointUsage());
+        verify(bookService, times(1)).decreaseStocks(quantityMap);
+        verify(couponService, times(1)).applyCoupon(order.getMemberId(), order.getOrderDetails().couponId());
+        verify(memberService, times(1)).decreasePoint(order.getMemberId(), order.getOrderDetails().pointUsage());
 
         // 3. Verify the final saga status is COMPLETED
         verify(sagaUpdateService, times(1)).updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         // 4. Verify compensation was NOT triggered
         verify(orderCompensateService, never()).compensateOrder(any(), any());
-        verify(bookService, never()).increaseStocks(any(UUID.class), any());
-        verify(couponService, never()).withdrawCoupon(any(UUID.class), anyLong(), anyLong());
-        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyInt());
+        verify(bookService, never()).increaseStocks(any());
+        verify(couponService, never()).withdrawCoupon(anyLong(), anyLong());
+        verify(memberService, never()).increasePoint(anyLong(), anyInt());
     }
 }

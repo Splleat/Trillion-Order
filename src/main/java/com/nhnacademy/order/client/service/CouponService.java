@@ -26,14 +26,14 @@ public class CouponService {
 
     @CircuitBreaker(name = "coupon-service", fallbackMethod = "fallbackApplyCoupon")
     @Retry(name = "coupon-service")
-    public void applyCoupon(UUID sagaId, Long memberId, Long couponId) {
-        couponClient.applyCoupon(new CouponApplyRequest(sagaId, memberId, couponId));
+    public void applyCoupon(Long memberId, Long couponId) {
+        couponClient.applyCoupon(new CouponApplyRequest(memberId, couponId));
     }
 
     @CircuitBreaker(name = "coupon-service", fallbackMethod = "fallbackWithdrawCoupon")
     @Retry(name = "coupon-service")
-    public void withdrawCoupon(UUID sagaId, Long memberId, Long couponId) {
-        couponClient.withdrawCoupon(new CouponApplyRequest(sagaId, memberId, couponId));
+    public void withdrawCoupon(Long memberId, Long couponId) {
+        couponClient.withdrawCoupon(new CouponApplyRequest(memberId, couponId));
     }
 
     public int fallbackCalculateDiscount(Long couponId, int price, Throwable throwable) {

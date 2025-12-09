@@ -41,7 +41,7 @@ public class SagaMdcAspect {
 
             return joinPoint.proceed();
         } finally {
-            MDC.clear();
+            MDC.remove(SAGA_ID_MDC_KEY);
             SagaContext.clear();
 
             log.debug("사가 MDC 종료 - sagaId={}", sagaId);

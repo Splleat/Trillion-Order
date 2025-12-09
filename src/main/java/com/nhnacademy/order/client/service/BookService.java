@@ -36,25 +36,25 @@ public class BookService {
 
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackDecreaseStocks")
     @Retry(name = "book-service")
-    public void decreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
-        bookClient.decreaseStocks(new BookStocksRequest(sagaId, quantityMap));
+    public void decreaseStocks(Map<Long, Integer> quantityMap) {
+        bookClient.decreaseStocks(new BookStocksRequest(quantityMap));
     }
 
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackIncreaseStocks")
     @Retry(name = "book-service")
-    public void increaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
-        bookClient.increaseStocks(new BookStocksRequest(sagaId, quantityMap));
+    public void increaseStocks(Map<Long, Integer> quantityMap) {
+        bookClient.increaseStocks(new BookStocksRequest(quantityMap));
     }
 
     private Map<Long, BookResponse> fallbackGetBookInfos(List<Long> bookIds, Throwable throwable) {
         return fallbackHandler.handle(SERVICE_NAME, "도서 정보 조회", throwable);
     }
 
-    private void fallbackDecreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap, Throwable throwable) {
+    private void fallbackDecreaseStocks(Map<Long, Integer> quantityMap, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "재고 감소", throwable);
     }
 
-    private void fallbackIncreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap, Throwable throwable) {
+    private void fallbackIncreaseStocks(Map<Long, Integer> quantityMap, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "재고 증가", throwable);
     }
 }

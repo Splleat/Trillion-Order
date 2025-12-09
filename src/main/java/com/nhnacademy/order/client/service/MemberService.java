@@ -19,21 +19,21 @@ public class MemberService {
 
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackDecreasePoint")
     @Retry(name = "member-service")
-    public void decreasePoint(UUID sagaId, Long memberId, int point) {
-        memberClient.decreasePoint(new PointUsageRequest(sagaId, memberId, point));
+    public void decreasePoint(Long memberId, int point) {
+        memberClient.decreasePoint(new PointUsageRequest(memberId, point));
     }
 
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackIncreasePoint")
     @Retry(name = "member-service")
-    public void increasePoint(UUID sagaId, Long memberId, int point) {
-        memberClient.increasePoint(new PointUsageRequest(sagaId, memberId, point));
+    public void increasePoint(Long memberId, int point) {
+        memberClient.increasePoint(new PointUsageRequest(memberId, point));
     }
 
-    public void fallbackDecreasePoint(UUID sagaId, Long memberId, int point, Throwable throwable) {
+    public void fallbackDecreasePoint(Long memberId, int point, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "포인트 감소", throwable);
     }
 
-    public void fallbackIncreasePoint(UUID sagaId, Long memberId, int point, Throwable throwable) {
+    public void fallbackIncreasePoint(Long memberId, int point, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "포인트 증가", throwable);
     }
 }

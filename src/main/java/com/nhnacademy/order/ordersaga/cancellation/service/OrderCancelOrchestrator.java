@@ -55,19 +55,19 @@ public class OrderCancelOrchestrator {
             if (memberId != null) {
                 // 3. 멤버 API에 사용한 포인트만큼 증가 요청
                 if (pointUsage > 0) {
-                    memberService.increasePoint(sagaId, memberId, pointUsage);
+                    memberService.increasePoint(memberId, pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
                 }
 
                 // 4. 쿠폰 API에 사용한 쿠폰 반환 요청
                 if (couponId != null) {
-                    couponService.withdrawCoupon(sagaId, memberId, couponId);
+                    couponService.withdrawCoupon(memberId, couponId);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
                 }
             }
 
             // 5. 도서 API에 재고 증가 요청
-            bookService.increaseStocks(sagaId, quantityMap);
+            bookService.increaseStocks(quantityMap);
 
             // 6. 사가 성공
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
@@ -114,14 +114,14 @@ public class OrderCancelOrchestrator {
 
             if (memberId != null) {
                 if (pointUsage > 0 && currentStep.ordinal() < CancelSagaStep.POINT_REFUNDED.ordinal()) {
-                    memberService.increasePoint(sagaId, memberId, pointUsage);
+                    memberService.increasePoint(memberId, pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
 
                     currentStep = CancelSagaStep.POINT_REFUNDED;
                 }
 
                 if (couponId != null && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
-                    couponService.withdrawCoupon(sagaId, memberId, couponId);
+                    couponService.withdrawCoupon(memberId, couponId);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
 
                     currentStep = CancelSagaStep.COUPON_RESTORED;
@@ -129,7 +129,7 @@ public class OrderCancelOrchestrator {
             }
 
             if (currentStep.ordinal() < CancelSagaStep.STOCK_INCREASED.ordinal()) {
-                bookService.increaseStocks(sagaId, quantityMap);
+                bookService.increaseStocks(quantityMap);
                 sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STOCK_INCREASED);
             }
 

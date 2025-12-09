@@ -62,7 +62,7 @@ public class NonMemberOrderItemRefundOrchestrator {
             // paymentService.refundPayment(...)
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.PAYMENT_REFUNDED);
 
-            bookService.increaseStocks(sagaId, quantityMap);
+            bookService.increaseStocks(quantityMap);
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
@@ -98,7 +98,7 @@ public class NonMemberOrderItemRefundOrchestrator {
             }
 
             if (currentStep.ordinal() < NonMemberRefundSagaStep.STOCK_INCREASED.ordinal()) {
-                bookService.increaseStocks(sagaId, quantityMap);
+                bookService.increaseStocks(quantityMap);
 
                 sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
             }
