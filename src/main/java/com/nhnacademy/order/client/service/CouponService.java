@@ -40,11 +40,11 @@ public class CouponService {
         return fallbackHandler.handle(SERVICE_NAME, "쿠폰 할인가 계산", throwable);
     }
 
-    public void fallbackApplyCoupon(UUID sagaId, Long memberId, Long couponId, Throwable throwable) {
+    public void fallbackApplyCoupon(Long memberId, Long couponId, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "쿠폰 사용", throwable);
     }
 
-    public void fallbackWithdrawCoupon(UUID sagaId, Long memberId, Long couponId, Throwable throwable) {
+    public void fallbackWithdrawCoupon(Long memberId, Long couponId, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "쿠폰 복원", throwable);
     }
 }
