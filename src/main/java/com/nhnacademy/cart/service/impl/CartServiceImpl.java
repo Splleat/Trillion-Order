@@ -6,6 +6,7 @@ import com.nhnacademy.cart.common.exception.CartNotFoundException;
 import com.nhnacademy.cart.common.exception.InvalidCartQuantityException;
 import com.nhnacademy.cart.dto.CartDto;
 import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.dto.CartSummaryDto;
 import com.nhnacademy.cart.repository.CartRepository;
 import com.nhnacademy.cart.service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -100,10 +101,10 @@ public class CartServiceImpl implements CartService {
         return cartRepository.findAll(holder);
     }
 
+
     @Override
-    @Transactional(readOnly = true)
-    public long countCartItems(CartHolder holder) {
-        return cartRepository.count(holder);
+    public CartSummaryDto getCartSummary(CartHolder holder) {
+        return cartRepository.getSummary(holder);
     }
 
     @Override

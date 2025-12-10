@@ -205,10 +205,10 @@ class CartServiceImplTest {
     }
 
     @Test
-    @DisplayName("countCartItems: 개수 조회 호출 확인")
-    void countCartItems() {
-        cartService.countCartItems(memberHolder);
-        verify(cartRepository).count(memberHolder);
+    @DisplayName("getCartSummary: 요약정보 조회 호출 확인")
+    void getCartSummary() {
+        cartService.getCartSummary(memberHolder);
+        verify(cartRepository).getSummary(memberHolder);
     }
 
     // ======================================================================
