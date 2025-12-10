@@ -1,4 +1,4 @@
-package com.nhnacademy.payment.domain;
+package com.nhnacademy.payment.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nhnacademy.order.order.domain.Order;
@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDateTime;
 
