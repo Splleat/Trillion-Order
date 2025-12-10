@@ -34,6 +34,18 @@ public enum OrderItemStatusUpdateStrategy {
             orderItem.ship();
         }
     },
+    DELIVERED(OrderItemStatus.DELIVERED, Role.ADMIN) {
+        @Override
+        public void updateStatus(Order order, Long orderItemId) {
+            OrderItem orderItem = findOrderItem(order, orderItemId);
+
+            if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.SHIPPED)) {
+                throw new OrderStatusTransitionException("배송 중이 아닌 상품: " + orderItemId);
+            }
+
+            orderItem.setOrderItemStatus(OrderItemStatus.DELIVERED);
+        }
+    },
     REQUEST_RETURN_CHANGE_OF_MIND(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND, Role.USER) {
         @Override
         public void updateStatus(Order order, Long orderItemId) {

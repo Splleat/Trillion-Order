@@ -35,3 +35,9 @@ VALUES (1, 1, 1, 30000, null, 500, 'PREPARING');
 
 INSERT INTO "order_item" ("order_id", "book_id", "quantity", "price", "shipping_date", "packaging_price", "orderitem_status")
 VALUES (1, 2, 1, 25000, null, 0, 'PREPARING');
+
+INSERT INTO "order_item" ("order_id", "book_id", "quantity", "price", "shipping_date", "packaging_price", "orderitem_status")
+VALUES (2, 1, 1, 30000, null, 500, 'PREPARING');
+
+INSERT INTO "order_item" ("order_id", "book_id", "quantity", "price", "shipping_date", "packaging_price", "orderitem_status")
+VALUES (2, 2, 1, 25000, null, 0, 'PREPARING');

@@ -10,6 +10,7 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("""
         SELECT new com.nhnacademy.order.orderitem.dto.OrderItemResponse(
+            oi.orderItemId,
             oi.order.orderId,
             oi.bookId,
             oi.bookName,
@@ -25,6 +26,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     @Query("""
         SELECT new com.nhnacademy.order.orderitem.dto.OrderItemResponse(
+            oi.orderItemId,
             oi.order.orderId,
             oi.bookId,
             oi.bookName,
