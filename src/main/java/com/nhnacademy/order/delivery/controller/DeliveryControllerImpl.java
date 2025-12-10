@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class DeliveryControllerImpl implements DeliveryController {
     private final DeliveryPolicyService deliveryPolicyService;
 
+    @Override
     @GetMapping
     public ResponseEntity<DeliveryPolicyResponse> getDeliveryPolicy() {
         DeliveryPolicyResponse response = deliveryPolicyService.getDeliveryPolicy();
@@ -33,7 +34,7 @@ public class DeliveryControllerImpl implements DeliveryController {
         return ResponseEntity.ok(response);
     }
 
-
+    @Override
     @PutMapping
     public ResponseEntity<Void> updateDeliveryPolicy(@RequestBody DeliveryPolicyUpdateRequest request,
                                                      UserInfo userInfo) {
