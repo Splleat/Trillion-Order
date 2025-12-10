@@ -41,7 +41,7 @@ public class CartServiceImpl implements CartService {
             finalQuantity += existing.getCartQuantity();
         } else {
             // [없는 상품] 개수 제한 확인
-            long currentCount = cartRepository.count(holder);
+            long currentCount = cartRepository.countDistinctCartItem(holder);
             if (currentCount >= cartProperties.getMaxItems()) {
                 throw new CartCapacityExceededException(
                         "장바구니에는 최대 " + cartProperties.getMaxItems() + "종류의 상품만 담을 수 있습니다."
