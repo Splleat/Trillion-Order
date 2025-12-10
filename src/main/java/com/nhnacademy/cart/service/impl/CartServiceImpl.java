@@ -103,6 +103,7 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public CartSummaryDto getCartSummary(CartHolder holder) {
         return cartRepository.getSummary(holder);
     }
