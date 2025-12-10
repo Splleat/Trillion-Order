@@ -2,10 +2,12 @@ package com.nhnacademy.order.common.handler;
 
 import com.nhnacademy.order.common.dto.ErrorResponse;
 import com.nhnacademy.order.common.exception.AccessDeniedException;
+import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
+import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler({
         OrderNotFoundException.class,
+        OrderItemNotFoundException.class,
+        PolicyNotConfiguredException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFoundException(OrderNotFoundException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "NOT_FOUND");

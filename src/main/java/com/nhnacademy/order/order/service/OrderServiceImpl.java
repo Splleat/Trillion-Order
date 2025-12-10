@@ -140,7 +140,8 @@ public class OrderServiceImpl implements OrderService {
             // 3. 최종 처리 실행 (OrderStatus: CREATING -> PENDING)
             orderFinalizerService.finalizeOrderCreation(order, saga);
         } catch (Exception e) { // 아마 무조건 OrderCreateFailureException
-            // TODO: 예외 세분화 필요
+            // 주문 생성 중 문제 발생 시 무조건 보상 트랜잭션 시작
+            // 기본적으로 외부 API와 2번 통신 재시도 -> 실패 시 OrderCreateFailureException이 던져짐
             log.error("주문 ID: {} - 생성 실패: {}", order.getOrderId(), e.getMessage(), e);
             orderCreateOrchestrator.compensate(saga, order);
 
