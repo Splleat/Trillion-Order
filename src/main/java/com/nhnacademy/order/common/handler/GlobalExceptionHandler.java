@@ -8,6 +8,7 @@ import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
+import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,9 +20,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         OrderNotFoundException.class,
         OrderItemNotFoundException.class,
-        PolicyNotConfiguredException.class
+        PolicyNotConfiguredException.class,
+        PackagingNotFoundException.class
     })
-    public ResponseEntity<ErrorResponse> handleNotFoundException(OrderNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFoundException(Exception ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "NOT_FOUND");
 
         return ResponseEntity.status(404).body(errorResponse);

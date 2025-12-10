@@ -28,6 +28,7 @@ import java.util.List;
 public class PackagingControllerImpl implements PackagingController {
     private final PackagingService packagingService;
 
+    @Override
     @GetMapping
     public ResponseEntity<List<PackagingResponse>> getAllPackaging() {
         List<PackagingResponse> response = packagingService.getAllPackaging();
@@ -35,6 +36,7 @@ public class PackagingControllerImpl implements PackagingController {
         return ResponseEntity.ok(response);
     }
 
+    @Override
     @PutMapping("/{packagingId}")
     public ResponseEntity<Void> updatePackaging(@PathVariable Long packagingId,
                                                 @RequestBody PackagingUpdateRequest request,
@@ -45,6 +47,7 @@ public class PackagingControllerImpl implements PackagingController {
         return ResponseEntity.ok().build();
     }
 
+    @Override
     @DeleteMapping("/{packagingId}")
     public ResponseEntity<Void> removePackaging(@PathVariable Long packagingId,
                                                 UserInfo userInfo) {

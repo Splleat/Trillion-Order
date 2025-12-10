@@ -44,6 +44,8 @@ logging:
   level:
     org.hibernate.type: trace
 
+f
+
 # Resilience4j 설정
 resilience4j:
   circuitbreaker:

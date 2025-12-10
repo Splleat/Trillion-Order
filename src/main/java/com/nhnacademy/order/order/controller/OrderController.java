@@ -30,7 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Order API", description = "주문 관련 모든 프로세스를 관리합니다.")
+@Tag(name = "Order API", description = "주문 관련 API")
 public interface OrderController {
 
     @Operation(summary = "모든 주문 조회 (관리자용)", description = "관리자 권한으로 시스템의 모든 주문 내역을 페이지별로 조회합니다.")
