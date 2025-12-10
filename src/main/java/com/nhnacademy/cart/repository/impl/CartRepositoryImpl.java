@@ -139,7 +139,7 @@ public class CartRepositoryImpl implements CartRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public long count(CartHolder holder) {
+    public long countDistinctCartItem(CartHolder holder) {
         // 워밍 시도 & 데이터 획득
         List<RedisCart> warmedList = tryWarmUpAndGet(holder);
 

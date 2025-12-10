@@ -73,7 +73,7 @@ public interface CartRepository {
      *  Redis 캐시를 최우선으로 신뢰
      * - ... 이미, 다른 로직에서 상당한 정합성을 보장
      */
-    long count(CartHolder holder);
+    long countDistinctCartItem(CartHolder holder);
 
     /**
      * [담긴 상품 종류 + 담긴 상품 총 개수, 요약정보 조회]
