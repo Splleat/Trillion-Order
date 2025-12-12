@@ -10,7 +10,7 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.order.client.interceptor;
+package com.nhnacademy.order.client.common.interceptor;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

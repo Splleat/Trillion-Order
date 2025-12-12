@@ -44,6 +44,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             o.orderDetails.originPrice,
             o.orderDetails.totalPrice,
             o.orderDetails.deliveryFee,
+            o.orderDetails.pointUsage,
             o.ordererInfo,
             o.receiverInfo
         )
@@ -61,6 +62,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             o.orderDetails.originPrice,
             o.orderDetails.totalPrice,
             o.orderDetails.deliveryFee,
+            o.orderDetails.pointUsage,
             o.ordererInfo,
             o.receiverInfo
         )
@@ -79,6 +81,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             o.orderDetails.originPrice,
             o.orderDetails.totalPrice,
             o.orderDetails.deliveryFee,
+            o.orderDetails.pointUsage,
             o.ordererInfo,
             o.receiverInfo
         )

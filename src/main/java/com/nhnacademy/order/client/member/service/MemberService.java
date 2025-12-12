@@ -1,8 +1,8 @@
-package com.nhnacademy.order.client.service;
+package com.nhnacademy.order.client.member.service;
 
-import com.nhnacademy.order.client.MemberClient;
-import com.nhnacademy.order.client.dto.PointUsageRequest;
-import com.nhnacademy.order.client.handler.ResilienceFallbackHandler;
+import com.nhnacademy.order.client.member.MemberClient;
+import com.nhnacademy.order.client.member.dto.PointUsageRequest;
+import com.nhnacademy.order.client.common.handler.ResilienceFallbackHandler;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;

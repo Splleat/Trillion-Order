@@ -1,6 +1,6 @@
-package com.nhnacademy.order.client.handler;
+package com.nhnacademy.order.client.common.handler;
 
-import com.nhnacademy.order.client.exception.ExternalServiceException;
+import com.nhnacademy.order.client.common.exception.ExternalServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

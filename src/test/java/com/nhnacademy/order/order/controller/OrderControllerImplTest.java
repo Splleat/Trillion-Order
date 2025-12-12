@@ -68,6 +68,7 @@ class OrderControllerImplTest {
                 50000,
                 48500,
                 2500,
+                0,
                 ordererInfo,
                 receiverInfo,
                 Collections.emptyList()

@@ -1,9 +1,9 @@
-package com.nhnacademy.order.client.service;
+package com.nhnacademy.order.client.book.service;
 
-import com.nhnacademy.order.client.BookClient;
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
-import com.nhnacademy.order.client.handler.ResilienceFallbackHandler;
+import com.nhnacademy.order.client.book.BookClient;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
+import com.nhnacademy.order.client.common.handler.ResilienceFallbackHandler;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;

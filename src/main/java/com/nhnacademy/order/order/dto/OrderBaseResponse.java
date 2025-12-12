@@ -15,6 +15,7 @@ public record OrderBaseResponse(
     int originPrice,
     int totalPrice,
     int deliveryFee,
+    int pointUsage,
     OrdererInfo ordererInfo,
     ReceiverInfo receiverInfo
 ) {}

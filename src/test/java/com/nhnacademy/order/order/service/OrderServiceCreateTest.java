@@ -1,6 +1,5 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.dto.BookResponse;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;

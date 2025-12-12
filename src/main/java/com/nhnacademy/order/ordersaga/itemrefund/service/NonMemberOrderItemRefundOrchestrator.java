@@ -1,6 +1,6 @@
 package com.nhnacademy.order.ordersaga.itemrefund.service;
 
-import com.nhnacademy.order.client.service.BookService;
+import com.nhnacademy.order.client.book.service.BookService;
 import com.nhnacademy.order.common.aop.SagaIdContext;
 import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;

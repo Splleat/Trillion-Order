@@ -34,7 +34,9 @@ public class OrderItem extends BaseTimeEntity {
 
     private int quantity;
 
-    private Integer price;
+    private int price;
+
+    private int couponDiscountAmount;
 
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate; // 출고일
@@ -54,13 +56,14 @@ public class OrderItem extends BaseTimeEntity {
             null,
             null,
             quantity,
-            null,
+            0,
+            0,
             shippingDate,
             packagingPrice
         );
     }
 
-    private OrderItem(Order order, Long bookId, String bookName, String bookImage, int quantity, Integer price, LocalDateTime shippingDate, Integer packagingPrice) {
+    private OrderItem(Order order, Long bookId, String bookName, String bookImage, int quantity, Integer price, int couponDiscountAmount, LocalDateTime shippingDate, Integer packagingPrice) {
         this.orderItemId = null;
         this.order = order;
         this.bookId = bookId;
@@ -68,12 +71,13 @@ public class OrderItem extends BaseTimeEntity {
         this.bookImage = bookImage;
         this.quantity = quantity;
         this.price = price;
+        this.couponDiscountAmount = couponDiscountAmount;
         this.shippingDate = shippingDate;
         this.packagingPrice = packagingPrice;
         this.orderItemStatus = OrderItemStatus.PREPARING;
     }
 
-    public void completeOrderItem(String bookName, String bookImage, int price) {
+    public void completeOrderItem(String bookName, String bookImage, int price, int couponDiscountAmount) {
         this.bookName = bookName;
         this.bookImage = bookImage;
         this.price = price;

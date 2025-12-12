@@ -2,8 +2,9 @@
 package com.nhnacademy.order.client;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
-import com.nhnacademy.order.client.interceptor.FeignSagaIdInterceptor;
+import com.nhnacademy.order.client.book.BookClient;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
+import com.nhnacademy.order.client.common.interceptor.FeignSagaIdInterceptor;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;

@@ -63,6 +63,7 @@
                                         <dt class="col-sm-4">수량</dt><dd class="col-sm-8">${item.quantity}개</dd>
                                         <dt class="col-sm-4">개당 가격</dt><dd class="col-sm-8">${item.price.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-4">포장비</dt><dd class="col-sm-8">${item.packagingPrice.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-4">쿠폰 할인액</dt><dd class="col-sm-8">${item.couponDiscountAmount.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-4">상태</dt><dd class="col-sm-8"><span class="badge bg-info">${item.orderItemStatus}</span></dd>
                                     </dl>
                                 </div>
@@ -84,6 +85,7 @@
                                         <dt class="col-sm-5">회원 ID</dt><dd class="col-sm-7">${order.memberId || '비회원'}</dd>
                                         <dt class="col-sm-5">상품 총액</dt><dd class="col-sm-7">${order.originPrice.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-5">배송비</dt><dd class="col-sm-7">${order.deliveryFee.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">포인트 사용량</dt><dd class="col-sm-7">${order.pointUsage.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-5">총 결제액</dt><dd class="col-sm-7"><strong>${order.totalPrice.toLocaleString('ko-KR')}원</strong></dd>
                                     </dl>
                                     <h6>주문자 정보</h6>

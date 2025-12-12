@@ -1,4 +1,4 @@
-package com.nhnacademy.order.client.dto;
+package com.nhnacademy.order.client.book.dto;
 
 import java.util.Map;
 

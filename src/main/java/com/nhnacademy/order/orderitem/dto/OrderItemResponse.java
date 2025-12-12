@@ -11,6 +11,7 @@ public record OrderItemResponse(
     String bookImage,
     int quantity,
     int price,
+    int couponDiscountAmount,
     int packagingPrice,
     OrderItemStatus orderItemStatus
 ) {
@@ -23,6 +24,7 @@ public record OrderItemResponse(
             orderItem.getBookImage(),
             orderItem.getQuantity(),
             orderItem.getPrice(),
+            orderItem.getCouponDiscountAmount(),
             orderItem.getPackagingPrice(),
             orderItem.getOrderItemStatus()
         );

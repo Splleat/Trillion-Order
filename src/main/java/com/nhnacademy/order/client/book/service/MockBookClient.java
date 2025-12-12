@@ -1,8 +1,8 @@
-package com.nhnacademy.order.client.service.mock;
+package com.nhnacademy.order.client.book.service;
 
-import com.nhnacademy.order.client.BookClient;
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
+import com.nhnacademy.order.client.book.BookClient;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

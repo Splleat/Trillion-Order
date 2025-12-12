@@ -12,7 +12,7 @@
 
 package com.nhnacademy.order.common.config;
 
-import com.nhnacademy.order.client.interceptor.FeignSagaIdInterceptor;
+import com.nhnacademy.order.client.common.interceptor.FeignSagaIdInterceptor;
 import feign.okhttp.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

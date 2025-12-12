@@ -1,7 +1,8 @@
-package com.nhnacademy.order.client;
+package com.nhnacademy.order.client.coupon;
 
-import com.nhnacademy.order.client.dto.CouponApplyRequest;
-import com.nhnacademy.order.client.dto.CouponGetDiscountAmountRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponApplyRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
 import com.nhnacademy.order.common.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Profile;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "coupon-service", configuration = FeignClientConfig.class)
 public interface CouponClient {
     @PostMapping("/api/coupon/1")
-    int calculateDiscount(@RequestBody CouponGetDiscountAmountRequest request);
+    CouponCalculationResponse calculateDiscount(@RequestBody CouponCalculationRequest request);
 
     @PostMapping("/api/coupon/2")
     void applyCoupon(@RequestBody CouponApplyRequest request);

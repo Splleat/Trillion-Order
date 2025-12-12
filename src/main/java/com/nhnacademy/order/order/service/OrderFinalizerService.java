@@ -1,8 +1,9 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -37,6 +38,8 @@ public class OrderFinalizerService {
             return;
         }
 
+        Long memberId = order.getMemberId();
+
         List<OrderItem> orderItems = order.getOrderItems();
 
         List<Long> bookIds = orderItems.stream()
@@ -53,7 +56,7 @@ public class OrderFinalizerService {
                     String bookImage = bookResponse.imageUrl();
                     int price = bookResponse.price();
 
-                    orderItem.completeOrderItem(bookName, bookImage, price);
+                    orderItem.completeOrderItem(bookName, bookImage, price, 0);
                 });
 
         // 순수 금액 계산 (도서 * 재고 + 포장비)
@@ -67,7 +70,20 @@ public class OrderFinalizerService {
         Long couponId = order.getOrderDetails().couponId();
 
         if (couponId != null) {
-            int couponDiscount = couponService.calculateDiscount(couponId, totalPrice);
+//            List<CouponCalculationRequest.CouponCalculationOrderItem> items = orderItems.stream()
+//                    .map(orderItem -> {
+//                        BookResponse bookResponse = bookResponseMap.get(orderItem.getBookId());
+//
+//                        return CouponCalculationRequest.CouponCalculationOrderItem.create(orderItem, categoryId);
+//                    })
+//                    .toList();
+//
+//            CouponCalculationRequest request = new CouponCalculationRequest(memberId, couponId, items);
+
+            // TODO: 쿠폰 계산 로직
+//            orderItems.stream()
+
+            int couponDiscount = 0;
 
             totalPrice -= couponDiscount;
         }

@@ -18,6 +18,7 @@ public record OrderResponse(
     int originPrice,
     int totalPrice,
     int deliveryFee,
+    int pointUsage,
     OrdererInfo ordererInfo,
     ReceiverInfo receiverInfo,
     List<OrderItemResponse> orderItems
@@ -32,6 +33,7 @@ public record OrderResponse(
             orderBaseResponse.originPrice(),
             orderBaseResponse.totalPrice(),
             orderBaseResponse.deliveryFee(),
+            orderBaseResponse.pointUsage(),
             orderBaseResponse.ordererInfo(),
             orderBaseResponse.receiverInfo(),
             orderItems
@@ -48,6 +50,7 @@ public record OrderResponse(
             order.getOrderDetails().originPrice(),
             order.getOrderDetails().totalPrice(),
             order.getOrderDetails().deliveryFee(),
+            order.getOrderDetails().pointUsage(),
             order.getOrdererInfo(),
             order.getReceiverInfo(),
             order.getOrderItems().stream().map(OrderItemResponse::create).toList()

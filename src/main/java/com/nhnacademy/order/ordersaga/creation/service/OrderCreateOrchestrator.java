@@ -1,8 +1,8 @@
 package com.nhnacademy.order.ordersaga.creation.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
-import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
+import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.service.OrderCompensateService;
