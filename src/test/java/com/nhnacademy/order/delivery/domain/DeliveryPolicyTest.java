@@ -17,13 +17,11 @@ class DeliveryPolicyTest {
     @Test
     @DisplayName("전체 인자 생성자 및 Getter 테스트")
     void testAllArgsConstructorAndGetters() {
-        Long id = 1L;
         int fee = 3000;
         int threshold = 50000;
 
-        DeliveryPolicy deliveryPolicy = new DeliveryPolicy(id, fee, threshold);
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
 
-        assertThat(deliveryPolicy.getDeliveryPolicyId()).isEqualTo(id);
         assertThat(deliveryPolicy.getDeliveryPolicyFee()).isEqualTo(fee);
         assertThat(deliveryPolicy.getDeliveryPolicyThreshold()).isEqualTo(threshold);
     }
@@ -31,7 +29,7 @@ class DeliveryPolicyTest {
     @Test
     @DisplayName("update 메서드 테스트")
     void testUpdate() {
-        DeliveryPolicy deliveryPolicy = new DeliveryPolicy(1L, 3000, 50000);
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
 
         int newFee = 2500;
         int newThreshold = 60000;

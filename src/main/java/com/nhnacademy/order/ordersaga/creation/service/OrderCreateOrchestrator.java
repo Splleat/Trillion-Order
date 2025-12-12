@@ -107,7 +107,7 @@ public class OrderCreateOrchestrator {
         // 3. 역순으로 보상 트랜잭션 시작
         if (currentStep == CreateSagaStep.POINT_USING || currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
-                memberService.increasePoint(memberId, pointUsage);
+                memberService.rollbackPoint(memberId, pointUsage);
             }
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
 
@@ -124,7 +124,7 @@ public class OrderCreateOrchestrator {
         }
 
         if (currentStep == CreateSagaStep.STOCK_DECREASING || currentStep == CreateSagaStep.STOCK_DECREASED) {
-            bookService.increaseStocks(quantityMap);
+            bookService.rollbackStocks(quantityMap);
         }
         sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STARTED);
 

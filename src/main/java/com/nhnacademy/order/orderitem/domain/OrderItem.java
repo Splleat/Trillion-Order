@@ -81,6 +81,11 @@ public class OrderItem extends BaseTimeEntity {
 
     public void ship() {
         this.orderItemStatus = OrderItemStatus.SHIPPED;
+    }
+
+    public void delivered() {
+        this.orderItemStatus = OrderItemStatus.DELIVERED;
+
         if (this.shippingDate == null) {
             this.shippingDate = LocalDateTime.now();
         }

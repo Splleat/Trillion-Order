@@ -109,9 +109,21 @@ public class OrderServiceImpl implements OrderService {
     @CheckAuth(role = AuthRole.ADMIN)
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrders(UserInfo userInfo, Pageable pageable) {
-        Page<Order> orders = orderRepository.findAll(pageable);
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrder(pageable);
 
-        return orders.map(OrderResponse::create);
+        List<Long> orderIds = orderBaseResponses.stream()
+                .map(OrderBaseResponse::orderId)
+                .toList();
+
+        Map<Long, List<OrderItemResponse>> orderItemResponses = orderItemRepository.findAllByOrderIds(orderIds).stream()
+                .collect(Collectors.groupingBy(OrderItemResponse::orderId));
+
+
+        return orderBaseResponses.map(orderBaseResponse -> {
+            List<OrderItemResponse> orderItems = orderItemResponses.getOrDefault(orderBaseResponse.orderId(), Collections.emptyList());
+
+            return OrderResponse.create(orderBaseResponse, orderItems);
+        });
     }
 
     // 주문 생성
