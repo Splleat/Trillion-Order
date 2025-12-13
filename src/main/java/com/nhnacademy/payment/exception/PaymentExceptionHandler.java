@@ -51,7 +51,7 @@ public class PaymentExceptionHandler {
 
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<PaymentErrorResponse> handlePaymentNotFoundException(PaymentNotFoundException e){
-        log.info("결제 정보르 찾을 수 없음 : {} ", e.getMessage());
+        log.info("결제 정보를 찾을 수 없음 : {} ", e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
                 "PAYMENT_NOT_FOUND",
                 e.getMessage()
