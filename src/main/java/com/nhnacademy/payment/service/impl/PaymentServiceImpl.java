@@ -6,8 +6,8 @@ import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.entity.Payment;
 import com.nhnacademy.payment.entity.PaymentStatus;
+import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         //이미 취소된 결제 건 이라면?
         if(findPayment.getPaymentStatus().equals(PaymentStatus.CANCELED)) {
-            throw new PaymentStateConflictException("이미 전체 취소된 결제 건 입니다.");
+            throw new PaymentAlreadyCanceledException("이미 전체 취소된 결제 건 입니다.");
         }
 
         findPayment.cancelPayment(cancelAmount);

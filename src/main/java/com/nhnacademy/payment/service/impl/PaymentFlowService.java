@@ -8,9 +8,7 @@ import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.entity.Payment;
-import com.nhnacademy.payment.exception.PaymentSaveFailException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
-import com.nhnacademy.payment.exception.PaymentValidationException;
+import com.nhnacademy.payment.exception.*;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +34,12 @@ public class PaymentFlowService {
 
         //view에서 뿌린 금액과 db에 저장된 금액이 일치하지 않을 시?
         if(!request.amount().equals(order.getOrderDetails().totalPrice())){
-            throw new PaymentValidationException("주문 금액과 결제 금액이 일치 하지 않습니다.");
+            throw new PaymentAmountMissMatchException("주문 금액과 결제 금액이 일치 하지 않습니다.");
         }
 
         //결제 승인시 이미 결제 승인된 주문이라면?
         if(order.getOrderStatus().equals(OrderStatus.COMPLETED)){
-            throw new PaymentStateConflictException(request.orderNumber());
+            throw new PaymentAlreadyApprovedException(request.orderNumber());
         }
 
             TossPaymentResponseDto response = tossPaymentClient.confirm(
@@ -73,12 +71,12 @@ public class PaymentFlowService {
 
         //이미 결제가 취소된 주문건에서는 또 다시 결제 취소는 불가능 함.
         if(payment.getOrder().getOrderStatus().equals(OrderStatus.CANCELED)){
-            throw new PaymentStateConflictException("이미 전액 취소된 결제 건 입니다.");
+            throw new PaymentAlreadyCanceledException("이미 전액 취소된 결제 건 입니다.");
         }
 
         //주문이 결제 대기 상태인데 취소 하려 할때도 역시 결제 취소는 불가능하다고 처리 해줘야 할듯
         if(payment.getOrder().getOrderStatus().equals(OrderStatus.PENDING)){
-            throw new PaymentStateConflictException("결제가 승인되지 않은 주문 건 입니다.");
+            throw new PaymentNotApprovedException("결제가 승인되지 않은 주문 건 입니다.");
         }
 
         //약간의 방어로직같은 느낌이긴 함 -> 만약 취소 금액이 null 이면 -> 전체 취소를 아니면 넘겨 받은 취소 금액을

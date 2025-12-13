@@ -7,8 +7,8 @@ import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.entity.Payment;
 import com.nhnacademy.payment.entity.PaymentStatus;
+import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -152,7 +152,7 @@ class PaymentServiceImplTest {
 
         given(paymentRepository.findById(paymentId)).willReturn(Optional.of(findPayment));
 
-        assertThrows(PaymentStateConflictException.class,()->paymentService.updatePaymentCanceledStatus(mockPayment,cancelAmount));
+        assertThrows(PaymentAlreadyCanceledException.class,()->paymentService.updatePaymentCanceledStatus(mockPayment,cancelAmount));
 
         assertEquals(com.nhnacademy.payment.entity.PaymentStatus.CANCELED, findPayment.getPaymentStatus());
 
