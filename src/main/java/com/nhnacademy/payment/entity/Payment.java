@@ -2,7 +2,7 @@ package com.nhnacademy.payment.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.payment.exception.PaymentValidationException;
+import com.nhnacademy.payment.exception.BalanceShortageException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -69,7 +69,7 @@ public class Payment {
     public void cancelPayment(Integer cancelAmount) {
         //취소 가능한 금액보다 취소하려는 금액이 더 크다면?
         if(this.balanceAmount < cancelAmount){
-            throw new PaymentValidationException("취소 가능한 잔액이 부족합니다.");
+            throw new BalanceShortageException("취소 가능한 잔액이 부족합니다.");
         }
         //취소 된 경우에는 취소 가능한 금액에서 취소 금액을 차감
         this.balanceAmount -= cancelAmount;

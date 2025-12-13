@@ -10,13 +10,9 @@
  * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  */
 
-package com.nhnacademy.payment.config;
+package com.nhnacademy.payment.exception;
 
 import com.nhnacademy.payment.dto.response.PaymentErrorResponse;
-import com.nhnacademy.payment.exception.PaymentNotFoundException;
-import com.nhnacademy.payment.exception.PaymentSaveFailException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
-import com.nhnacademy.payment.exception.PaymentValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -31,25 +27,36 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class PaymentExceptionHandler {
 
     //view에서 넘어온 가격과 서버에서 넘어온 가격이 다를 경우.
-    @ExceptionHandler(PaymentValidationException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentSaveException(PaymentValidationException e) {
-        log.warn("결제 유효성 이슈 : {} ",e.getMessage());
+    @ExceptionHandler({BalanceShortageException.class, PaymentAmountMissMatchException.class})
+    public ResponseEntity<PaymentErrorResponse> handlePaymentSaveException(Exception e) {
+        log.warn("유효하지 않은 요청입니다 : {} ",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "PAYMENT_AMOUNT_MISMATCH",
+                "Balance",
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     //결제 상태에 관한 예외 처리
-    @ExceptionHandler(PaymentStateConflictException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentStateConflictException(PaymentStateConflictException e) {
+    @ExceptionHandler({PaymentAlreadyApprovedException.class,
+    PaymentAlreadyCanceledException.class, PaymentNotApprovedException.class})
+    public ResponseEntity<PaymentErrorResponse> handlePaymentStateConflictException(Exception e) {
         log.info("결제 상태 충돌 : {}",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
                 "PAYMENT_STATE_CONFLICT",
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<PaymentErrorResponse> handlePaymentNotFoundException(PaymentNotFoundException e){
+        log.info("결제 정보르 찾을 수 없음 : {} ", e.getMessage());
+        PaymentErrorResponse response = PaymentErrorResponse.of(
+                "PAYMENT_NOT_FOUND",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(PaymentSaveFailException.class)
@@ -61,16 +68,5 @@ public class PaymentExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentNotFoundException(PaymentNotFoundException e) {
-        log.debug("결제 정보를 찾을 수 없습니다. : {}", e.getMessage());
-        PaymentErrorResponse response = PaymentErrorResponse.of(
-                "PAYMENT_NOT_FOUND",
-                e.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
 
 }

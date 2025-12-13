@@ -9,9 +9,7 @@ import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import com.nhnacademy.payment.entity.Payment;
-import com.nhnacademy.payment.exception.PaymentSaveFailException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
-import com.nhnacademy.payment.exception.PaymentValidationException;
+import com.nhnacademy.payment.exception.*;
 import com.nhnacademy.payment.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -112,7 +110,7 @@ class PaymentFlowServiceTest {
         given(orderDetails.totalPrice()).willReturn(40000); // 금액 다름
         given(orderRepository.findOrderWithItemsByOrderNumber("ORD_test")).willReturn(Optional.of(order));
 
-        assertThrows(PaymentValidationException.class,
+        assertThrows(PaymentAmountMissMatchException.class,
                 () -> paymentFlowService.confirmPayment(request));
 
         verify(tossPaymentClient, never()).confirm(any(), any(), any());
@@ -124,7 +122,7 @@ class PaymentFlowServiceTest {
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.COMPLETED);
         given(orderRepository.findOrderWithItemsByOrderNumber(request.orderNumber())).willReturn(Optional.of(order));
 
-        assertThrows(PaymentStateConflictException.class,
+        assertThrows(PaymentAlreadyApprovedException.class,
                 () -> paymentFlowService.confirmPayment(request));
 
         verify(tossPaymentClient, never()).confirm(any(), any(), any());
@@ -246,7 +244,7 @@ class PaymentFlowServiceTest {
 
         given(paymentService.getPaymentByOrderNumber(request.orderNumber())).willReturn(payment);
 
-        assertThrows(PaymentStateConflictException.class,
+        assertThrows(PaymentAlreadyCanceledException.class,
                 () -> paymentFlowService.cancelPayment(request.orderNumber(), cancelReason, 50000));
 
         verify(tossPaymentClient, never()).cancel(any(), any(), any());
@@ -265,7 +263,7 @@ class PaymentFlowServiceTest {
 
         given(paymentService.getPaymentByOrderNumber(request.orderNumber())).willReturn(payment);
 
-        assertThrows(PaymentStateConflictException.class,
+        assertThrows(PaymentNotApprovedException.class,
                 () -> paymentFlowService.cancelPayment(request.orderNumber(), cancelReason, 50000));
 
         verify(tossPaymentClient, never()).cancel(any(), any(), any());
