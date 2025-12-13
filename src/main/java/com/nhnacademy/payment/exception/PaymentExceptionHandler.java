@@ -31,7 +31,7 @@ public class PaymentExceptionHandler {
     public ResponseEntity<PaymentErrorResponse> handlePaymentAmountException(Exception e) {
         log.warn("결제 유효성 검증 실패 : {} ",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "INVALID_PAYMNET_AMOUNT",
+                "INVALID_PAYMENT_AMOUNT",
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
