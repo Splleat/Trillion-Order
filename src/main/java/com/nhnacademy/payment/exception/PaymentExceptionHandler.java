@@ -28,10 +28,10 @@ public class PaymentExceptionHandler {
 
     //view에서 넘어온 가격과 서버에서 넘어온 가격이 다를 경우.
     @ExceptionHandler({BalanceShortageException.class, PaymentAmountMissMatchException.class})
-    public ResponseEntity<PaymentErrorResponse> handlePaymentSaveException(Exception e) {
-        log.warn("유효하지 않은 요청입니다 : {} ",e.getMessage());
+    public ResponseEntity<PaymentErrorResponse> handlePaymentAmountException(Exception e) {
+        log.warn("결제 유효성 검증 실패 : {} ",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "Balance",
+                "INVALID_PAYMNET_AMOUNT",
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
