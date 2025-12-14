@@ -56,8 +56,8 @@ class BookClientTest {
         // given
         List<Long> bookIds = List.of(1L, 2L);
         List<BookResponse> expectedResponse = List.of(
-                new BookResponse(1L, "Book 1", 10000, true, "testImage1"),
-                new BookResponse(2L, "Book 2", 20000, true , "testImage2")
+                new BookResponse(1L, "Book 1", 101L, 10000, true, "testImage1"),
+                new BookResponse(2L, "Book 2", 102L, 20000, true , "testImage2")
         );
 
         wireMockServer.stubFor(get(urlPathEqualTo("/api/order-books"))

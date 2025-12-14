@@ -55,7 +55,7 @@ class OrderCreateOrchestratorTest {
         // Given: An order and its items
         OrderDetails orderDetails = new OrderDetails(
                 LocalDateTime.now(), "12345", LocalDateTime.now().plusDays(3),
-                3000, 500, 10000, 12500, 1L);
+                3000, 500, 0, 10000, 12500, 1L);
 
         order = new Order();
         ReflectionTestUtils.setField(order, "orderId", 1L);

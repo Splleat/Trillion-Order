@@ -4,6 +4,7 @@ import com.nhnacademy.order.client.coupon.CouponClient;
 import com.nhnacademy.order.client.coupon.dto.CouponApplyRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
+import com.nhnacademy.order.ordercoupon.domain.CouponType; // 추가
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ public class MockCouponClient implements CouponClient {
         log.info("MockCouponClient calculateDiscount called with: {}", request);
 
         if (request.couponId() == null) {
-            return new CouponCalculationResponse(0, List.of());
+            return new CouponCalculationResponse(null, null, null, 0, List.of());
         }
 
         List<CouponCalculationResponse.ItemDiscount> itemDiscounts = new ArrayList<>();
@@ -50,6 +51,7 @@ public class MockCouponClient implements CouponClient {
                 itemDiscounts.add(new CouponCalculationResponse.ItemDiscount(item.bookId(), itemDiscount));
                 totalDiscount += itemDiscount;
             }
+            return new CouponCalculationResponse(request.couponId(), CouponType.CART, null, totalDiscount, itemDiscounts);
 
         } else if (Objects.equals(request.couponId(), CATEGORY_COUPON_ID)) {
             // Mock: 카테고리(101L) 5,000원 할인
@@ -60,6 +62,8 @@ public class MockCouponClient implements CouponClient {
                     totalDiscount += discountAmount;
                 }
             }
+            return new CouponCalculationResponse(request.couponId(), CouponType.CATEGORY, TARGET_CATEGORY_ID, totalDiscount, itemDiscounts);
+
         } else if (Objects.equals(request.couponId(), BOOK_COUPON_ID)) {
             // Mock: 특정 책(99L) 1,000원 할인
             for (CouponCalculationRequest.CouponCalculationOrderItem item : request.items()) {
@@ -69,14 +73,13 @@ public class MockCouponClient implements CouponClient {
                     totalDiscount += discountAmount;
                 }
             }
+            return new CouponCalculationResponse(request.couponId(), CouponType.BOOK, TARGET_BOOK_ID, totalDiscount, itemDiscounts);
+
         } else {
             // Not a recognized mock coupon
             log.warn("Unrecognized mock couponId: {}", request.couponId());
-            return new CouponCalculationResponse(0, List.of());
+            return new CouponCalculationResponse(null, null, null, 0, List.of()); // Updated
         }
-        
-        // Response DTO의 오타(totalDiscoutAmount)에 맞춰서 생성
-        return new CouponCalculationResponse(totalDiscount, itemDiscounts);
     }
 
     @Override

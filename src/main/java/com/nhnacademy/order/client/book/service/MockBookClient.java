@@ -22,6 +22,7 @@ public class MockBookClient implements BookClient {
                 .map(id -> new BookResponse(
                         id,
                         "Mock Book Title " + id,
+                        1L,
                         25000,
                         true,
                         "http://example.com/mock_book_" + id + ".jpg"))

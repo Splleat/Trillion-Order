@@ -36,6 +36,7 @@ public class OrderItem extends BaseTimeEntity {
 
     private int price;
 
+    @Setter
     private int couponDiscountAmount;
 
     @Column(name = "shipping_date")
@@ -81,6 +82,7 @@ public class OrderItem extends BaseTimeEntity {
         this.bookName = bookName;
         this.bookImage = bookImage;
         this.price = price;
+        this.couponDiscountAmount = couponDiscountAmount;
     }
 
     public void ship() {

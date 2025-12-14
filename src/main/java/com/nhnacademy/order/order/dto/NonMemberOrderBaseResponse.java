@@ -29,6 +29,7 @@ public record NonMemberOrderBaseResponse(
             totalPrice,
             deliveryFee,
             0,
+            0,
             ordererInfo,
             receiverInfo
         );

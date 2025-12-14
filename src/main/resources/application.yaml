@@ -19,7 +19,7 @@ spring:
 #      username: be12-team1
 #      password: nhnacademy123!
   profiles:
-    active: dev
+    active: dev, local
 
 
 server:

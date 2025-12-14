@@ -1,15 +1,18 @@
 package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.client.book.dto.BookResponse;
-import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
 import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
 import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
 import com.nhnacademy.order.order.domain.Order;
+import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
@@ -19,12 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class OrderFinalizerService {
     private final DeliveryPolicyRepository deliveryPolicyRepository;
-
     private final BookService bookService;
     private final CouponService couponService;
     private final OrderRepository orderRepository;
@@ -32,93 +35,76 @@ public class OrderFinalizerService {
 
     @Transactional
     public void finalizeOrderCreation(Order order, OrderCreateSaga saga) {
-
-        // 이미 처리된 주문은 다시 처리하지 않음
         if (order.getOrderStatus() == OrderStatus.PENDING) {
             return;
         }
 
         Long memberId = order.getMemberId();
-
         List<OrderItem> orderItems = order.getOrderItems();
-
-        List<Long> bookIds = orderItems.stream()
-                .map(OrderItem::getBookId)
-                .toList();
-
+        List<Long> bookIds = orderItems.stream().map(OrderItem::getBookId).toList();
         Map<Long, BookResponse> bookResponseMap = bookService.getBookInfos(bookIds);
 
-        // OrderItem 완성
+        // 1. OrderItem 정보 완성 (가격, 이름 등)
         orderItems.forEach(orderItem -> {
-                    BookResponse bookResponse = bookResponseMap.get(orderItem.getBookId());
+            BookResponse bookResponse = bookResponseMap.get(orderItem.getBookId());
+            orderItem.completeOrderItem(bookResponse.bookName(), bookResponse.imageUrl(), bookResponse.price(), 0);
+        });
 
-                    String bookName = bookResponse.bookName();
-                    String bookImage = bookResponse.imageUrl();
-                    int price = bookResponse.price();
-
-                    orderItem.completeOrderItem(bookName, bookImage, price, 0);
-                });
-
-        // 순수 금액 계산 (도서 * 재고 + 포장비)
         int originPrice = orderItems.stream()
-                .mapToInt(orderItem -> orderItem.getPrice() * orderItem.getQuantity() + orderItem.getPackagingPrice())
+                .mapToInt(item -> item.getPrice() * item.getQuantity() + item.getPackagingPrice())
                 .sum();
+        OrderDetails currentOrderDetails = order.getOrderDetails();
+        int totalCouponDiscount = 0;
 
-        // 최종 결제 금액 계산 (순수 금액 - 할인액(쿠폰 + 포인트) + 배송비)
-        int totalPrice = originPrice;
+        // 2. 쿠폰 사용 처리
+        Long couponId = currentOrderDetails.couponId();
+        if (couponId != null && memberId != null) {
+            List<CouponCalculationRequest.CouponCalculationOrderItem> couponItems = orderItems.stream()
+                .map(item -> new CouponCalculationRequest.CouponCalculationOrderItem(
+                    item.getBookId(),
+                    bookResponseMap.get(item.getBookId()).categoryId(),
+                    item.getPrice(),
+                    item.getQuantity()))
+                .toList();
+            CouponCalculationRequest couponRequest = new CouponCalculationRequest(memberId, couponId, couponItems);
+            CouponCalculationResponse couponResponse = couponService.calculateDiscount(couponRequest);
 
-        Long couponId = order.getOrderDetails().couponId();
+            totalCouponDiscount = couponResponse.totalDiscountAmount();
 
-        if (couponId != null) {
-//            List<CouponCalculationRequest.CouponCalculationOrderItem> items = orderItems.stream()
-//                    .map(orderItem -> {
-//                        BookResponse bookResponse = bookResponseMap.get(orderItem.getBookId());
-//
-//                        return CouponCalculationRequest.CouponCalculationOrderItem.create(orderItem, categoryId);
-//                    })
-//                    .toList();
-//
-//            CouponCalculationRequest request = new CouponCalculationRequest(memberId, couponId, items);
+            // 2-1. OrderCoupon 엔티티 생성 및 연결
+            OrderCoupon orderCoupon = new OrderCoupon(null, order, couponResponse.couponId(), totalCouponDiscount, couponResponse.couponType(), couponResponse.targetId());
+            order.addOrderCoupon(orderCoupon);
 
-            // TODO: 쿠폰 계산 로직
-//            orderItems.stream()
-
-            int couponDiscount = 0;
-
-            totalPrice -= couponDiscount;
+            // 2-2. OrderItem 별 할인액 적용
+            Map<Long, Integer> itemDiscountMap = couponResponse.itemDiscounts().stream()
+                .collect(Collectors.toMap(CouponCalculationResponse.ItemDiscount::bookId, CouponCalculationResponse.ItemDiscount::discountAmount));
+            orderItems.forEach(item -> {
+                int discount = itemDiscountMap.getOrDefault(item.getBookId(), 0);
+                item.setCouponDiscountAmount(discount);
+            });
         }
 
-        // 배송비 계산
-        int deliveryFee = determineDeliveryFee(totalPrice);
-
-        totalPrice += deliveryFee;
-
-        int pointUsage = order.getOrderDetails().pointUsage();
-
-        totalPrice -= pointUsage;
-
+        // 3. 최종 가격 계산
+        int pointUsage = currentOrderDetails.pointUsage();
+        int deliveryFee = determineDeliveryFee(originPrice - totalCouponDiscount);
+        int totalPrice = originPrice - totalCouponDiscount - pointUsage + deliveryFee;
         totalPrice = Math.max(0, totalPrice);
 
-        // 계산된 최종 값들을 Order 엔티티에 반영
+        // 4. 계산된 최종 값들을 Order 및 OrderDetails에 반영
+        OrderDetails finalOrderDetails = currentOrderDetails.withCouponDiscount(totalCouponDiscount);
+        order.updateOrderDetails(finalOrderDetails);
         order.completeOrder(originPrice, totalPrice, deliveryFee);
-
-        // 주문 상태를 '결제 대기'로 변경
         order.setOrderStatus(OrderStatus.PENDING);
 
+        // 5. 변경된 Order 저장 및 사가 브릿징
         orderRepository.save(order);
-
-        // 사가 - 도메인 연결
         saga.setBridged(true);
         orderCreateSagaRepository.save(saga);
     }
 
-    // 배송비 결정
-    private int determineDeliveryFee(int finalTotalPrice) {
+    private int determineDeliveryFee(int priceAfterCoupon) {
         DeliveryPolicy deliveryPolicy = deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()
                 .orElseThrow(() -> new PolicyNotConfiguredException("배송 정책이 설정되지 않음"));
-
-        return (finalTotalPrice >= deliveryPolicy.getDeliveryPolicyThreshold())
-                ? 0
-                : deliveryPolicy.getDeliveryPolicyFee();
+        return (priceAfterCoupon >= deliveryPolicy.getDeliveryPolicyThreshold()) ? 0 : deliveryPolicy.getDeliveryPolicyFee();
     }
 }

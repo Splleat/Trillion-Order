@@ -33,9 +33,9 @@ public class OrderCreateOrchestrator {
 
         Long memberId = order.getMemberId();
 
-        int pointUsage = order.getOrderDetails().pointUsage();
+        int pointUsage = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::pointUsage).orElse(0);
 
-        Long couponId = order.getOrderDetails().couponId();
+        Long couponId = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::couponId).orElse(null);
 
         // List<OrderItemCreateRequest> -> Map<bookId, quantity> 추출
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
@@ -94,9 +94,11 @@ public class OrderCreateOrchestrator {
         // 1. 사가의 상태를 COMPENSATE로 설정 (보상 트랜잭션 진행 중 서버 오류에도 다시 동작하기 위함)
         sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPENSATED);
 
-        int pointUsage = order.getOrderDetails().pointUsage();
+        int pointUsage = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::pointUsage).orElse(0);
+
         Long memberId = order.getMemberId();
-        Long couponId = order.getOrderDetails().couponId();
+
+        Long couponId = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::couponId).orElse(null);
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
