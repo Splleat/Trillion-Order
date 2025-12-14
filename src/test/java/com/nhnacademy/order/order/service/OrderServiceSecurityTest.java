@@ -1,7 +1,7 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.common.exception.AccessDeniedException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;

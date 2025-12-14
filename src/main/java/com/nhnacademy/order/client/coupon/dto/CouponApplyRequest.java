@@ -1,4 +1,4 @@
-package com.nhnacademy.order.client.dto;
+package com.nhnacademy.order.client.coupon.dto;
 
 public record CouponApplyRequest(
     Long memberId,

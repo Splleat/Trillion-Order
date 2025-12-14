@@ -4,8 +4,9 @@ package com.nhnacademy.order.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
+import com.nhnacademy.order.client.book.BookClient;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
@@ -55,8 +56,8 @@ class BookClientTest {
         // given
         List<Long> bookIds = List.of(1L, 2L);
         List<BookResponse> expectedResponse = List.of(
-                new BookResponse(1L, "Book 1", 10000, true, "testImage1"),
-                new BookResponse(2L, "Book 2", 20000, true , "testImage2")
+                new BookResponse(1L, "Book 1", 101L, 10000, true, "testImage1"),
+                new BookResponse(2L, "Book 2", 102L, 20000, true , "testImage2")
         );
 
         wireMockServer.stubFor(get(urlPathEqualTo("/api/order-books"))

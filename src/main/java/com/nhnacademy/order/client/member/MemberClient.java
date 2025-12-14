@@ -1,6 +1,6 @@
-package com.nhnacademy.order.client;
+package com.nhnacademy.order.client.member;
 
-import com.nhnacademy.order.client.dto.PointUsageRequest;
+import com.nhnacademy.order.client.member.dto.PointUsageRequest;
 import com.nhnacademy.order.common.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Profile;

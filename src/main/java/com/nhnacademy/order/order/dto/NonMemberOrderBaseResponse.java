@@ -28,6 +28,8 @@ public record NonMemberOrderBaseResponse(
             totalPrice, // 비회원은 originPrice = totalPrice임
             totalPrice,
             deliveryFee,
+            0,
+            0,
             ordererInfo,
             receiverInfo
         );

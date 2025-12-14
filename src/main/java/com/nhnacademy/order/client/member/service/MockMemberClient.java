@@ -1,7 +1,7 @@
-package com.nhnacademy.order.client.service.mock;
+package com.nhnacademy.order.client.member.service;
 
-import com.nhnacademy.order.client.MemberClient;
-import com.nhnacademy.order.client.dto.PointUsageRequest;
+import com.nhnacademy.order.client.member.MemberClient;
+import com.nhnacademy.order.client.member.dto.PointUsageRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

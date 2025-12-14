@@ -68,6 +68,8 @@ class OrderControllerImplTest {
                 50000,
                 48500,
                 2500,
+                0,
+                0, // totalCouponDiscount
                 ordererInfo,
                 receiverInfo,
                 Collections.emptyList()

@@ -19,6 +19,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookImage,
             oi.quantity,
             oi.price,
+            (oi.price * oi.quantity),
+            oi.couponDiscountAmount,
+            ((oi.price * oi.quantity) - oi.couponDiscountAmount),
             oi.packagingPrice,
             oi.orderItemStatus
         )
@@ -36,6 +39,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookImage,
             oi.quantity,
             oi.price,
+            (oi.price * oi.quantity),
+            oi.couponDiscountAmount,
+            ((oi.price * oi.quantity) - oi.couponDiscountAmount),
             oi.packagingPrice,
             oi.orderItemStatus
         )

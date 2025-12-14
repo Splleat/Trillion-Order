@@ -1,11 +1,12 @@
 package com.nhnacademy.order.ordersaga.cancellation.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
-import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
+import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderCancelFailureException;
 import com.nhnacademy.order.order.service.OrderCancelService;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,7 +40,8 @@ public class OrderCancelOrchestrator {
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
-        Long couponId = order.getOrderDetails().couponId();
+        // 사용된 쿠폰 목록을 OrderCoupon 엔티티에서 조회
+        List<OrderCoupon> usedCoupons = order.getOrderCoupons();
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
@@ -58,8 +61,10 @@ public class OrderCancelOrchestrator {
                 }
 
                 // 4. 쿠폰 API에 사용한 쿠폰 반환 요청
-                if (couponId != null) {
-                    couponService.withdrawCoupon(memberId, couponId);
+                if (!usedCoupons.isEmpty()) {
+                    usedCoupons.forEach(orderCoupon ->
+                        couponService.withdrawCoupon(memberId, orderCoupon.getCouponId())
+                    );
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
                 }
             }
@@ -95,7 +100,7 @@ public class OrderCancelOrchestrator {
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
-        Long couponId = order.getOrderDetails().couponId();
+        List<OrderCoupon> usedCoupons = order.getOrderCoupons();
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
@@ -119,8 +124,10 @@ public class OrderCancelOrchestrator {
                     currentStep = CancelSagaStep.POINT_REFUNDED;
                 }
 
-                if (couponId != null && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
-                    couponService.withdrawCoupon(memberId, couponId);
+                if (!usedCoupons.isEmpty() && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
+                    usedCoupons.forEach(orderCoupon ->
+                        couponService.withdrawCoupon(memberId, orderCoupon.getCouponId())
+                    );
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
 
                     currentStep = CancelSagaStep.COUPON_RESTORED;

@@ -67,6 +67,7 @@ class AdminPaymentControllerTest {
                 LocalDateTime.now().plusDays(3), // deliveryDate (배송일 더미)
                 0,                   // deliveryFee (배송비)
                 0,                   // pointUsage (포인트 사용)
+                0,                   // couponDiscountAmount
                 50000,               // originPrice (원가)
                 50000,               // totalPrice (최종가)
                 null                 // couponId (쿠폰 없으면 null)

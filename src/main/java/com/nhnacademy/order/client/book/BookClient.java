@@ -1,7 +1,7 @@
-package com.nhnacademy.order.client;
+package com.nhnacademy.order.client.book;
 
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
 import com.nhnacademy.order.common.config.FeignClientConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Profile;

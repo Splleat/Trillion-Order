@@ -1,9 +1,10 @@
-package com.nhnacademy.order.client.service;
+package com.nhnacademy.order.client.coupon.service;
 
-import com.nhnacademy.order.client.CouponClient;
-import com.nhnacademy.order.client.dto.CouponApplyRequest;
-import com.nhnacademy.order.client.dto.CouponGetDiscountAmountRequest;
-import com.nhnacademy.order.client.handler.ResilienceFallbackHandler;
+import com.nhnacademy.order.client.coupon.CouponClient;
+import com.nhnacademy.order.client.coupon.dto.CouponApplyRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
+import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
+import com.nhnacademy.order.client.common.handler.ResilienceFallbackHandler;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,8 @@ public class CouponService {
 
     @CircuitBreaker(name = "coupon-service", fallbackMethod = "fallbackCalculateDiscount")
     @Retry(name = "coupon-service")
-    public int calculateDiscount(Long couponId, int price) {
-        return couponClient.calculateDiscount(new CouponGetDiscountAmountRequest(couponId, price));
+    public CouponCalculationResponse calculateDiscount(CouponCalculationRequest request) {
+        return couponClient.calculateDiscount(request);
     }
 
     @CircuitBreaker(name = "coupon-service", fallbackMethod = "fallbackApplyCoupon")
@@ -34,7 +35,7 @@ public class CouponService {
         couponClient.withdrawCoupon(new CouponApplyRequest(memberId, couponId));
     }
 
-    public int fallbackCalculateDiscount(Long couponId, int price, Throwable throwable) {
+    public CouponCalculationResponse fallbackCalculateDiscount(CouponCalculationRequest request, Throwable throwable) {
         return fallbackHandler.handle(SERVICE_NAME, "쿠폰 할인가 계산", throwable);
     }
 

@@ -113,9 +113,6 @@ public enum OrderItemStatusUpdateStrategy {
 
             // 상태 변경
             orderItem.setOrderItemStatus(OrderItemStatus.CANCELED);
-
-            // 주문 전체 상태 업데이트
-            order.reflectItemStatusChange();
         }
     },
     CONFIRMED(OrderItemStatus.CONFIRMED, Role.USER) {

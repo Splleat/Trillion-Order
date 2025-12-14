@@ -1,8 +1,8 @@
 package com.nhnacademy.order.ordersaga.creation.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
-import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
+import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.service.OrderCompensateService;
@@ -55,7 +55,7 @@ class OrderCreateOrchestratorTest {
         // Given: An order and its items
         OrderDetails orderDetails = new OrderDetails(
                 LocalDateTime.now(), "12345", LocalDateTime.now().plusDays(3),
-                3000, 500, 10000, 12500, 1L);
+                3000, 500, 0, 10000, 12500, 1L);
 
         order = new Order();
         ReflectionTestUtils.setField(order, "orderId", 1L);

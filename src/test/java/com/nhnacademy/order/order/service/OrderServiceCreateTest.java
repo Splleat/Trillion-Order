@@ -1,6 +1,5 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.dto.BookResponse;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
@@ -140,7 +139,122 @@ class OrderServiceCreateTest {
         Order savedOrder = orderCaptor.getValue();
         assertThat(savedOrder.getOrderStatus()).isEqualTo(OrderStatus.CREATION_FAILED);
         
-        // 4. 성공 경로인 최종 처리 서비스는 호출되지 않아야 함
-        verify(orderFinalizerService, never()).finalizeOrderCreation(any(), any());
-    }
-}
+                // 4. 성공 경로인 최종 처리 서비스는 호출되지 않아야 함
+        
+                verify(orderFinalizerService, never()).finalizeOrderCreation(any(), any());
+        
+            }
+        
+        
+        
+            @Test
+        
+            @DisplayName("비회원 주문 생성 - 성공")
+        
+            void createOrder_NonMember_Success() {
+        
+                // given
+        
+                // 비회원(userInfo = null) 시나리오
+        
+                UserInfo nonMemberInfo = null;
+        
+        
+        
+                // 비회원용 요청 데이터 (쿠폰 ID와 포인트 사용 없음)
+        
+                OrderCreateRequest nonMemberRequest = new OrderCreateRequest(
+        
+                    "비회원", "010-0000-0000", LocalDateTime.now().plusDays(1),
+        
+                    "수령인", "010-1111-2222", "서울시 종로구", "54321",
+        
+                    "password123", 0, null, orderCreateRequest.orderItems() // nonMemberPassword 설정, pointUsage=0, couponId=null
+        
+                );
+        
+        
+        
+                // 비회원용 초기 Order 객체
+        
+                Order nonMemberInitialOrder = Order.createInitial(
+        
+                    null, // 비회원이므로 userId는 null
+        
+                    "encodedPassword", // nonMemberPassword는 인코딩됨
+        
+                    new OrdererInfo(nonMemberRequest.ordererName(), nonMemberRequest.ordererContact()),
+        
+                    new ReceiverInfo(nonMemberRequest.receiverName(), nonMemberRequest.receiverContact(), nonMemberRequest.receiverAddress()),
+        
+                    OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage(), nonMemberRequest.couponId())
+        
+                );
+        
+        
+        
+                // Mock 설정
+        
+                when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        
+                when(orderCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(nonMemberInitialOrder);
+        
+                doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
+        
+                doNothing().when(orderFinalizerService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
+        
+        
+        
+        
+        
+                // when
+        
+                OrderResponse orderResponse = orderServiceImpl.createOrder(nonMemberInfo, nonMemberRequest);
+        
+        
+        
+                // then
+        
+                // 1. 초기 주문 생성 시 userId가 null로, nonMemberPassword가 인코딩된 값으로 전달되었는지 검증
+        
+                verify(orderCreateService, times(1)).createInitialOrder(
+        
+                    isNull(),
+        
+                    eq("encodedPassword"),
+        
+                    any(OrdererInfo.class),
+        
+                    any(ReceiverInfo.class),
+        
+                    any(OrderDetails.class),
+        
+                    eq(nonMemberRequest.orderItems())
+        
+                );
+        
+        
+        
+                // 2. 사가 프로세스가 올바르게 호출되었는가?
+        
+                verify(orderCreateOrchestrator, times(1)).processCreateOrder(any(OrderCreateSaga.class), eq(nonMemberInitialOrder));
+        
+        
+        
+                // 3. 최종 처리 서비스가 올바르게 호출되었는가?
+        
+                verify(orderFinalizerService, times(1)).finalizeOrderCreation(eq(nonMemberInitialOrder), any(OrderCreateSaga.class));
+        
+        
+        
+                // 4. 응답이 정상적으로 생성되었는가?
+        
+                assertThat(orderResponse).isNotNull();
+        
+                assertThat(orderResponse.ordererInfo().ordererName()).isEqualTo("비회원");
+        
+            }
+        
+        }
+        
+        

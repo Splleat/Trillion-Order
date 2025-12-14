@@ -1,8 +1,8 @@
 package com.nhnacademy.order.ordersaga.itemrefund.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
-import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
+import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.common.aop.SagaIdContext;
 import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
@@ -54,8 +54,8 @@ public class OrderItemRefundOrchestrator {
         // 단순하게 API를 유지하기 위해서 단일 상품임에도 맵을 만들어서 사용
         Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
 
-        // 상품 가격 * 개수
-        int refundPoint = orderItem.getPrice() * orderItem.getQuantity();
+        // 상품 가격 * 개수 - 쿠폰 할인액
+        int refundAmount = (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount();
 
         // 배송비
         int deliveryFee = getDeliveryFee();
@@ -63,14 +63,12 @@ public class OrderItemRefundOrchestrator {
         // 환불 이유가 단순 변심인 경우
         if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND)) {
             // 반품 배송비를 포인트에서 차감한 후 지급
-            refundPoint = Math.max(0, refundPoint - deliveryFee);
+            refundAmount = Math.max(0, refundAmount - deliveryFee);
         }
 
         try {
-            // TODO: 쿠폰 조건(ex) 30,000원 이상 구매 시 10,000원 할인)이 깨진 경우 환불 포인트에서 차감 (단, 판매자 귀책인 경우 전액 환불)
-
             // 2. 멤버 API에 포인트 증가 요청
-            memberService.increasePoint(memberId, refundPoint);
+            memberService.increasePoint(memberId, refundAmount);
             sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
             // 3. 도서 API에 재고 증가 요청
@@ -99,21 +97,20 @@ public class OrderItemRefundOrchestrator {
 
         Long memberId = order.getMemberId();
 
-        int refundPoint = orderItem.getPrice() * orderItem.getQuantity();
+        // 상품 가격 * 개수 - 쿠폰 할인액
+        int refundAmount = (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount();
 
         int deliveryFee = getDeliveryFee();
 
         if (orderItem.getOrderItemStatus() == OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) {
-            refundPoint = Math.max(0, refundPoint - deliveryFee);
+            refundAmount = Math.max(0, refundAmount - deliveryFee);
         }
 
         ItemRefundSagaStep currentStep = saga.getLastCompletedStep();
 
         try {
-            // TODO: 쿠폰 조건이 깨진 경우 환불 포인트에서 차감 (단순 변심 환불인 경우에만)
-
             if (currentStep.ordinal() < ItemRefundSagaStep.POINT_REFUNDED.ordinal()) {
-                memberService.increasePoint(memberId, refundPoint);
+                memberService.increasePoint(memberId, refundAmount);
                 sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
                 currentStep = ItemRefundSagaStep.POINT_REFUNDED;
