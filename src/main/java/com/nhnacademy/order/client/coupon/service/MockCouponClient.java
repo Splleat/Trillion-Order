@@ -85,12 +85,15 @@ public class MockCouponClient implements CouponClient {
     @Override
     public void applyCoupon(CouponApplyRequest request) {
         log.info("MockCouponClient applyCoupon called with: {}", request);
-        // In a mock, we just log the action. No real state change.
     }
 
     @Override
     public void withdrawCoupon(CouponApplyRequest request) {
         log.info("MockCouponClient withdrawCoupon called with: {}", request);
-        // In a mock, we just log the action. No real state change.
+    }
+
+    @Override
+    public void rollbackCoupon(CouponApplyRequest request) {
+        log.info("MockCouponClient rollbackCoupon called with: {}", request);
     }
 }

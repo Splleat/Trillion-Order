@@ -20,4 +20,7 @@ public interface CouponClient {
 
     @PostMapping("/coupon/3")
     void withdrawCoupon(@RequestBody CouponApplyRequest request);
+
+    @PostMapping("/coupon/4")
+    void rollbackCoupon(@RequestBody CouponApplyRequest request);
 }
