@@ -7,7 +7,7 @@ import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
-import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
 import com.nhnacademy.payment.entity.Payment;
 import com.nhnacademy.payment.exception.*;
 import com.nhnacademy.payment.service.PaymentService;
@@ -47,7 +47,7 @@ class PaymentFlowServiceTest {
     private PaymentRequestDto request;
     private Order order;
     private OrderDetails orderDetails;
-    private TossPaymentResponseDto response;
+    private PaymentApiResponse response;
 
     @BeforeEach
     void setup() {
@@ -61,7 +61,7 @@ class PaymentFlowServiceTest {
         lenient().when(orderDetails.totalPrice()).thenReturn(50000);
         ReflectionTestUtils.setField(order, "orderDetails", orderDetails);
 
-        response = new TossPaymentResponseDto();
+        response = new PaymentApiResponse();
         ReflectionTestUtils.setField(response, "paymentKey", "test_paymentKey");
         ReflectionTestUtils.setField(response, "status", "DONE");
         ReflectionTestUtils.setField(response, "totalAmount", 50000);
@@ -186,7 +186,7 @@ class PaymentFlowServiceTest {
 
         given(paymentService.getPaymentByOrderNumber(request.orderNumber())).willReturn(payment);
 
-        TossPaymentResponseDto cancelResponse = new TossPaymentResponseDto();
+        PaymentApiResponse cancelResponse = new PaymentApiResponse();
         ReflectionTestUtils.setField(cancelResponse, "status", "CANCELED");
 
         given(tossPaymentClient.cancel(paymentKey, cancelReason, cancelAmount)).willReturn(cancelResponse);
@@ -218,7 +218,7 @@ class PaymentFlowServiceTest {
 
         given(paymentService.getPaymentByOrderNumber(request.orderNumber())).willReturn(payment);
 
-        TossPaymentResponseDto cancelResponse = new TossPaymentResponseDto();
+        PaymentApiResponse cancelResponse = new PaymentApiResponse();
         ReflectionTestUtils.setField(cancelResponse, "status", "CANCELED");
 
         given(tossPaymentClient.cancel(paymentKey, cancelReason, balance)).willReturn(cancelResponse);
@@ -286,7 +286,7 @@ class PaymentFlowServiceTest {
         given(paymentService.getPaymentByOrderNumber(request.orderNumber())).willReturn(payment);
 
         // 토스 응답이 CANCELED가 아님
-        TossPaymentResponseDto failResponse = new TossPaymentResponseDto();
+        PaymentApiResponse failResponse = new PaymentApiResponse();
         ReflectionTestUtils.setField(failResponse, "status", "FAILED");
 
         given(tossPaymentClient.cancel(paymentKey, cancelReason, amount)).willReturn(failResponse);

@@ -13,6 +13,7 @@ public record PaymentResponse (
         String status, //결제 상태
         LocalDateTime requestedAt, //요청 날짜
         LocalDateTime approvedAt, //승인 날짜
+        String provider,
         String receiptUrl
 ){
     public static PaymentResponse from(Payment payment) {
@@ -22,6 +23,7 @@ public record PaymentResponse (
                 .status(payment.getPaymentStatus().toString())
                 .requestedAt(payment.getPaymentRequestAt())
                 .approvedAt(payment.getPaymentApprovedAt())
+                .provider(payment.getProvider().toString())
                 .receiptUrl(payment .getPaymentReceipt())
                 .build();
     }

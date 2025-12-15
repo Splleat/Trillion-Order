@@ -80,7 +80,6 @@ class AdminPaymentControllerTest {
                 .paymentStatus(PaymentStatus.DONE)
                 .order(order)
                 .totalAmount(50000)
-                .balanceAmount(50000)
                 .paymentRequestAt(LocalDateTime.now())
                 .paymentApprovedAt(LocalDateTime.now())
                 .build();

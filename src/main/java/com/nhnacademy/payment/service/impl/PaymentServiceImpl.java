@@ -3,8 +3,9 @@ package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
 import com.nhnacademy.payment.entity.Payment;
+import com.nhnacademy.payment.entity.PaymentProvider;
 import com.nhnacademy.payment.entity.PaymentStatus;
 import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
@@ -30,17 +31,20 @@ public class PaymentServiceImpl implements PaymentService {
     //DB에 담는 시점에서만 Transactional 호출하면 됨.
     @Override
     @Transactional
-    public Payment savePayment(TossPaymentResponseDto response, Order order) {
+    public Payment savePayment(PaymentApiResponse response, Order order) {
 
         Payment savePayment = Payment.builder()
-                .paymentKey(response.getPaymentKey())
+                .paymentKey(response.paymentKey())
                 .paymentStatus(PaymentStatus.DONE)
-                .paymentRequestAt(LocalDateTime.parse(response.getRequestedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-                .paymentApprovedAt(LocalDateTime.parse(response.getApprovedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-                .paymentReceipt(response.getReceipt().getUrl())
+                .paymentRequestAt(LocalDateTime.parse(response.requestedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .paymentApprovedAt(LocalDateTime.parse(response.approvedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .paymentReceipt(response.receiptUrl())
                 .order(order)
-                .totalAmount(response.getTotalAmount()) //결제 승인당시 최종 금액 -> 불변
+                .totalAmount(response.totalAmount())
+                .provider(PaymentProvider.valueOf(response.provider()))
                 .build();
+
+        paymentRepository.save(savePayment);
 
         paymentRepository.save(savePayment);
         savePayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.COMPLETED);

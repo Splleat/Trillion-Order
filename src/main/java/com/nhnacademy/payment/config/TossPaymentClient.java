@@ -1,12 +1,13 @@
 package com.nhnacademy.payment.config;
 
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
+import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.servlet.View;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -15,15 +16,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
-public class TossPaymentClient {
+public class TossPaymentClient implements PaymentGateway{
     private final WebClient tossWebClient;
-    private final View error;
+
+    public TossPaymentClient(WebClient paymentWebClient){
+        this.tossWebClient = paymentWebClient.mutate()
+                .baseUrl("https://api.tosspayments.com/v1")
+                .build();
+    }
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;
 
-    public TossPaymentResponseDto confirm(String paymentKey, String orderNumber, Integer amount){
+
+    @Override
+    public boolean supports(String providerName) {
+        return "TOSS".equalsIgnoreCase(providerName);
+    }
+
+    @Override
+    public PaymentApiResponse confirm(String paymentKey, String orderNumber, Integer amount){
         return tossWebClient.post()
                 .uri("/payments/confirm")
                 .header(HttpHeaders.AUTHORIZATION,getBasicAuthHeader())
@@ -38,11 +50,22 @@ public class TossPaymentClient {
                         status.isError(), response -> response.bodyToMono(String.class)
                         .flatMap(error -> Mono.error(new RuntimeException("TossAPI 오류 " + error)))
                 ).bodyToMono(TossPaymentResponseDto.class)
+                .map(toss -> PaymentApiResponse.builder()
+                        .paymentKey(toss.getPaymentKey())
+                        .orderId(toss.getOrderId())
+                        .totalAmount(toss.getTotalAmount())
+                        .status(toss.getStatus())
+                        .requestedAt(toss.getRequestedAt())
+                        .approvedAt(toss.getApprovedAt())
+                        .receiptUrl(toss.getReceipt().getUrl())
+                        .provider("TOSS")
+                        .build())
                 .block();//동기
     }
 
     //toss-api 기준 넘겨주는 금액이 null 이면 결제 전체 취소 처리임, 그러나 금액을 넘겨주먄 부분 취소 처리로 함.
-    public TossPaymentResponseDto cancel(String paymentKey, String cancelReason, Integer cancelAmount){
+    @Override
+    public PaymentApiResponse cancel(String paymentKey, String cancelReason, Integer cancelAmount){
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("cancelReason", cancelReason);
 
@@ -61,6 +84,25 @@ public class TossPaymentClient {
                                 .flatMap(error -> Mono.error(new RuntimeException("Toss 결제 취소 오류 " + error)))
                 )
                 .bodyToMono(TossPaymentResponseDto.class)
+                .map(toss ->{
+                    int actualCancelAmount = 0;
+                    if(toss.getCancels() != null && !toss.getCancels().isEmpty()){
+                        actualCancelAmount = toss.getCancels()
+                                .get(toss.getCancels().size() - 1)
+                                .getCancelAmount();
+                    }
+
+                    return PaymentApiResponse.builder()
+                            .paymentKey(toss.getPaymentKey())
+                            .orderId(toss.getOrderId())
+                            .status(toss.getStatus())
+                            .totalAmount(actualCancelAmount)
+                            .receiptUrl(toss.getReceipt().getUrl())
+                            .provider("TOSS")
+                            .approvedAt(toss.getApprovedAt())
+                            .build();
+
+                })
                 .block();
     }
 

@@ -2,41 +2,42 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <title>관리자 결제 취소 테스트</title>
+  <title>단건 취소 테스트</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { padding-top: 50px; background-color: #f0f2f5; } /* 관리자 느낌 배경색 변경 */
+    body { padding-top: 50px; background-color: #f0f2f5; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="card shadow mx-auto" style="max-width: 500px;">
-    <div class="card-header bg-dark text-white text-center"> <h4 class="mb-0">관리자 결제 취소 (Admin)</h4>
+    <div class="card-header bg-dark text-white text-center">
+      <h4 class="mb-0">관리자 취소 테스트 (Dev)</h4>
     </div>
     <div class="card-body p-4">
-      <div class="alert alert-info py-2" style="font-size: 0.9rem;">
-        ※ 관리자 권한으로 결제를 강제 취소합니다.<br>
-        (배송 상태 등은 서비스 로직에서 검증됩니다)
+      <div class="alert alert-warning py-2" style="font-size: 0.85rem;">
+        ※ 테스트용 UUID가 기본 입력되어 있습니다.<br>
+        (결제 완료된 건에 대해서만 동작합니다)
       </div>
 
       <div class="mb-3">
-        <label for="orderNumber" class="form-label fw-bold">주문 번호</label>
-        <input type="text" class="form-control" id="orderNumber" placeholder="예: ORD-SAMPLE-001" value="ORD-SAMPLE-002" required>
+        <label for="orderNumber" class="form-label fw-bold">주문 번호 (UUID)</label>
+        <input type="text" class="form-control" id="orderNumber"
+               value="ORD-9412604f-9add-4901-bda2-a5630d1a0b7f" required>
       </div>
 
       <div class="mb-3">
         <label for="cancelReason" class="form-label fw-bold">취소 사유</label>
-        <input type="text" class="form-control" id="cancelReason" value="관리자 직권 취소" required>
+        <input type="text" class="form-control" id="cancelReason" value="단순 변심 테스트" required>
       </div>
 
       <div class="mb-4">
         <label for="cancelAmount" class="form-label fw-bold">취소할 금액 (부분 취소)</label>
         <input type="number" class="form-control" id="cancelAmount" placeholder="비워두면 전액 취소">
-        <div class="form-text text-danger">※ 입력 시 해당 금액만 부분 취소됩니다.</div>
       </div>
 
-      <button id="btn-cancel" class="btn btn-dark w-100 py-2 fw-bold">취소 승인 (Admin)</button>
+      <button id="btn-cancel" class="btn btn-dark w-100 py-2 fw-bold">취소 요청 전송</button>
 
       <div id="result-area" class="mt-3 alert d-none text-break"></div>
     </div>
@@ -64,14 +65,10 @@
     btn.innerText = "처리 중...";
 
     try {
-      // [핵심 수정] AdminPaymentController 경로와 일치시킴
-      // Controller: @RequestMapping("/api/admin/payments") + @PostMapping("/cancel")
+      // API 호출
       const response = await fetch('/api/admin/payment/cancel', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 추후 인증 토큰 필요 시 여기에 추가: 'Authorization': 'Bearer ...'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderNumber: orderNumber,
           cancelReason: cancelReason,
@@ -84,14 +81,14 @@
 
       if (response.ok) {
         resultArea.classList.add("alert-success");
-        resultArea.innerHTML = `<strong>✅ 취소 완료</strong><br>${text}`;
+        resultArea.innerHTML = `<strong>✅ 성공!</strong><br>취소가 정상 처리되었습니다.`;
       } else {
         resultArea.classList.add("alert-danger");
         try {
-          const jsonErr = JSON.parse(text);
-          resultArea.innerHTML = `<strong>❌ 오류 발생</strong><br>${jsonErr.message || JSON.stringify(jsonErr)}`;
-        } catch (e) {
-          resultArea.innerHTML = `<strong>❌ 오류 발생</strong><br>${text}`;
+          const json = JSON.parse(text);
+          resultArea.innerHTML = `<strong>❌ 실패:</strong> ${json.message || "알 수 없는 오류"}`;
+        } catch(e) {
+          resultArea.innerHTML = `<strong>❌ 실패:</strong> ${text}`;
         }
       }
 
@@ -99,10 +96,10 @@
       console.error("Error:", error);
       resultArea.classList.remove("d-none");
       resultArea.classList.add("alert-warning");
-      resultArea.innerText = "서버 통신 실패 (콘솔 확인)";
+      resultArea.innerText = "서버 통신 실패";
     } finally {
       btn.disabled = false;
-      btn.innerText = "취소 승인 (Admin)";
+      btn.innerText = "취소 요청 전송";
     }
   });
 </script>
