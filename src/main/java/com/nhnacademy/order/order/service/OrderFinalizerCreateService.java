@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class OrderFinalizerCreateService {
         }
 
         Long memberId = order.getMemberId();
-        List<OrderItem> orderItems = order.getOrderItems();
+        Set<OrderItem> orderItems = order.getOrderItems();
         List<Long> bookIds = orderItems.stream().map(OrderItem::getBookId).toList();
         Map<Long, BookResponse> bookResponseMap = bookService.getBookInfos(bookIds);
 

@@ -49,7 +49,7 @@ class PackagingControllerImplTest {
         given(packagingService.getAllPackaging()).willReturn(responses);
 
         // when & then
-        mockMvc.perform(get("/api/orders/packaging"))
+        mockMvc.perform(get("/orders/packaging"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].packagingType").value("선물포장"))
                 .andExpect(jsonPath("$[1].packagingType").value("일반포장"));
@@ -63,7 +63,7 @@ class PackagingControllerImplTest {
         doNothing().when(packagingService).updatePackaging(any(), anyLong(), any());
 
         // when & then
-        mockMvc.perform(put("/api/orders/packaging/1")
+        mockMvc.perform(put("/orders/packaging/1")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -79,7 +79,7 @@ class PackagingControllerImplTest {
         doThrow(new PackagingNotFoundException("존재하지 않는 포장 정책: 1")).when(packagingService).updatePackaging(any(), anyLong(), any());
 
         // when & then
-        mockMvc.perform(put("/api/orders/packaging/1")
+        mockMvc.perform(put("/orders/packaging/1")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,7 +94,7 @@ class PackagingControllerImplTest {
         doNothing().when(packagingService).deletePackaging(any(), anyLong());
 
         // when & then
-        mockMvc.perform(delete("/api/orders/packaging/1")
+        mockMvc.perform(delete("/orders/packaging/1")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN"))
                 .andExpect(status().isNoContent());
@@ -107,7 +107,7 @@ class PackagingControllerImplTest {
         doThrow(new PackagingNotFoundException("존재하지 않는 포장 정책: 1")).when(packagingService).deletePackaging(any(), anyLong());
 
         // when & then
-        mockMvc.perform(delete("/api/orders/packaging/1")
+        mockMvc.perform(delete("/orders/packaging/1")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN"))
                 .andExpect(status().isNotFound());

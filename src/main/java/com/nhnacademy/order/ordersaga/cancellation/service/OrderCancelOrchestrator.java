@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ public class OrderCancelOrchestrator {
         int pointUsage = order.getOrderDetails().pointUsage();
 
         // 사용된 쿠폰 목록을 OrderCoupon 엔티티에서 조회
-        List<OrderCoupon> usedCoupons = order.getOrderCoupons();
+        Set<OrderCoupon> usedCoupons = order.getOrderCoupons();
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
@@ -84,6 +85,8 @@ public class OrderCancelOrchestrator {
             // 주문 취소나 환불은 고객이 결정한 시점에서 반드시 달성되어야 하는 요청 -> 보상 로직 필요 없음!
             // 재시도나 수동 개입을 통해 반드시 달성시켜야 함
             // 스케줄러를 사용해 재시도하거나, 배치 서버를 사용해 상태가 FAILED인 사가를 재시작
+            log.error("주문 전체 취소 실패: {}, 주문 ID: {}", saga.getSagaId(), order.getOrderId(), e);
+
             throw new OrderCancelFailureException("주문 전체 취소 실패: " + order.getOrderId());
         }
     }
@@ -100,7 +103,7 @@ public class OrderCancelOrchestrator {
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
-        List<OrderCoupon> usedCoupons = order.getOrderCoupons();
+        Set<OrderCoupon> usedCoupons = order.getOrderCoupons();
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
@@ -144,6 +147,7 @@ public class OrderCancelOrchestrator {
             orderCancelService.cancelOrder(order, saga);
         } catch (Exception e) {
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.FAILED);
+
             log.error("주문 취소 사가 재시도 실패: {}", sagaId, e);
         }
     }

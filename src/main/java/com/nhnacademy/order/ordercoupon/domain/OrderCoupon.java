@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class OrderCoupon extends BaseTimeEntity {
+public class OrderCoupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_coupon_id")
@@ -34,6 +34,6 @@ public class OrderCoupon extends BaseTimeEntity {
     private CouponType couponType;
 
     @Column(name = "target_id")
-    private Long targetId; // 카테고리 ID 또는 도서 ID, 장바구니 쿠폰일 경우 null
+    private Long targetId; // 도서 ID, 장바구니 쿠폰일 경우 null
 
 }

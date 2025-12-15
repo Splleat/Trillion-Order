@@ -23,11 +23,13 @@
         const container = document.getElementById('orders-container');
         container.innerHTML = '<div class="text-center">데이터를 불러오는 중...</div>';
 
-        fetch('/api/orders/admin?page=0&size=20&sort=orderDetails.orderDate,desc', {
+        // 'sort' 파라미터를 엔티티의 실제 경로인 'orderDetails.orderDate'로 수정합니다.
+        fetch('/orders/admin?page=0&size=20&sort=orderDetails.orderDate,desc', {
             headers: {
                 'X-USER-ID': '1',
                 'X-USER-ROLE': 'ADMIN'
-            }
+            },
+            cache: 'no-cache' // 브라우저 캐시를 비활성화하여 항상 최신 데이터를 받아옵니다.
         })
             .then(response => {
                 if (!response.ok) {
@@ -57,14 +59,16 @@
                                 <div class="card-body">
                                     <h6 class="card-title">주문 상품 #${item.orderItemId}</h6>
                                     <dl class="row mb-0">
-                                        <dt class="col-sm-4">책 ID</dt><dd class="col-sm-8">${item.bookId}</dd>
-                                        <dt class="col-sm-4">책 이름</dt><dd class="col-sm-8">${item.bookName}</dd>
-                                        <dt class="col-sm-4">이미지</dt><dd class="col-sm-8"><a href="${item.bookImage}" target="_blank">링크</a></dd>
-                                        <dt class="col-sm-4">수량</dt><dd class="col-sm-8">${item.quantity}개</dd>
-                                        <dt class="col-sm-4">개당 가격</dt><dd class="col-sm-8">${item.price.toLocaleString('ko-KR')}원</dd>
-                                        <dt class="col-sm-4">포장비</dt><dd class="col-sm-8">${item.packagingPrice.toLocaleString('ko-KR')}원</dd>
-                                        <dt class="col-sm-4">쿠폰 할인액</dt><dd class="col-sm-8">${item.couponDiscountAmount.toLocaleString('ko-KR')}원</dd>
-                                        <dt class="col-sm-4">상태</dt><dd class="col-sm-8"><span class="badge bg-info">${item.orderItemStatus}</span></dd>
+                                        <dt class="col-sm-5">책 ID</dt><dd class="col-sm-7">${item.bookId}</dd>
+                                        <dt class="col-sm-5">책 이름</dt><dd class="col-sm-7">${item.bookName}</dd>
+                                        <dt class="col-sm-5">이미지</dt><dd class="col-sm-7"><a href="${item.bookImage}" target="_blank">링크</a></dd>
+                                        <dt class="col-sm-5">수량</dt><dd class="col-sm-7">${item.quantity}개</dd>
+                                        <dt class="col-sm-5">단가</dt><dd class="col-sm-7">${item.unitPrice.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">상품 총액(할인 전)</dt><dd class="col-sm-7">${item.totalItemOriginalPrice.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">상품 할인액</dt><dd class="col-sm-7">${item.itemDiscountAmount.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">최종 상품가(할인 후)</dt><dd class="col-sm-7"><strong>${item.totalItemSalePrice.toLocaleString('ko-KR')}원</strong></dd>
+                                        <dt class="col-sm-5">포장비</dt><dd class="col-sm-7">${item.packagingPrice.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">상태</dt><dd class="col-sm-7"><span class="badge bg-info">${item.orderItemStatus}</span></dd>
                                     </dl>
                                 </div>
                             </div>
@@ -85,6 +89,7 @@
                                         <dt class="col-sm-5">회원 ID</dt><dd class="col-sm-7">${order.memberId || '비회원'}</dd>
                                         <dt class="col-sm-5">상품 총액</dt><dd class="col-sm-7">${order.originPrice.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-5">배송비</dt><dd class="col-sm-7">${order.deliveryFee.toLocaleString('ko-KR')}원</dd>
+                                        <dt class="col-sm-5">총 쿠폰 할인액</dt><dd class="col-sm-7">${order.totalCouponDiscount.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-5">포인트 사용량</dt><dd class="col-sm-7">${order.pointUsage.toLocaleString('ko-KR')}원</dd>
                                         <dt class="col-sm-5">총 결제액</dt><dd class="col-sm-7"><strong>${order.totalPrice.toLocaleString('ko-KR')}원</strong></dd>
                                     </dl>
