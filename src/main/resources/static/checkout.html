@@ -2,16 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="utf-8" />
-    <title>주문서 - NHN Books (Sample Data)</title>
+    <title>주문/결제 - NHN Books</title>
     <script src="https://js.tosspayments.com/v1/payment"></script>
     <style>
-        /* 기존 스타일 유지 */
         body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; padding-top: 50px; }
         .wrapper { width: 600px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         h1 { font-size: 24px; margin-bottom: 30px; color: #333; }
         .input-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #f0f0f0; color: #333; }
         .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
         .method-btn { padding: 15px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: #555; transition: all 0.2s; }
         .method-btn:hover { background-color: #f5f5f5; }
@@ -23,21 +22,32 @@
 </head>
 <body>
 <div class="wrapper">
-    <h1>주문 / 결제 (DB 연동 테스트)</h1>
+    <h1>주문 / 결제</h1>
+
     <div class="info-box">
-        <strong>[DB 데이터 매핑 확인]</strong><br/>
-        주문번호: ORD-SAMPLE-001 (필수)<br/>
-        결제금액: 56,000원 (필수)<br/>
-        주문자: 테스트 주문자
+        <strong>[전략 패턴 테스트]</strong><br/>
+        결제 완료 시 URL에 <code>provider=TOSS</code>가 자동으로 붙어<br/>
+        백엔드 라우팅 서비스가 동작하게 됩니다.
+    </div>
+
+    <div class="input-group">
+        <label>주문번호 (UUID)</label>
+        <input type="text" id="orderId" placeholder="주문 번호를 입력하거나 URL로 전달하세요" />
+    </div>
+
+    <div class="input-group">
+        <label>결제금액</label>
+        <input type="text" id="amount" placeholder="금액" />
     </div>
 
     <div class="input-group">
         <label>주문자명</label>
-        <input type="text" id="ordererName" value="테스트 주문자" readonly />
+        <input type="text" id="ordererName" value="테스트 주문자" />
     </div>
+
     <div class="input-group">
-        <label>연락처</label>
-        <input type="text" id="ordererContact" value="010-1234-5678" readonly />
+        <label>주문명</label>
+        <input type="text" id="orderName" value="테스트 도서 외 1건" />
     </div>
 
     <label>결제 수단 선택</label>
@@ -45,57 +55,70 @@
         <button class="method-btn selected" onclick="selectMethod('카드')">카드</button>
         <button class="method-btn" onclick="selectMethod('계좌이체')">계좌이체</button>
         <button class="method-btn" onclick="selectMethod('가상계좌')">가상계좌</button>
-        <button class="method-btn" onclick="selectMethod('휴대폰')">휴대폰</button>
-        <button class="method-btn" onclick="selectMethod('문화상품권')">문화상품권</button>
-        <button class="method-btn" onclick="selectMethod('해외간편결제')">해외결제</button>
     </div>
 
     <button class="submit-btn" id="payment-button" onclick="processPayment()">
-        56,000원 결제하기
+        결제하기
     </button>
 </div>
 
 <script>
-    // 테스트용 클라이언트 키 (변경 필요 시 수정)
     const clientKey = "test_ck_vZnjEJeQVxnQWGOa5XOq8PmOoBN0";
     const tossPayments = TossPayments(clientKey);
     let selectedMethod = '카드';
 
+    // URL 파라미터 파싱하여 input 채우기
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('orderNumber')) document.getElementById('orderId').value = params.get('orderNumber');
+        if (params.get('amount')) document.getElementById('amount').value = params.get('amount');
+        if (params.get('orderName')) document.getElementById('orderName').value = params.get('orderName');
+        if (params.get('customerName')) document.getElementById('ordererName').value = params.get('customerName');
+        updateButtonText();
+    });
+
+    document.getElementById('amount').addEventListener('input', updateButtonText);
+
+    function updateButtonText() {
+        const amt = document.getElementById('amount').value;
+        const btn = document.getElementById('payment-button');
+        btn.innerText = amt ? Number(amt).toLocaleString() + "원 결제하기" : "결제하기";
+    }
+
     function selectMethod(method) {
         selectedMethod = method;
-        const buttons = document.querySelectorAll('.method-btn');
-        buttons.forEach(btn => {
-            btn.classList.remove('selected');
-            if (btn.innerText === method || (method === '해외간편결제' && btn.innerText === '해외결제')) {
-                btn.classList.add('selected');
-            }
+        document.querySelectorAll('.method-btn').forEach(btn => {
+            btn.classList.toggle('selected', btn.innerText === method);
         });
     }
 
     async function processPayment() {
         const button = document.getElementById("payment-button");
+        const orderIdVal = document.getElementById("orderId").value;
+        const amountVal = document.getElementById("amount").value;
+        const orderNameVal = document.getElementById("orderName").value;
+        const customerNameVal = document.getElementById("ordererName").value;
+
+        if (!orderIdVal || !amountVal) {
+            alert("주문번호와 금액은 필수입니다.");
+            return;
+        }
+
         button.disabled = true;
 
         try {
-            // [중요] DB에 저장된 주문 정보와 정확히 일치해야 합니다.
-            const dbOrderNumber = "ORD-SAMPLE-008";
-            const dbAmount = 56000;
-            const dbOrderName = "테스트 도서 1 외 1건";
-            const dbCustomerName = document.getElementById("ordererName").value;
-
-            // 현재 페이지의 URL 기반으로 success URL 설정 (포트 자동 감지)
             const currentOrigin = window.location.origin;
 
-            // 주의: 만약 Spring Boot 정적 리소스라면 "/success.html", View Controller라면 "/success"
-            const successUrl = currentOrigin + "/success.html";
-            const failUrl = currentOrigin + "/fail.html";
+            // [전략 패턴 핵심] provider=TOSS 파라미터를 successUrl에 추가합니다.
+            // 나중에 카카오페이라면 provider=KAKAO로 보내면 됩니다.
+            const successUrl = `${currentOrigin}/success.html?provider=TOSS`;
+            const failUrl = `${currentOrigin}/fail.html`;
 
             await tossPayments.requestPayment(selectedMethod, {
-                amount: dbAmount,
-                orderId: dbOrderNumber,
-                orderName: dbOrderName,
-                customerName: dbCustomerName,
-                customerEmail: "test@example.com",
+                amount: Number(amountVal),
+                orderId: orderIdVal,
+                orderName: orderNameVal,
+                customerName: customerNameVal,
                 successUrl: successUrl,
                 failUrl: failUrl,
             });

@@ -4,9 +4,10 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.payment.config.PaymentGateway;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
-import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
 import com.nhnacademy.payment.entity.Payment;
 import com.nhnacademy.payment.exception.*;
 import com.nhnacademy.payment.service.PaymentService;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PaymentFlowService {
     private final PaymentService paymentService;
-    private final TossPaymentClient tossPaymentClient;
+    private final PaymentGatewayRoutingService routingService;
     private final OrderRepository orderRepository;
 
 
@@ -42,7 +43,10 @@ public class PaymentFlowService {
             throw new PaymentAlreadyApprovedException(request.orderNumber());
         }
 
-            TossPaymentResponseDto response = tossPaymentClient.confirm(
+        //front->confirm 요청을 보내면 -> 맞는 처리가 가능한 PG사 호출.
+        PaymentGateway gateway = routingService.getGateway(request.provider());
+
+            PaymentApiResponse response = gateway.confirm(
                     request.paymentKey(),
                     request.orderNumber(),
                     request.amount()
@@ -55,7 +59,7 @@ public class PaymentFlowService {
             log.error("결제 정보 저장 중 오류 발생 결제 취소 : {} ", request.orderNumber());
 
             //pg사에서는 다시 돈을 돌려주고
-            tossPaymentClient.cancel(request.paymentKey(), "서버 데이터베이스 저장 오류",response.getTotalAmount());
+            gateway.cancel(request.paymentKey(), "서버 데이터베이스 저장 오류",response.totalAmount());
 
             //주문이 정상적으로 처리되지 않았으니 CANCELED로 롤백
             order.setOrderStatus(OrderStatus.CANCELED);
@@ -82,18 +86,20 @@ public class PaymentFlowService {
         //약간의 방어로직같은 느낌이긴 함 -> 만약 취소 금액이 null 이면 -> 전체 취소를 아니면 넘겨 받은 취소 금액을
         int amountToCancel = (cancelAmount == null) ? payment.getBalanceAmount() : cancelAmount;
 
-        TossPaymentResponseDto response = tossPaymentClient.cancel(
+        PaymentGateway gateway = routingService.getGateway(payment.getProvider().toString());
+
+        PaymentApiResponse response = gateway.cancel(
                 payment.getPaymentKey(),
                 cancelReason,
                 amountToCancel
                 );
 
-        if (isCancelSuccess(response.getStatus())) {
+        if (isCancelSuccess(response.status())) {
             // 검증 통과 시에만 DB 상태 변경
             paymentService.updatePaymentCanceledStatus(payment, amountToCancel);
         } else {
             // (선택) 로그 남기기: 토스에서 에러는 안 냈지만 상태가 이상함
-            log.warn("토스 취소 요청은 성공했으나 상태가 예상과 다름: {}", response.getStatus());
+            log.warn("결제 취소 요청은 성공했으나 상태가 예상과 다름: {}", response.status());
         }
     }
 

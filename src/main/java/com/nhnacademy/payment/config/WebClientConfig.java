@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebClientConfig {
         @Bean
-        public WebClient tossWebClient() {
+        public WebClient paymentWebClient() {
             HttpClient httpClient = HttpClient.create()
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000) //5초 안에 연결 실패시 에러
                     .responseTimeout(Duration.ofSeconds(10))//연결을 됐는데 10초안에 응답 없을시 에러
@@ -27,7 +27,6 @@ public class WebClientConfig {
                                     .addHandlerLast(new WriteTimeoutHandler(10, TimeUnit.SECONDS)));//우리 쪽 서버에서 문제가 생긴 경우 10초 동안 전송이 안되면 끊어버림
 
             return WebClient.builder()
-                    .baseUrl("https://api.tosspayments.com/v1")
                     .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .clientConnector(new ReactorClientHttpConnector(httpClient))
                     .build();

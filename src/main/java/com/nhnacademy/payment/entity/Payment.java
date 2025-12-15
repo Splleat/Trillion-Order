@@ -24,37 +24,48 @@ public class Payment {
     @Column(name = "payment_id")
     private Long paymentId;
 
-    @Column(name = "payment_key")
+    @Column(name = "payment_key",nullable = false)
+    @NotNull
     private String paymentKey;
 
-    @Column(name = "payment_status")
+    @Column(name = "payment_status",nullable = false)
     @NotNull
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
-    @Column(name = "payment_requested_at")
+    @Column(name = "payment_requested_at",nullable = false)
+    @NotNull
     private LocalDateTime paymentRequestAt;//결제 요청일
 
     @Column(name = "payment_approved_at")
     private LocalDateTime paymentApprovedAt; // 결제 승인일
 
-    @Column(name = "payment_receipt")
+    @Column(name = "payment_receipt",nullable = false)
+    @NotNull
     private String paymentReceipt;
 
-    @Column(name = "total_amount") // 결제 당시 최종 가격 -> 얘는 불변
+    @Column(name = "total_amount",nullable = false) // 결제 당시 최종 가격 -> 얘는 불변
+    @NotNull
     private Integer totalAmount;
 
-    @Column(name =  "balance_amount") //취소 가능 잔액일듯 --> 부분 취소 마다 줄어듦
+    @Column(name =  "balance_amount",nullable = false) //취소 가능 잔액일듯 --> 부분 취소 마다 줄어듦
+    @NotNull
     private Integer balanceAmount;
+
+    @Column(name = "provider", nullable = false)
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private PaymentProvider provider;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @NotNull
     private Order order;
 
     @Builder
     public Payment(String paymentKey, PaymentStatus paymentStatus, LocalDateTime paymentRequestAt,
-                   LocalDateTime paymentApprovedAt, String paymentReceipt, Order order, Integer totalAmount, Integer balanceAmount) {
+                   LocalDateTime paymentApprovedAt, String paymentReceipt, Order order, Integer totalAmount,PaymentProvider provider) {
         this.paymentKey = paymentKey;
         this.paymentStatus = paymentStatus;
         this.paymentRequestAt = paymentRequestAt;
@@ -63,6 +74,7 @@ public class Payment {
         this.order = order;
         this.totalAmount = totalAmount;
         this.balanceAmount = totalAmount;
+        this.provider = provider;
     }
 
     //결제 취소 메서드

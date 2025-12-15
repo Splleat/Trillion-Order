@@ -4,7 +4,7 @@ import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
 import com.nhnacademy.payment.entity.Payment;
 import com.nhnacademy.payment.entity.PaymentStatus;
 import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
@@ -46,7 +46,7 @@ class PaymentServiceImplTest {
 
     private Order order;
 
-    private TossPaymentResponseDto response;
+    private PaymentApiResponse response;
 
     @BeforeEach
     void setup(){
@@ -64,15 +64,17 @@ class PaymentServiceImplTest {
 
 
         // 3. TossPaymentResponseDto 생성
-        response = new TossPaymentResponseDto();
+        response = new PaymentApiResponse();
         ReflectionTestUtils.setField(response, "paymentKey", "test_paymentKey");
         ReflectionTestUtils.setField(response, "totalAmount", 50000); // [중요] 이거 꼭 있어야 함
         ReflectionTestUtils.setField(response, "requestedAt", "2024-11-25T10:00:00+09:00");
         ReflectionTestUtils.setField(response, "approvedAt", "2024-11-25T10:00:05+09:00");
 
-        TossPaymentResponseDto.Receipt receipt = new TossPaymentResponseDto.Receipt();
-        ReflectionTestUtils.setField(receipt, "url", "http://receipt.url");
-        ReflectionTestUtils.setField(response, "receipt", receipt);
+
+        //todo 수정
+        //PaymentApiResponse.Receipt receipt = new PaymentApiResponse.Receipt();
+        //ReflectionTestUtils.setField(receipt, "url", "http://receipt.url");
+        //ReflectionTestUtils.setField(response, "receipt", receipt);
     }
 
 
