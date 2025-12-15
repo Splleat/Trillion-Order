@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Profile("!local")
 @FeignClient(name = "COUPON-SERVICE", configuration = FeignClientConfig.class)
 public interface CouponClient {
-    @PostMapping("/api/coupon/1")
+    @PostMapping("/coupon/1")
     CouponCalculationResponse calculateDiscount(@RequestBody CouponCalculationRequest request);
 
-    @PostMapping("/api/coupon/2")
+    @PostMapping("/coupon/2")
     void applyCoupon(@RequestBody CouponApplyRequest request);
 
-    @PostMapping("/api/coupon/3")
+    @PostMapping("/coupon/3")
     void withdrawCoupon(@RequestBody CouponApplyRequest request);
 }

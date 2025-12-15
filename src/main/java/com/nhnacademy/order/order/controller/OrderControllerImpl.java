@@ -32,7 +32,6 @@ import java.net.URI;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
 public class OrderControllerImpl implements OrderController {
 
     private final OrderService orderService;
