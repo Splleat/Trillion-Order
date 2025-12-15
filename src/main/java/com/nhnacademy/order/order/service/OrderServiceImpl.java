@@ -189,7 +189,38 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrderByMemberId(UserInfo userInfo, Pageable pageable) {
         // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
-        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberId(pageable, userInfo.userId());
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED);
+
+        // 2. 주문 ID 목록 추출
+        List<Long> orderIds = orderBaseResponses.stream()
+                .map(OrderBaseResponse::orderId)
+                .toList();
+
+        // 3. 주문 ID목록으로 배치 조회
+        Map<Long, List<OrderItemResponse>> orderItemResponses;
+
+        // 주문이 없는 경우 빈 맵 할당
+        if (!orderIds.isEmpty()) {
+            orderItemResponses = orderItemRepository.findAllByOrderIds(orderIds).stream()
+                    .collect(Collectors.groupingBy(OrderItemResponse::orderId));
+        } else {
+            orderItemResponses = Collections.emptyMap();
+        }
+
+        return orderBaseResponses.map(orderBaseResponse -> {
+
+            List<OrderItemResponse> items = orderItemResponses.getOrDefault(orderBaseResponse.orderId(), Collections.emptyList());
+
+            return OrderResponse.create(orderBaseResponse, items);
+        });
+    }
+
+    @Override
+    @CheckAuth(role = AuthRole.MEMBER)
+    @Transactional(readOnly = true)
+    public Page<OrderResponse> findAllCanceledOrderByMemberId(UserInfo userInfo, Pageable pageable) {
+        // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.CANCELED);
 
         // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()

@@ -3,6 +3,7 @@ package com.nhnacademy.order.orderitem.repository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -59,4 +60,26 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         ORDER BY SUM(oi.quantity) DESC
     """)
     List<Long> findTopNSellingBookIds(List<OrderItemStatus> excludeStatuses, Pageable pageable);
+
+    @Query("""
+        SELECT new com.nhnacademy.order.orderitem.dto.OrderItemResponse(
+            oi.orderItemId,
+            oi.order.orderId,
+            oi.bookId,
+            oi.bookName,
+            oi.bookImage,
+            oi.quantity,
+            oi.price,
+            (oi.price + oi.packagingPrice) * oi.quantity,
+            oi.couponDiscountAmount,
+            ((oi.price + oi.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
+            oi.packagingPrice,
+            oi.orderItemStatus
+        )
+        FROM OrderItem oi
+        JOIN oi.order o
+        WHERE o.memberId = :memberId
+        AND oi.orderItemStatus IN :statuses
+    """)
+    Page<OrderItemResponse> findAllByOrder_MemberIdAndOrderItemStatusIn(Long memberId, List<OrderItemStatus> statuses, Pageable pageable);
 }

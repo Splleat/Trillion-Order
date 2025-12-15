@@ -100,7 +100,7 @@ class OrderServiceFindTest {
         String encodedPassword = "encoded-password";
         NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
+                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")
         );
         when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));
@@ -124,7 +124,7 @@ class OrderServiceFindTest {
         String encodedPassword = "encoded-password";
         NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
+                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")
         );
         when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));
@@ -147,7 +147,7 @@ class OrderServiceFindTest {
                 new OrderBaseResponse(2L, userInfo.userId(), "ORD-2", LocalDateTime.now(), OrderStatus.COMPLETED, 200, 200, 0, 0, 0, new OrdererInfo("n", "c"), new ReceiverInfo("n", "c", "a"))
         );
         Page<OrderBaseResponse> pagedBaseResponse = new PageImpl<>(baseResponses, pageable, baseResponses.size());
-        when(orderRepository.findAllBaseOrderByMemberId(pageable, userInfo.userId())).thenReturn(pagedBaseResponse);
+        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(pagedBaseResponse);
         when(orderItemRepository.findAllByOrderIds(anyList())).thenReturn(Collections.emptyList());
 
         // when
@@ -164,7 +164,7 @@ class OrderServiceFindTest {
         // given
         UserInfo userInfo = new UserInfo(2L, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
-        when(orderRepository.findAllBaseOrderByMemberId(pageable, userInfo.userId())).thenReturn(Page.empty(pageable));
+        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(Page.empty(pageable));
 
         // when
         Page<OrderResponse> resultPage = orderServiceImpl.findAllOrderByMemberId(userInfo, pageable);
