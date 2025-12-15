@@ -15,10 +15,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-// 주문 생성 로직에서 트랜잭션과 관련 없는 연산이 너무 많아서 분리
 @RequiredArgsConstructor
 @Service
-public class OrderCreateService {
+public class OrderInitialCreateService {
     // Repository
     private final OrderRepository orderRepository;
     private final PackagingRepository packagingRepository;

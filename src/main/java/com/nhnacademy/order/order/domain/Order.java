@@ -11,8 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -55,10 +55,10 @@ public class Order extends BaseTimeEntity {
     private OrderDetails orderDetails;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private Set<OrderItem> orderItems = new HashSet<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderCoupon> orderCoupons = new ArrayList<>();
+    private Set<OrderCoupon> orderCoupons = new HashSet<>();
 
     public static Order createInitial(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
         // UUID 대신 주문 일시(yyyyMMdd) + AUTO_INCREMENT된 식별자(orderId)?
@@ -76,8 +76,8 @@ public class Order extends BaseTimeEntity {
             ordererInfo,
             receiverInfo,
             orderDetails,
-            new ArrayList<>(),
-            new ArrayList<>()
+            new HashSet<>(),
+            new HashSet<>()
         );
     }
 

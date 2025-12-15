@@ -108,7 +108,7 @@ class OrderRepositoryTest {
         Order foundOrder = resultOptional.get();
         assertThat(foundOrder.getOrderId()).isEqualTo(targetOrderId);
         assertThat(foundOrder.getOrderItems()).isNotNull().hasSize(2);
-        assertThat(foundOrder.getOrderItems().getFirst().getBookId()).isEqualTo(order1Item1.getBookId());
+        assertThat(foundOrder.getOrderItems().stream().map(OrderItem::getBookId)).contains(order1Item1.getBookId());
     }
 
     @Test
@@ -138,7 +138,7 @@ class OrderRepositoryTest {
         Order foundOrder = resultOptional.get();
         assertThat(foundOrder.getOrderNumber()).isEqualTo(targetOrderNumber);
         assertThat(foundOrder.getOrderItems()).isNotNull().hasSize(2);
-        assertThat(foundOrder.getOrderItems().getFirst().getBookId()).isEqualTo(order1Item1.getBookId());
+        assertThat(foundOrder.getOrderItems().stream().map(OrderItem::getBookId)).contains(order1Item1.getBookId());
     }
 
     @Test

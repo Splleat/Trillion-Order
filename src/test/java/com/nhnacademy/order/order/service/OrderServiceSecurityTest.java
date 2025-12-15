@@ -59,7 +59,7 @@ class OrderServiceSecurityTest {
     @MockitoBean
     private CouponService couponService;
     @MockitoBean
-    private OrderCreateService orderCreateService;
+    private OrderInitialCreateService orderInitialCreateService;
     @MockitoBean
     private OrderCancelService orderCancelService;
     @MockitoBean

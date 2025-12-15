@@ -20,8 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +73,7 @@ class OrderServiceUpdateTest {
         when(orderDetails.deliveryFee()).thenReturn(3000);
         when(order.getOrdererInfo()).thenReturn(new com.nhnacademy.order.order.domain.OrdererInfo("name", "010-1234-5678"));
         when(order.getReceiverInfo()).thenReturn(new com.nhnacademy.order.order.domain.ReceiverInfo("name", "010-1234-5678", "address"));
-        when(order.getOrderItems()).thenReturn(java.util.Collections.emptyList());
+        when(order.getOrderItems()).thenReturn(java.util.Collections.emptySet());
 
 
         OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.RETURNED);
@@ -105,7 +105,7 @@ class OrderServiceUpdateTest {
         com.nhnacademy.order.order.domain.OrderDetails orderDetails = mock(com.nhnacademy.order.order.domain.OrderDetails.class);
         when(nonMemberOrder.getNonMemberPassword()).thenReturn(encodedPassword);
         lenient().when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
-        when(nonMemberOrder.getOrderItems()).thenReturn(List.of(orderItem));
+        when(nonMemberOrder.getOrderItems()).thenReturn(Set.of(orderItem));
         when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.DELIVERED);
         when(orderItem.getShippingDate()).thenReturn(LocalDateTime.now());
 
@@ -148,7 +148,7 @@ class OrderServiceUpdateTest {
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.PREPARING);
         Order cancelableOrder = mock(Order.class);
-        when(cancelableOrder.getOrderItems()).thenReturn(List.of(item1));
+        when(cancelableOrder.getOrderItems()).thenReturn(Set.of(item1));
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(cancelableOrder));
         doNothing().when(orderCancelOrchestrator).processCancelOrder(anyLong(), any(Order.class));
@@ -172,7 +172,7 @@ class OrderServiceUpdateTest {
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.SHIPPED); // 취소 불가능 상태
         Order uncancelableOrder = mock(Order.class);
-        when(uncancelableOrder.getOrderItems()).thenReturn(List.of(item1));
+        when(uncancelableOrder.getOrderItems()).thenReturn(Set.of(item1));
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(uncancelableOrder));
 

@@ -2,7 +2,7 @@
 
 
 ### 주문 생성 (회원)
-POST http://{{hostname}}/api/orders
+POST http://{{hostname}}/orders
 Content-Type: application/json
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
@@ -37,7 +37,7 @@ X-USER-ROLE: MEMBER
 }
 
 ### 주문 생성 (비회원)
-POST http://{{hostname}}/api/orders
+POST http://{{hostname}}/orders
 Content-Type: application/json
 
 {
@@ -65,22 +65,22 @@ Content-Type: application/json
 }
 
 ### 주문 목록 조회 (관리자)
-GET http://{{hostname}}/api/orders/admin
+GET http://{{hostname}}/orders/admin
 X-USER-ID: 2
 X-USER-ROLE: ADMIN
 
 ### 주문 목록 조회 (회원)
-GET http://{{hostname}}/api/orders
+GET http://{{hostname}}/orders
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
 
 ### 주문 단건 조회 (회원)
-GET http://{{hostname}}/api/orders/1
+GET http://{{hostname}}/orders/1
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
 
 ### 주문 단건 조회 (비회원)
-POST http://{{hostname}}/api/orders/non-members/
+POST http://{{hostname}}/orders/non-members/
 Content-Type: application/json
 
 {
@@ -89,7 +89,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 주문 취소 (회원)
-DELETE http://{{hostname}}/api/orders/1
+DELETE http://{{hostname}}/orders/1
 Content-Type: application/json
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
@@ -99,7 +99,7 @@ X-USER-ROLE: MEMBER
 }
 
 ### 주문 상품 상태 변경: 배송 중 (관리자)
-PATCH http://{{hostname}}/api/orders/1/items/1
+PATCH http://{{hostname}}/orders/1/items/1
 X-USER-ID: 1
 X-USER-ROLE: ADMIN
 Content-Type: application/json
@@ -109,7 +109,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 배송 완료 (관리자)
-PATCH http://{{hostname}}/api/orders/1/items/1
+PATCH http://{{hostname}}/orders/1/items/1
 X-USER-ID: 1
 X-USER-ROLE: ADMIN
 Content-Type: application/json
@@ -119,7 +119,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 반품 요청 (단순 변심) (회원)
-PATCH http://{{hostname}}/api/orders/1/items/1
+PATCH http://{{hostname}}/orders/1/items/1
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
 Content-Type: application/json
@@ -129,7 +129,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 반품 완료 (관리자)
-PATCH http://{{hostname}}/api/orders/1/items/1
+PATCH http://{{hostname}}/orders/1/items/1
 X-USER-ID: 1
 X-USER-ROLE: ADMIN
 Content-Type: application/json
@@ -139,7 +139,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 구매 확정 (회원)
-PATCH http://{{hostname}}/api/orders/1/items/1
+PATCH http://{{hostname}}/orders/1/items/1
 X-USER-ID: 1
 X-USER-ROLE: MEMBER
 Content-Type: application/json
@@ -149,7 +149,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 반품 요청 (비회원)
-PATCH http://{{hostname}}/api/orders/non-members/2/items/3
+PATCH http://{{hostname}}/orders/non-members/2/items/3
 Content-Type: application/json
 
 {

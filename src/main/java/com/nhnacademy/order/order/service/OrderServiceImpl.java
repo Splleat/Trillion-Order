@@ -47,8 +47,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
 
     // Service
-    private final OrderCreateService orderCreateService;
-    private final OrderFinalizerService orderFinalizerService;
+    private final OrderInitialCreateService orderInitialCreateService;
+    private final OrderFinalizerCreateService orderFinalizerCreateService;
 
     // 사가 패턴
     private final OrderCreateOrchestrator orderCreateOrchestrator;
@@ -109,16 +109,19 @@ public class OrderServiceImpl implements OrderService {
     @CheckAuth(role = AuthRole.ADMIN)
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrders(UserInfo userInfo, Pageable pageable) {
+        // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
         Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrder(pageable);
 
+        // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()
                 .map(OrderBaseResponse::orderId)
                 .toList();
 
+        // 3. 주문 ID목록으로 배치 조회
         Map<Long, List<OrderItemResponse>> orderItemResponses = orderItemRepository.findAllByOrderIds(orderIds).stream()
                 .collect(Collectors.groupingBy(OrderItemResponse::orderId));
 
-
+        // 4. 주문 기본 정보와 주문 상품 정보를 결합하여 OrderResponse 생성
         return orderBaseResponses.map(orderBaseResponse -> {
             List<OrderItemResponse> orderItems = orderItemResponses.getOrDefault(orderBaseResponse.orderId(), Collections.emptyList());
 
@@ -141,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
         // 비회원인 경우 userId가 null
         Long userId = (userInfo != null) ? userInfo.userId() : null;
 
-        Order order = orderCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
+        Order order = orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
 
         UUID sagaId = SagaContext.get();
         OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());
@@ -151,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
             orderCreateOrchestrator.processCreateOrder(saga, order);
 
             // 3. 최종 처리 실행 (OrderStatus: CREATING -> PENDING)
-            orderFinalizerService.finalizeOrderCreation(order, saga);
+            orderFinalizerCreateService.finalizeOrderCreation(order, saga);
         } catch (OrderCreateFailureException e) {
             // 주문 생성 중 문제 발생 시 무조건 보상 트랜잭션 시작
             // 기본적으로 외부 API와 2번 통신 재시도 -> 실패 시 OrderCreateFailureException이 던져짐
@@ -185,15 +188,18 @@ public class OrderServiceImpl implements OrderService {
     @CheckAuth(role = AuthRole.MEMBER)
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrderByMemberId(UserInfo userInfo, Pageable pageable) {
+        // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
         Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberId(pageable, userInfo.userId());
 
+        // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()
                 .map(OrderBaseResponse::orderId)
                 .toList();
 
+        // 3. 주문 ID목록으로 배치 조회
         Map<Long, List<OrderItemResponse>> orderItemResponses;
 
-        // 주문 ID가 하나라도 존재해야 주문 상품 목록 조회
+        // 주문이 없는 경우 빈 맵 할당
         if (!orderIds.isEmpty()) {
             orderItemResponses = orderItemRepository.findAllByOrderIds(orderIds).stream()
                     .collect(Collectors.groupingBy(OrderItemResponse::orderId));
@@ -215,9 +221,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponse patchOrderItemStatus(UserInfo userInfo, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
 
+        // 1. 주문 조회
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        // 2. 주문 상품 상태 변경
         updateOrderItemStatus(userInfo, order, orderItemId, request.status());
 
         return OrderResponse.create(order);
@@ -227,11 +235,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request) {
+        // 1. 주문 조회
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        // 2. 비회원 비밀번호 확인
         nonMemberPasswordCheck(request.nonMemberPassword(), order.getNonMemberPassword());
 
+        // 3. 주문 상품 상태 변경
         updateOrderItemStatus(null, order, orderItemId, request.status());
 
         return OrderResponse.create(order);
@@ -241,8 +252,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword) {
+        // 1. 비회원 주문 기본 정보 조회
         Optional<NonMemberOrderBaseResponse> nonMemberBaseResponseOptional = orderRepository.findNonMemberOrderByOrderNumber(orderNumber);
 
+        // 2. 비회원 비밀번호 확인 및 OrderResponse 생성
         return nonMemberBaseResponseOptional.map(nonMemberOrderBaseResponse -> {
             nonMemberPasswordCheck(nonMemberPassword, nonMemberOrderBaseResponse.nonMemberPassword());
 
@@ -256,19 +269,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @CheckAuth(role = AuthRole.MEMBER, checkOrderOwner = true)
     public void cancelOrder(UserInfo userInfo, Long orderId) {
+        // 1. 주문 조회
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
-        // 1. 주문이 취소 가능한 상태인지 확인
+        // 2. 주문이 취소 가능한 상태인지 확인 (모든 주문 상품이 PREPARING 상태여야 함)
         boolean orderCancellable = order.getOrderItems().stream()
                 .allMatch(orderItem -> orderItem.getOrderItemStatus() == OrderItemStatus.PREPARING);
 
+        // 3. 취소 불가능한 상태의 상품이 포함된 경우 예외 발생
         if (!orderCancellable) {
             throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품이 포함되어 있음");
         }
 
         try {
-            // 2. 주문 취소 사가 진행
+            // 4. 주문 취소 사가 진행
             orderCancelOrchestrator.processCancelOrder(userInfo.userId(), order);
         } catch (Exception e) {
             log.error("주문 ID: {} - 취소 실패: {}", order.getOrderId(), e.getMessage(), e);

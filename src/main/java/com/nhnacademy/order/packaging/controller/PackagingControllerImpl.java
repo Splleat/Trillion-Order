@@ -24,7 +24,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/orders/packaging")
+@RequestMapping("/orders/packaging")
 public class PackagingControllerImpl implements PackagingController {
     private final PackagingService packagingService;
 
