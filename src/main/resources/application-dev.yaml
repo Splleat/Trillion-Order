@@ -77,9 +77,9 @@ resilience4j:
         # 반-열림 상태에서 받을 요청의 개수 (해당 요청들 중 하나라도 실패하면 서킷을 다시 열고, 모두 통과하면 닫음)
         permitted-number-of-calls-in-half-open-state: 3
     instances:
-      book-service: {}
-      coupon-service: {}
-      member-service: {}
+      BOOK-SERVICE: {}
+      COUPON-SERVICE: {}
+      MEMBER-SERVICE: {}
 
   retry:
     configs:
@@ -96,9 +96,9 @@ resilience4j:
           # 응답이 너무 늦는 경우
           - java.util.concurrent.TimeoutException
     instances:
-      book-service: {}
-      coupon-service: {}
-      member-service: {}
+      BOOK-SERVICE: {}
+      COUPON-SERVICE: {}
+      MEMBER-SERVICE: {}
 
 # 환경 변수 설정
 # 기존: secret-key: ${TOSS_KEY}
