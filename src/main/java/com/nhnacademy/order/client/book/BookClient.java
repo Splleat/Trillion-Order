@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Profile("!local")
-@FeignClient(name = "book-service", configuration = FeignClientConfig.class)
+@FeignClient(name = "BOOK-SERVICE", configuration = FeignClientConfig.class)
 public interface BookClient {
     @GetMapping("/api/order-books")
     List<BookResponse> getOrderBookInfos(@RequestParam("bookIds") List<Long> bookIds);

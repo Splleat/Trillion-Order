@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Profile("!local")
-@FeignClient(name = "member-service", configuration = FeignClientConfig.class)
+@FeignClient(name = "MEMBER-SERVICE", configuration = FeignClientConfig.class)
 public interface MemberClient {
     @PatchMapping("/api/point/1")
     void increasePoint(@RequestBody PointUsageRequest request);

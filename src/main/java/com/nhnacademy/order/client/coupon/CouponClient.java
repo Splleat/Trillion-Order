@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Profile("!local")
-@FeignClient(name = "coupon-service", configuration = FeignClientConfig.class)
+@FeignClient(name = "COUPON-SERVICE", configuration = FeignClientConfig.class)
 public interface CouponClient {
     @PostMapping("/api/coupon/1")
     CouponCalculationResponse calculateDiscount(@RequestBody CouponCalculationRequest request);
