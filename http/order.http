@@ -50,7 +50,7 @@ Content-Type: application/json
   "receiverAddress": "서울특별시 강남구 테헤란로 123 (삼성동)",
   "receiverPostCode": "06134",
 
-  "nonMe  mberPassword": "nonmemberpass",
+  "nonMemberPassword": "1234",
 
   "pointUsage": 0,
   "couponId": null,

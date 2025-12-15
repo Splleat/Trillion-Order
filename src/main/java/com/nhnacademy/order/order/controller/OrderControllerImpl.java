@@ -56,6 +56,14 @@ public class OrderControllerImpl implements OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // 취소된 주문 전체 조회 (회원)
+    @Override
+    @GetMapping("/orders/canceled")
+    public ResponseEntity<Page<OrderResponse>> getAllCanceledOrderByCustomer(Pageable pageable, UserInfo userInfo) {
+        Page<OrderResponse> response = orderService.findAllCanceledOrderByMemberId(userInfo, pageable);
+        return ResponseEntity.ok(response);
+    }
+
     // 주문 생성
     @Override
     @PostMapping("/orders")

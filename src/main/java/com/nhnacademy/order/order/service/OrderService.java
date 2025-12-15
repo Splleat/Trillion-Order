@@ -18,4 +18,7 @@ public interface OrderService {
     OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword);
     void cancelOrder(UserInfo userInfo, Long orderId);
     void cancelOrderForNonMember(Long orderId, String nonMemberPassword);
+
+    Page<OrderResponse> findAllCanceledOrderByMemberId(UserInfo userInfo, Pageable pageable);
+
 }
