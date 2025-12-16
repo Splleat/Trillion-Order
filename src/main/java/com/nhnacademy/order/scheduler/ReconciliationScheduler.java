@@ -32,6 +32,8 @@ public class ReconciliationScheduler {
 
     // 동기적으로 잘 생성되고 있는 주문을 스케줄러가 잡게 되는 경우가 발생하지 않도록 수정 시간(updatedAt) 사용
 
+    // TODO: 오랜 기간 PENDING에 머물러 있는 주문을 삭제하는 스케줄러 로직 생성
+
     // 멈춰있거나 완료된 사가를 처리
     @Scheduled(fixedRate = 300000)
     @SchedulerLock(name = "ReconciliationScheduler.reconcileSagaState") // 분산 락 설정 -> 서버가 여러 개여도 하나의 스케줄러만 실행

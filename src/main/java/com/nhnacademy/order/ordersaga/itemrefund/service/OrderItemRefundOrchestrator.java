@@ -55,14 +55,14 @@ public class OrderItemRefundOrchestrator {
         Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
 
         // 상품 가격 * 개수 - 쿠폰 할인액
-        int refundAmount = (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount();
+        int refundAmount = Math.max(0, (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount());
 
         // 배송비
         int deliveryFee = getDeliveryFee();
 
         // 환불 이유가 단순 변심인 경우
         if (orderItem.getOrderItemStatus().equals(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND)) {
-            // 반품 배송비를 포인트에서 차감한 후 지급
+            // 반품 배송비를 환불 포인트에서 차감한 후 지급
             refundAmount = Math.max(0, refundAmount - deliveryFee);
         }
 
