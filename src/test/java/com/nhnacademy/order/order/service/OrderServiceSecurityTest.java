@@ -61,7 +61,7 @@ class OrderServiceSecurityTest {
     @MockitoBean
     private OrderInitialCreateService orderInitialCreateService;
     @MockitoBean
-    private OrderCancelService orderCancelService;
+    private OrderFinalizerCancelService orderFinalizerCancelService;
     @MockitoBean
     private OrderCreateOrchestrator orderCreateOrchestrator;
     @MockitoBean

@@ -1,10 +1,9 @@
 package com.nhnacademy.order.scheduler;
 
-import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.order.order.service.OrderCancelService;
-import com.nhnacademy.order.order.service.OrderCompensateService;
+import com.nhnacademy.order.order.service.OrderFinalizerCancelService;
+import com.nhnacademy.order.order.service.OrderFinalizerCompensateService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
@@ -27,13 +26,13 @@ public class ReconciliationService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderCancelService orderCancelService;
+    private final OrderFinalizerCancelService orderFinalizerCancelService;
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderItemRefundService orderItemRefundService;
     private final OrderCancelOrchestrator orderCancelOrchestrator;
     private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
     private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
-    private final OrderCompensateService orderCompensateService;
+    private final OrderFinalizerCompensateService orderFinalizerCompensateService;
 
     public void processStuckCreateSagaCompensation(OrderCreateSaga saga) {
         try {
@@ -85,7 +84,7 @@ public class ReconciliationService {
     public void processCompletedCompensateSagaBridge(OrderCreateSaga saga) {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
-                orderCompensateService.compensateOrder(order, saga);
+                orderFinalizerCompensateService.compensateOrder(order, saga);
             });
         } catch (Exception e) {
             log.error("[사가 스케줄러] 완료된 보상 성공 주문 생성 사가 브릿징 실패: {}", saga.getOrderId(), e);
@@ -106,7 +105,7 @@ public class ReconciliationService {
         try {
             orderRepository.findOrderWithItemsByOrderId(saga.getOrderId()).ifPresent(order -> {
                 if (order.getOrderStatus() != OrderStatus.CANCELED) {
-                    orderCancelService.cancelOrder(order, saga);
+                    orderFinalizerCancelService.cancelOrder(order, saga);
                 }
             });
         } catch (Exception e) {

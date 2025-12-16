@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class OrderCancelService {
+public class OrderFinalizerCancelService {
     private final OrderRepository orderRepository;
     private final OrderCancelSagaRepository orderCancelSagaRepository;
     private final SagaUpdateService sagaUpdateService;

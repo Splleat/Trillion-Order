@@ -5,7 +5,7 @@ import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderCancelFailureException;
-import com.nhnacademy.order.order.service.OrderCancelService;
+import com.nhnacademy.order.order.service.OrderFinalizerCancelService;
 import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,11 +32,11 @@ public class OrderCancelOrchestrator {
     private final BookService bookService;
     // private final PaymentService paymentService;
 
-    private final OrderCancelService orderCancelService;
+    private final OrderFinalizerCancelService orderFinalizerCancelService;
 
     public void processCancelOrder(Long memberId, Order order) {
         // 1. 사가 시작 (사가 생성과 동시에 주문 상태를 '주문 취소 중'으로 변경 -> 사용자 경험 향상)
-        OrderCancelSaga saga = orderCancelService.cancelStart(order);
+        OrderCancelSaga saga = orderFinalizerCancelService.cancelStart(order);
 
         int pointUsage = order.getOrderDetails().pointUsage();
 
@@ -78,7 +77,7 @@ public class OrderCancelOrchestrator {
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
 
             // 7. 사가 - 도메인 브릿징 완료 (주문 상태 변경 -> 사가 브릿징 설정)
-            orderCancelService.cancelOrder(order, saga);
+            orderFinalizerCancelService.cancelOrder(order, saga);
 
         } catch (Exception e) {
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.FAILED);
@@ -144,7 +143,7 @@ public class OrderCancelOrchestrator {
 
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
 
-            orderCancelService.cancelOrder(order, saga);
+            orderFinalizerCancelService.cancelOrder(order, saga);
         } catch (Exception e) {
             sagaUpdateService.updateCancelSagaStatus(saga, SagaStatus.FAILED);
 

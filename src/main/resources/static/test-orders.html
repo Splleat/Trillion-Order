@@ -26,8 +26,8 @@
         // 'sort' 파라미터를 엔티티의 실제 경로인 'orderDetails.orderDate'로 수정합니다.
         fetch('/orders/admin?page=0&size=20&sort=orderDetails.orderDate,desc', {
             headers: {
-                'X-USER-ID': '1',
-                'X-USER-ROLE': 'ADMIN'
+                'X-Member-Id': '1',
+                'X-Member-Role': 'ADMIN'
             },
             cache: 'no-cache' // 브라우저 캐시를 비활성화하여 항상 최신 데이터를 받아옵니다.
         })

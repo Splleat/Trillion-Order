@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Profile("!local")
 @FeignClient(name = "MEMBER-SERVICE", configuration = FeignClientConfig.class)
 public interface MemberClient {
-    @PatchMapping("/point/1")
-    void increasePoint(@RequestBody PointUsageRequest request);
-
-    @PatchMapping("/point/2")
+    @PatchMapping("/points/use")
     void decreasePoint(@RequestBody PointUsageRequest request);
 
-    @PatchMapping("/point/3")
+    @PatchMapping("/points/refund")
+    void increasePoint(@RequestBody PointUsageRequest request);
+
+    @PatchMapping("/points/rollback")
     void rollbackPoint(@RequestBody PointUsageRequest request);
 }

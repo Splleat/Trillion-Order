@@ -62,7 +62,7 @@ class FeignSagaInterceptorPureTest {
         String expectedHeader = "X-SAGA-ID";
         BookStocksRequest requestBody = new BookStocksRequest(Map.of(1L, 1));
 
-        wireMockServer.stubFor(patch(urlEqualTo("/order-books/decrease-stocks"))
+        wireMockServer.stubFor(patch(urlEqualTo("/books/stocks/decrease"))
                 .willReturn(aResponse().withStatus(200)));
 
         MDC.put("sagaId", sagaId);
@@ -71,7 +71,7 @@ class FeignSagaInterceptorPureTest {
         bookClient.decreaseStocks(requestBody);
 
         // then: 결과 검증
-        wireMockServer.verify(1, patchRequestedFor(urlEqualTo("/order-books/decrease-stocks"))
+        wireMockServer.verify(1, patchRequestedFor(urlEqualTo("/books/stocks/decrease"))
                 .withHeader(expectedHeader, equalTo(sagaId)));
     }
 
@@ -81,14 +81,14 @@ class FeignSagaInterceptorPureTest {
         String expectedHeader = "X-SAGA-ID";
         BookStocksRequest requestBody = new BookStocksRequest(Map.of(1L, 1));
 
-        wireMockServer.stubFor(patch(urlEqualTo("/order-books/decrease-stocks"))
+        wireMockServer.stubFor(patch(urlEqualTo("/books/stocks/decrease"))
                 .willReturn(aResponse().withStatus(200)));
 
         // when: 테스트할 코드 실행
         bookClient.decreaseStocks(requestBody);
 
         // then: 결과 검증
-        wireMockServer.verify(1, patchRequestedFor(urlEqualTo("/order-books/decrease-stocks"))
+        wireMockServer.verify(1, patchRequestedFor(urlEqualTo("/books/stocks/decrease"))
                 .withoutHeader(expectedHeader));
     }
 }

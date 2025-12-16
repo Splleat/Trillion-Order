@@ -15,15 +15,15 @@ import java.util.List;
 @Profile("!local")
 @FeignClient(name = "BOOK-SERVICE", configuration = FeignClientConfig.class)
 public interface BookClient {
-    @GetMapping("/order-books")
+    @GetMapping("/books")
     List<BookResponse> getOrderBookInfos(@RequestParam("bookIds") List<Long> bookIds);
 
-    @PatchMapping("/order-books/increase-stocks")
+    @PatchMapping("/books/stocks/increase")
     void increaseStocks(@RequestBody BookStocksRequest request);
 
-    @PatchMapping("/order-books/decrease-stocks")
+    @PatchMapping("/books/stocks/decrease")
     void decreaseStocks(@RequestBody BookStocksRequest request);
 
-    @PatchMapping("/order-books/rollback-stocks")
+    @PatchMapping("/books/stocks/rollback")
     void rollbackStocks(@RequestBody BookStocksRequest request);
 }

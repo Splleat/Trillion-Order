@@ -5,7 +5,7 @@ import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
-import com.nhnacademy.order.order.service.OrderCompensateService;
+import com.nhnacademy.order.order.service.OrderFinalizerCompensateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
@@ -44,7 +44,7 @@ class OrderCreateOrchestratorTest {
     @Mock
     private BookService bookService;
     @Mock
-    private OrderCompensateService orderCompensateService;
+    private OrderFinalizerCompensateService orderFinalizerCompensateService;
 
     private OrderCreateSaga saga;
     private Order order;
@@ -107,7 +107,7 @@ class OrderCreateOrchestratorTest {
         verify(sagaUpdateService, times(1)).updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         // 4. Verify compensation was NOT triggered
-        verify(orderCompensateService, never()).compensateOrder(any(), any());
+        verify(orderFinalizerCompensateService, never()).compensateOrder(any(), any());
         verify(bookService, never()).increaseStocks(any());
         verify(couponService, never()).withdrawCoupon(anyLong(), anyLong());
         verify(memberService, never()).increasePoint(anyLong(), anyInt());
