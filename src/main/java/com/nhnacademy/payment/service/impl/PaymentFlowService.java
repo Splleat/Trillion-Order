@@ -5,6 +5,7 @@ import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.config.PaymentGateway;
+import com.nhnacademy.payment.config.PaymentUser;
 import com.nhnacademy.payment.config.TossPaymentClient;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentApiResponse;
@@ -28,7 +29,8 @@ public class PaymentFlowService {
     //결제 승인은 이미 승인된 상태만 생각 주문을 취소해도 취소한 주문에 대해서 다시 주문을 할 수 있음
     //당연한 말이지만 결제 대기중인 주문 상태건은 결제 승인 가능하게 해야 함.
     //결제 승인 -> 취소나 대기 중은 승인 가능하게, 이미 결제 처리되었다면? 결제 승인 불가능 하게
-    public Payment confirmPayment(PaymentRequestDto request) {
+    public Payment confirmPayment(PaymentUser user, PaymentRequestDto request) {
+
         // 결제를 승인하려 했을때 찾을 수 없는 주문 건이라면?
         Order order = orderRepository.findOrderWithItemsByOrderNumber(request.orderNumber())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderNumber()));
@@ -42,6 +44,7 @@ public class PaymentFlowService {
         if(order.getOrderStatus().equals(OrderStatus.COMPLETED)){
             throw new PaymentAlreadyApprovedException(request.orderNumber());
         }
+        validateOrderOwner(order,user);
 
         //front->confirm 요청을 보내면 -> 맞는 처리가 가능한 PG사 호출.
         PaymentGateway gateway = routingService.getGateway(request.provider());
@@ -68,10 +71,39 @@ public class PaymentFlowService {
         }
     }
 
+    public void cancelPaymentByMember(String orderNumber, String cancelReason, Integer cancelAmount, PaymentUser user){
+        Payment findPayment = paymentService.getPaymentByOrderNumber(orderNumber);
+
+        validateOrderOwner(findPayment.getOrder(), user);
+
+        processCancelPayment(findPayment, cancelReason, cancelAmount);
+    }
+
+    // [추가] 공통 검증 메서드 (private)
+    private void validateOrderOwner(Order order, PaymentUser user) {
+
+        if ("ROLE_ADMIN".equals(user.role())) {
+            return;
+        }
+
+        if (user.isMember()) {
+            // 1. 회원은 무조건 MemberId로 검증
+            if (order.getMemberId() == null || !order.getMemberId().equals(user.memberId())) {
+                throw new IllegalArgumentException("회원 주문 정보가 일치하지 않습니다.");
+            }
+        } else {
+            // 2. 비회원인 경우
+
+            // A. 최소한의 방어: 회원의 주문(memberId != null)을 비회원이 건드리면 안 됨
+            if (order.getMemberId() != null) {
+                throw new IllegalArgumentException("비회원은 회원의 주문에 접근할 수 없습니다.");
+            }
+        }
+    }
+
 
     //결제 취소 -> 주문이 결제 대기이거나 이미 취소됐다면 취소 못하게 해야 함, 배송 전 도서에 대해서만 부른다면.
-    public void cancelPayment(String orderNumber,String cancelReason,Integer cancelAmount) {
-        Payment payment = paymentService.getPaymentByOrderNumber(orderNumber);
+    private void processCancelPayment(Payment payment,String cancelReason,Integer cancelAmount) {
 
         //이미 결제가 취소된 주문건에서는 또 다시 결제 취소는 불가능 함.
         if(payment.getOrder().getOrderStatus().equals(OrderStatus.CANCELED)){

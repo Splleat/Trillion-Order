@@ -9,12 +9,10 @@
     .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
     .table th { background-color: #343a40; color: white; text-align: center; font-weight: normal; }
     .table td { vertical-align: middle; text-align: center; font-size: 14px; }
-
     .status-badge { font-size: 0.75rem; padding: 5px 8px; border-radius: 12px; font-weight: bold; }
     .status-DONE { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
     .status-CANCELED { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
     .status-PARTIAL_CANCELED { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
-
     .provider-badge { font-weight: bold; color: #0d6efd; background: #e7f1ff; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
   </style>
 </head>
@@ -22,7 +20,7 @@
 
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold">💳 결제 내역 관리 (Admin)</h3>
+    <h3 class="fw-bold">💳 결제 내역 관리 (Admin Mode)</h3>
     <button class="btn btn-primary btn-sm" onclick="loadPayments(0)">🔄 목록 새로고침</button>
   </div>
 
@@ -52,7 +50,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">결제 취소 승인</h5>
+        <h5 class="modal-title">결제 취소 승인 (관리자)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -83,6 +81,12 @@
   const pageSize = 10;
   const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
 
+  // ★ 관리자 전용 헤더 정의 (Resolver 통과용)
+  const ADMIN_HEADERS = {
+    'X-Member-Id': '999',         // 관리자 식별자 (임의)
+    'X-Member-Role': 'ROLE_ADMIN' // ★ 필수 권한
+  };
+
   document.addEventListener("DOMContentLoaded", () => {
     loadPayments(0);
   });
@@ -92,7 +96,11 @@
     const tbody = document.getElementById("payment-list-body");
 
     try {
-      const response = await fetch(`/api/admin/payment?page=${page}&size=${pageSize}&sort=paymentId,desc`);
+      const response = await fetch(`/admin/payment?page=${page}&size=${pageSize}&sort=paymentId,desc`, {
+        method: 'GET',
+        headers: ADMIN_HEADERS // ★ 헤더 주입
+      });
+
       if (!response.ok) throw new Error("데이터 로드 실패");
 
       const data = await response.json();
@@ -111,7 +119,6 @@
         const btnDisabled = isCanceled ? 'disabled' : '';
         const btnClass = isCanceled ? 'btn-secondary' : 'btn-outline-danger';
 
-        // 공통 DTO 필드명 사용 (receiptUrl, provider 등)
         const row = `
           <tr>
             <td>${pay.paymentId || '-'}</td>
@@ -143,7 +150,6 @@
   }
 
   function renderPagination(pageData) {
-    // 기존 페이지네이션 로직 유지
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
     const totalPages = pageData.totalPages;
@@ -172,9 +178,12 @@
     if(!confirm("정말로 취소하시겠습니까?")) return;
 
     try {
-      const response = await fetch('/api/admin/payment/cancel', {
+      const response = await fetch('/admin/payment/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...ADMIN_HEADERS // ★ 헤더 병합
+        },
         body: JSON.stringify({
           orderNumber: orderNumber,
           cancelReason: reason,
