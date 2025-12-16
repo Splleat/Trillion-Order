@@ -52,7 +52,7 @@ class OrderServiceUpdateTest {
         // given
         long orderId = 1L;
         long orderItemId = 101L;
-        UserInfo adminInfo = new UserInfo(999L, "ADMIN");
+        UserInfo adminInfo = new UserInfo(999L, null, "ADMIN");
 
         OrderItem orderItem = mock(OrderItem.class);
         Order order = mock(Order.class);
@@ -143,7 +143,7 @@ class OrderServiceUpdateTest {
     void cancelOrder_Success() {
         // given
         long orderId = 1L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
 
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.PREPARING);
@@ -167,7 +167,7 @@ class OrderServiceUpdateTest {
     void cancelOrder_Failure_CannotCancel() {
         // given
         long orderId = 1L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
 
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.SHIPPED); // 취소 불가능 상태

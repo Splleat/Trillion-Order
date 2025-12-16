@@ -17,24 +17,28 @@ public class CouponService {
     private final ResilienceFallbackHandler fallbackHandler;
     private static final String SERVICE_NAME = "쿠폰 API";
 
+    // 쿠폰 할인가 계산
     @CircuitBreaker(name = "COUPON-SERVICE", fallbackMethod = "fallbackCalculateDiscount")
     @Retry(name = "COUPON-SERVICE")
     public CouponCalculationResponse calculateDiscount(CouponCalculationRequest request) {
         return couponClient.calculateDiscount(request);
     }
 
+    // 쿠폰 사용 (주문 생성)
     @CircuitBreaker(name = "COUPON-SERVICE", fallbackMethod = "fallbackApplyCoupon")
     @Retry(name = "COUPON-SERVICE")
     public void applyCoupon(Long memberId, Long couponId) {
         couponClient.applyCoupon(new CouponApplyRequest(memberId, couponId));
     }
 
+    // 쿠폰 사용 취소 (주문 취소)
     @CircuitBreaker(name = "COUPON-SERVICE", fallbackMethod = "fallbackWithdrawCoupon")
     @Retry(name = "COUPON-SERVICE")
     public void withdrawCoupon(Long memberId, Long couponId) {
         couponClient.withdrawCoupon(new CouponApplyRequest(memberId, couponId));
     }
 
+    // 쿠폰 복원 (주문 생성 실패 시)
     @CircuitBreaker(name = "COUPON-SERVICE", fallbackMethod = "fallbackWithdrawCoupon")
     @Retry(name = "COUPON-SERVICE")
     public void rollbackCoupon(Long memberId, Long couponId) {

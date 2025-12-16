@@ -5,7 +5,7 @@ import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
-import com.nhnacademy.order.order.service.OrderCompensateService;
+import com.nhnacademy.order.order.service.OrderFinalizerCompensateService;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
@@ -25,7 +25,7 @@ public class OrderCreateOrchestrator {
     private final MemberService memberService;
     private final CouponService couponService;
     private final BookService bookService;
-    private final OrderCompensateService orderCompensateService;
+    private final OrderFinalizerCompensateService orderFinalizerCompensateService;
 
     public void processCreateOrder(OrderCreateSaga saga, Order order) {
         // 1. 사가 시작
@@ -134,6 +134,6 @@ public class OrderCreateOrchestrator {
         sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED_COMPENSATED);
 
         // 5. 사가 - 도메인 연결
-        orderCompensateService.compensateOrder(order, saga);
+        orderFinalizerCompensateService.compensateOrder(order, saga);
     }
 }

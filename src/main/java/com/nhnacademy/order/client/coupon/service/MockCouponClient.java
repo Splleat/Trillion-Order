@@ -27,7 +27,7 @@ public class MockCouponClient implements CouponClient {
 
     @Override
     public CouponCalculationResponse calculateDiscount(CouponCalculationRequest request) {
-        log.info("MockCouponClient calculateDiscount called with: {}", request);
+        log.info("MockCouponClient 쿠폰 할인가 계산: {}", request);
 
         if (request.couponId() == null) {
             return new CouponCalculationResponse(null, null, null, 0, List.of());
@@ -84,16 +84,16 @@ public class MockCouponClient implements CouponClient {
 
     @Override
     public void applyCoupon(CouponApplyRequest request) {
-        log.info("MockCouponClient applyCoupon called with: {}", request);
+        log.info("MockCouponClient 쿠폰 사용 요청: {}", request);
     }
 
     @Override
     public void withdrawCoupon(CouponApplyRequest request) {
-        log.info("MockCouponClient withdrawCoupon called with: {}", request);
+        log.info("MockCouponClient 쿠폰 사용 취소 요청: {}", request);
     }
 
     @Override
     public void rollbackCoupon(CouponApplyRequest request) {
-        log.info("MockCouponClient rollbackCoupon called with: {}", request);
+        log.info("MockCouponClient 쿠폰 복원 요청: {}", request);
     }
 }

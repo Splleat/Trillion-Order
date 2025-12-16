@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
-public class OrderCompensateService {
+public class OrderFinalizerCompensateService {
     private final OrderRepository orderRepository;
     private final OrderCreateSagaRepository orderCreateSagaRepository;
 

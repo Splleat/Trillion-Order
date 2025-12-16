@@ -50,7 +50,7 @@ class OrderServiceCreateTest {
 
     @BeforeEach
     void setUp() {
-        userInfo = new UserInfo(1L, "MEMBER");
+        userInfo = new UserInfo(1L, null, "MEMBER");
 
         List<OrderItemCreateRequest> itemRequests = List.of(
             new OrderItemCreateRequest(1L, 2, 101L, 1L, LocalDateTime.now().plusDays(3)),
@@ -147,8 +147,8 @@ class OrderServiceCreateTest {
     @DisplayName("비회원 주문 생성 - 성공")
     void createOrder_NonMember_Success() {
         // given
-        // 비회원(userInfo = null) 시나리오
-        UserInfo nonMemberInfo = null;
+        // 비회원(userInfo != null, userInfo.userId() == null) 시나리오
+        UserInfo nonMemberInfo = new UserInfo(null, "some-guest-uuid", "GUEST");
 
         // 비회원용 요청 데이터 (쿠폰 ID와 포인트 사용 없음)
         OrderCreateRequest nonMemberRequest = new OrderCreateRequest(

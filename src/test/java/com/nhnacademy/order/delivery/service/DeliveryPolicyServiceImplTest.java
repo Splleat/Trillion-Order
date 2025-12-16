@@ -69,7 +69,7 @@ class DeliveryPolicyServiceImplTest {
     @Test
     void updateDeliveryPolicy_Success() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         DeliveryPolicyUpdateRequest request = new DeliveryPolicyUpdateRequest(3500, 60000);
         given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.of(deliveryPolicy));
 
@@ -86,7 +86,7 @@ class DeliveryPolicyServiceImplTest {
     @Test
     void updateDeliveryPolicy_CreateNew_WhenNotConfigured() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         DeliveryPolicyUpdateRequest request = new DeliveryPolicyUpdateRequest(3500, 60000);
         given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.empty());
 

@@ -24,6 +24,7 @@ public class BookService {
     private final ResilienceFallbackHandler fallbackHandler;
     private static final String SERVICE_NAME = "도서 API";
 
+    // 도서 정보 조회
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackGetBookInfos")
     @Retry(name = "book-service")
     public Map<Long, BookResponse> getBookInfos(List<Long> bookIds) {
@@ -33,18 +34,21 @@ public class BookService {
                 .collect(Collectors.toMap(BookResponse::bookId, Function.identity()));
     }
 
+    // 재고 감소 (주문 생성)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackDecreaseStocks")
     @Retry(name = "book-service")
     public void decreaseStocks(Map<Long, Integer> quantityMap) {
         bookClient.decreaseStocks(new BookStocksRequest(quantityMap));
     }
 
+    // 재고 증가 (주문 취소, 주문 상품 환불)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackIncreaseStocks")
     @Retry(name = "book-service")
     public void increaseStocks(Map<Long, Integer> quantityMap) {
         bookClient.increaseStocks(new BookStocksRequest(quantityMap));
     }
 
+    // 재고 복구 (주문 생성 실패 시)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackRollbackStocks")
     @Retry(name = "book-service")
     public void rollbackStocks(Map<Long, Integer> quantityMap) {

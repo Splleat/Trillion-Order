@@ -51,7 +51,8 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         // TODO: 환불 요청 DTO에서 quantity도 받아서 처리?
 
-        int refundMoney = Math.max(orderItem.getPrice() - deliveryFee, 0);
+        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
+        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
 
         // 1. 사가 시작
         sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STARTED);
@@ -85,7 +86,8 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         int deliveryFee = getDeliveryFee();
 
-        int refundMoney = Math.max(0, orderItem.getPrice() - deliveryFee);
+        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
+        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
 
         NonMemberRefundSagaStep currentStep = saga.getLastCompletedStep();
 

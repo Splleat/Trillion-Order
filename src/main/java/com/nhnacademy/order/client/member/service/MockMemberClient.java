@@ -13,19 +13,16 @@ public class MockMemberClient implements MemberClient {
 
     @Override
     public void increasePoint(PointUsageRequest request) {
-        log.info("MockMemberClient increasePoint called with: {}", request);
-        // In a mock, we just log the action. No real state change.
+        log.info("MockMemberClient 포인트 증가 요청: {}", request);
     }
 
     @Override
     public void decreasePoint(PointUsageRequest request) {
-        log.info("MockMemberClient decreasePoint called with: {}", request);
-        // In a mock, we just log the action. No real state change.
+        log.info("MockMemberClient 포인트 감소 요청: {}", request);
     }
 
     @Override
     public void rollbackPoint(PointUsageRequest request) {
-        log.info("MockMemberClient rollbackPoint called with: {}", request);
-        // In a mock, we just log the action. No real state change.
+        log.info("MockMemberClient 포인트 복구 요청: {}", request);
     }
 }

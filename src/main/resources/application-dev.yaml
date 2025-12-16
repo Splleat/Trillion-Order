@@ -53,10 +53,8 @@ eureka:
 
 logging:
   level:
-    org.hibernate.type: trace
-    org.hibernate.orm.jdbc.bind: trace
-    org.springframework.transaction.interceptor: trace
-    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    root: WARN  # 기본 로그 레벨을 WARN으로 설정하여 대부분의 프레임워크 로그 숨김
+    com.nhnacademy.order: INFO # 애플리케이션 비즈니스 로직 로그만 INFO 레벨로 출력
 
 # Resilience4j 설정
 resilience4j:
