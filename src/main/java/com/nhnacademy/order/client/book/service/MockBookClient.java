@@ -31,16 +31,16 @@ public class MockBookClient implements BookClient {
 
     @Override
     public void increaseStocks(BookStocksRequest request) {
-        log.info("MockBookClient increaseStocks called with: {}", request);
+        log.info("MockBookClient 재고 증가 요청: {}", request);
     }
 
     @Override
     public void decreaseStocks(BookStocksRequest request) {
-        log.info("MockBookClient decreaseStocks called with: {}", request);
+        log.info("MockBookClient 재고 감소 요청: {}", request);
     }
 
     @Override
     public void rollbackStocks(BookStocksRequest request) {
-        log.info("MockBookClient rollbackStocks called with: {}", request);
+        log.info("MockBookClient 재고 복원 요청: {}", request);
     }
 }

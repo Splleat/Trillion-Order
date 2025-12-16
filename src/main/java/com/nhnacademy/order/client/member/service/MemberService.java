@@ -15,18 +15,21 @@ public class MemberService {
     private final ResilienceFallbackHandler fallbackHandler;
     private static final String SERVICE_NAME = "회원 API";
 
+    // 포인트 차감 (주문 생성)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackDecreasePoint")
     @Retry(name = "member-service")
     public void decreasePoint(Long memberId, int point) {
         memberClient.decreasePoint(new PointUsageRequest(memberId, point));
     }
 
+    // 포인트 적립 (주문 취소)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackIncreasePoint")
     @Retry(name = "member-service")
     public void increasePoint(Long memberId, int point) {
         memberClient.increasePoint(new PointUsageRequest(memberId, point));
     }
 
+    // 포인트 복구 (주문 생성 실패 시)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackRollbackPoint")
     @Retry(name = "member-service")
     public void rollbackPoint(Long memberId, int point) {

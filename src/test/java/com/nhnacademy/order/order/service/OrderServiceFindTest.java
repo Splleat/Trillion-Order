@@ -53,7 +53,7 @@ class OrderServiceFindTest {
     void findOrderByOrderId_Success() {
         // given
         long orderId = 1L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
         OrderBaseResponse dummyBaseResponse = new OrderBaseResponse(
                 orderId, 1L, "ORD-1234", LocalDateTime.now(), OrderStatus.PENDING,
                 40500, 34500, 0, 1000, 0, // totalCouponDiscount 추가
@@ -82,7 +82,7 @@ class OrderServiceFindTest {
     void findOrderByOrderId_Failure_NotFound() {
         // given
         long nonExistentOrderId = 999L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
         when(orderRepository.findBaseOrderById(nonExistentOrderId)).thenReturn(Optional.empty());
 
         // when & then
@@ -140,7 +140,7 @@ class OrderServiceFindTest {
     @DisplayName("회원 주문 목록 조회 - 성공")
     void findAllOrderByMemberId_Success() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
         List<OrderBaseResponse> baseResponses = List.of(
                 new OrderBaseResponse(1L, userInfo.userId(), "ORD-1", LocalDateTime.now(), OrderStatus.COMPLETED, 100, 100, 0, 0, 0, new OrdererInfo("n", "c"), new ReceiverInfo("n", "c", "a")),
@@ -162,7 +162,7 @@ class OrderServiceFindTest {
     @DisplayName("회원 주문 목록 조회 - 성공: 주문 내역 없음")
     void findAllOrderByMemberId_Success_NoOrders() {
         // given
-        UserInfo userInfo = new UserInfo(2L, "MEMBER");
+        UserInfo userInfo = new UserInfo(2L, null, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
         when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(Page.empty(pageable));
 

@@ -46,10 +46,10 @@ public class OrderControllerImpl implements OrderController {
         return ResponseEntity.ok(response);
     }
 
-    // 주문 전체 조회 (회원)
+    // 결제 완료된 주문 전체 조회 (회원)
     @Override
     @GetMapping("/orders")
-    public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable,
+    public ResponseEntity<Page<OrderResponse>> getAllCompletedOrderByCustomer(Pageable pageable,
                                                                      UserInfo userInfo) {
         Page<OrderResponse> response = orderService.findAllOrderByMemberId(userInfo, pageable);
 

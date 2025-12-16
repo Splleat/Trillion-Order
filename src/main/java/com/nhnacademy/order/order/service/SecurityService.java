@@ -18,6 +18,9 @@ public class SecurityService {
 
     // 해당 주문의 소유자인지 검사
     public boolean isOrderOwner(UserInfo userInfo, Long orderId) {
+        if (userInfo == null || userInfo.userId() == null) {
+            return false;
+        }
         Long ownerMemberId = orderRepository.findMemberIdByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
 

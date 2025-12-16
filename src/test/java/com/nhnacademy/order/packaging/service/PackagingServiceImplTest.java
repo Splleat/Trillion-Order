@@ -61,7 +61,7 @@ class PackagingServiceImplTest {
     @Test
     void updatePackaging_Success() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         Long packagingId = 1L;
         PackagingUpdateRequest request = new PackagingUpdateRequest(1500);
         given(packagingRepository.findById(packagingId)).willReturn(Optional.of(packaging1));
@@ -78,7 +78,7 @@ class PackagingServiceImplTest {
     @Test
     void updatePackaging_Fail_PackagingNotFound() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         Long packagingId = 3L;
         PackagingUpdateRequest request = new PackagingUpdateRequest(1500);
         given(packagingRepository.findById(packagingId)).willReturn(Optional.empty());
@@ -93,7 +93,7 @@ class PackagingServiceImplTest {
     @Test
     void deletePackaging_Success() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         Long packagingId = 1L;
         given(packagingRepository.existsById(packagingId)).willReturn(true);
 
@@ -108,7 +108,7 @@ class PackagingServiceImplTest {
     @Test
     void deletePackaging_Fail_PackagingNotFound() {
         // given
-        UserInfo userInfo = new UserInfo(1L, "ADMIN");
+        UserInfo userInfo = new UserInfo(1L, null, "ADMIN");
         Long packagingId = 3L;
         given(packagingRepository.existsById(packagingId)).willReturn(false);
 
