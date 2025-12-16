@@ -15,7 +15,7 @@ import java.util.List;
 @Profile("!local")
 @FeignClient(name = "BOOK-SERVICE", configuration = FeignClientConfig.class)
 public interface BookClient {
-    @GetMapping("/books")
+    @GetMapping("/books/infos")
     List<BookResponse> getOrderBookInfos(@RequestParam("bookIds") List<Long> bookIds);
 
     @PatchMapping("/books/stocks/increase")

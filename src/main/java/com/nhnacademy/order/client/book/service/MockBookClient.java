@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,7 +23,7 @@ public class MockBookClient implements BookClient {
                 .map(id -> new BookResponse(
                         id,
                         "Mock Book Title " + id,
-                        1L,
+                        Set.of(1L),
                         25000,
                         true,
                         "http://example.com/mock_book_" + id + ".jpg"))

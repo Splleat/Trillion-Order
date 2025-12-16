@@ -1,0 +1,4 @@
+# 테스트 환경 설정 파일
+spring:
+  profiles:
+    active: dev

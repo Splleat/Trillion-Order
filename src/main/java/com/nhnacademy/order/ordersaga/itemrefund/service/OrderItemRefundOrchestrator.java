@@ -98,7 +98,7 @@ public class OrderItemRefundOrchestrator {
         Long memberId = order.getMemberId();
 
         // 상품 가격 * 개수 - 쿠폰 할인액
-        int refundAmount = (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount();
+        int refundAmount = Math.max(0, (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount());
 
         int deliveryFee = getDeliveryFee();
 

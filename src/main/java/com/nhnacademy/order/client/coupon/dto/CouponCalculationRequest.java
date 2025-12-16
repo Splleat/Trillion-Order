@@ -3,6 +3,7 @@ package com.nhnacademy.order.client.coupon.dto;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 
 import java.util.List;
+import java.util.Set;
 
 public record CouponCalculationRequest(
     Long memberId,
@@ -11,14 +12,14 @@ public record CouponCalculationRequest(
 ) {
     public record CouponCalculationOrderItem(
         Long bookId,
-        Long categoryId,
+        Set<Long> categoryIds,
         int price,
         int quantity
     ) {
-        public static CouponCalculationOrderItem create(OrderItem orderItem, Long categoryId) {
+        public static CouponCalculationOrderItem create(OrderItem orderItem, Set<Long> categoryIds) {
             return new CouponCalculationOrderItem(
                 orderItem.getBookId(),
-                categoryId,
+                categoryIds,
                 orderItem.getPrice(),
                 orderItem.getQuantity()
             );
