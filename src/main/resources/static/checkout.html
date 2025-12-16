@@ -7,126 +7,85 @@
     <style>
         body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; padding-top: 50px; }
         .wrapper { width: 600px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; margin-bottom: 30px; color: #333; }
         .input-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: #f0f0f0; color: #333; }
-        .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
-        .method-btn { padding: 15px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: #555; transition: all 0.2s; }
-        .method-btn:hover { background-color: #f5f5f5; }
-        .method-btn.selected { border-color: #3182f6; background-color: #e8f3ff; color: #3182f6; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .test-badge { background: #ffeebb; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba; }
         .submit-btn { width: 100%; padding: 16px; background-color: #3182f6; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        .info-box { background: #e8f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: #1b64da; }
     </style>
 </head>
 <body>
 <div class="wrapper">
-    <h1>주문 / 결제</h1>
+    <h1>주문 / 결제 테스트</h1>
 
-    <div class="info-box">
-        <strong>[전략 패턴 테스트]</strong><br/>
-        결제 완료 시 URL에 <code>provider=TOSS</code>가 자동으로 붙어<br/>
-        백엔드 라우팅 서비스가 동작하게 됩니다.
+    <div class="test-badge">
+        <label>🕵️ 테스트용 신분 선택 (Role 시뮬레이션)</label>
+        <div style="display: flex; gap: 10px;">
+            <select id="userType" style="flex: 1;">
+                <option value="MEMBER">회원 (Member)</option>
+                <option value="GUEST">비회원 (Guest)</option>
+            </select>
+            <input type="text" id="userId" value="1" placeholder="ID 값 (예: 1 or uuid)" style="flex: 2;">
+        </div>
+        <p style="font-size: 12px; margin-top: 5px; color: #666;">* 회원은 ID 1, 비회원은 임의의 숫자 입력</p>
     </div>
 
     <div class="input-group">
         <label>주문번호 (UUID)</label>
-        <input type="text" id="orderId" placeholder="주문 번호를 입력하거나 URL로 전달하세요" />
+        <input type="text" id="orderId" placeholder="자동 생성됨" />
     </div>
 
     <div class="input-group">
         <label>결제금액</label>
-        <input type="text" id="amount" placeholder="금액" />
+        <input type="text" id="amount" value="15000" />
     </div>
 
     <div class="input-group">
         <label>주문자명</label>
-        <input type="text" id="ordererName" value="테스트 주문자" />
+        <input type="text" id="ordererName" value="테스트 홍길동" />
     </div>
 
-    <div class="input-group">
-        <label>주문명</label>
-        <input type="text" id="orderName" value="테스트 도서 외 1건" />
-    </div>
-
-    <label>결제 수단 선택</label>
-    <div class="payment-methods">
-        <button class="method-btn selected" onclick="selectMethod('카드')">카드</button>
-        <button class="method-btn" onclick="selectMethod('계좌이체')">계좌이체</button>
-        <button class="method-btn" onclick="selectMethod('가상계좌')">가상계좌</button>
-    </div>
-
-    <button class="submit-btn" id="payment-button" onclick="processPayment()">
-        결제하기
-    </button>
+    <button class="submit-btn" id="payment-button" onclick="processPayment()">결제하기</button>
 </div>
 
 <script>
-    const clientKey = "test_ck_vZnjEJeQVxnQWGOa5XOq8PmOoBN0";
+    const clientKey = "test_ck_vZnjEJeQVxnQWGOa5XOq8PmOoBN0"; // ★ 본인의 Client Key로 변경 필수 ★
     const tossPayments = TossPayments(clientKey);
-    let selectedMethod = '카드';
 
-    // URL 파라미터 파싱하여 input 채우기
-    window.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('orderNumber')) document.getElementById('orderId').value = params.get('orderNumber');
-        if (params.get('amount')) document.getElementById('amount').value = params.get('amount');
-        if (params.get('orderName')) document.getElementById('orderName').value = params.get('orderName');
-        if (params.get('customerName')) document.getElementById('ordererName').value = params.get('customerName');
-        updateButtonText();
-    });
-
-    document.getElementById('amount').addEventListener('input', updateButtonText);
-
-    function updateButtonText() {
-        const amt = document.getElementById('amount').value;
-        const btn = document.getElementById('payment-button');
-        btn.innerText = amt ? Number(amt).toLocaleString() + "원 결제하기" : "결제하기";
-    }
-
-    function selectMethod(method) {
-        selectedMethod = method;
-        document.querySelectorAll('.method-btn').forEach(btn => {
-            btn.classList.toggle('selected', btn.innerText === method);
-        });
-    }
+    // UUID 생성
+    document.getElementById('orderId').value = 'ORD-' + crypto.randomUUID().substring(0,8);
 
     async function processPayment() {
-        const button = document.getElementById("payment-button");
         const orderIdVal = document.getElementById("orderId").value;
         const amountVal = document.getElementById("amount").value;
-        const orderNameVal = document.getElementById("orderName").value;
-        const customerNameVal = document.getElementById("ordererName").value;
+        const ordererName = document.getElementById("ordererName").value;
 
-        if (!orderIdVal || !amountVal) {
-            alert("주문번호와 금액은 필수입니다.");
-            return;
-        }
+        // 테스트용 신분 정보
+        const userType = document.getElementById("userType").value;
+        const userId = document.getElementById("userId").value;
 
-        button.disabled = true;
+        // Role 결정 로직
+        let userRole = "GUEST";
+        if (userType === "MEMBER") userRole = "ROLE_USER";
 
         try {
             const currentOrigin = window.location.origin;
 
-            // [전략 패턴 핵심] provider=TOSS 파라미터를 successUrl에 추가합니다.
-            // 나중에 카카오페이라면 provider=KAKAO로 보내면 됩니다.
-            const successUrl = `${currentOrigin}/success.html?provider=TOSS`;
+            // successUrl에 Role 정보도 같이 넘김
+            const successUrl = `${currentOrigin}/success.html?provider=TOSS&userType=${userType}&userId=${userId}&userRole=${userRole}`;
             const failUrl = `${currentOrigin}/fail.html`;
 
-            await tossPayments.requestPayment(selectedMethod, {
+            await tossPayments.requestPayment('카드', {
                 amount: Number(amountVal),
                 orderId: orderIdVal,
-                orderName: orderNameVal,
-                customerName: customerNameVal,
+                orderName: "테스트 상품",
+                customerName: ordererName,
                 successUrl: successUrl,
                 failUrl: failUrl,
             });
 
         } catch (error) {
-            console.error("Error:", error);
             alert("결제 창 호출 실패: " + error.message);
-            button.disabled = false;
         }
     }
 </script>
