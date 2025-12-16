@@ -1,9 +1,11 @@
 package com.nhnacademy.order.client.book.dto;
 
+import java.util.Set;
+
 public record BookResponse(
     Long bookId,
     String bookName,
-    Long categoryId,
+    Set<Long> categoryIds,
     int price,
     boolean canPackage,
     String imageUrl

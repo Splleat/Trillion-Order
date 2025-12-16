@@ -56,7 +56,7 @@ public class MockCouponClient implements CouponClient {
         } else if (Objects.equals(request.couponId(), CATEGORY_COUPON_ID)) {
             // Mock: 카테고리(101L) 5,000원 할인
             for (CouponCalculationRequest.CouponCalculationOrderItem item : request.items()) {
-                if (Objects.equals(item.categoryId(), TARGET_CATEGORY_ID)) {
+                if (item.categoryIds().contains(TARGET_CATEGORY_ID)) {
                     int discountAmount = Math.min(item.price() * item.quantity(), 5000); // 상품 금액을 넘지 않도록
                     itemDiscounts.add(new CouponCalculationResponse.ItemDiscount(item.bookId(), discountAmount));
                     totalDiscount += discountAmount;
