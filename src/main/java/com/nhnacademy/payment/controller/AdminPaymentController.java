@@ -12,6 +12,7 @@
 
 package com.nhnacademy.payment.controller;
 
+import com.nhnacademy.payment.config.PaymentUser;
 import com.nhnacademy.payment.dto.reqeust.PaymentCancelRequestDto;
 import com.nhnacademy.payment.dto.response.AdminPaymentResponse;
 import com.nhnacademy.payment.entity.Payment;
@@ -25,14 +26,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/payment")
+@RequestMapping("/admin/payment")
 public class AdminPaymentController {
     private final PaymentService paymentService;
     private final PaymentFlowService paymentFlowService;
 
-    //결제 전체 조회
+    //관리자 결제내역 전체 조회
     @GetMapping
-    public ResponseEntity<Page<AdminPaymentResponse>> getPayments(Pageable pageable) {
+    public ResponseEntity<Page<AdminPaymentResponse>> getPayments(PaymentUser user, Pageable pageable) {
+        validateAdminRole(user);
+
         Page<Payment> payments = paymentService.getAllPayments(pageable);
         Page<AdminPaymentResponse> responses = payments.map(AdminPaymentResponse::from);
         return ResponseEntity.ok(responses);
@@ -40,20 +43,29 @@ public class AdminPaymentController {
 
     //관리자 결제 내역 단건 조회
     @GetMapping({"/{paymentId}"})
-    public ResponseEntity<?> getPayment(@PathVariable Long paymentId) {
+    public ResponseEntity<?> getPayment(PaymentUser user, @PathVariable Long paymentId) {
+
+        validateAdminRole(user);
         Payment payment = paymentService.getPaymentById(paymentId);
         return ResponseEntity.ok(AdminPaymentResponse.from(payment));
     }
 
     //관리자 결제 취소.
     @PostMapping("/cancel")
-    public ResponseEntity<?> cancelPayment(@RequestBody PaymentCancelRequestDto request) {
-        paymentFlowService.cancelPayment(
+    public ResponseEntity<?> cancelPayment(PaymentUser user,  @RequestBody PaymentCancelRequestDto request) {
+        paymentFlowService.cancelPaymentByMember(
                 request.orderNumber(),
                 request.cancelReason(),
-                request.cancelAmount()
+                request.cancelAmount(),
+                user
         );
 
         return ResponseEntity.noContent().build();
+    }
+
+    private void validateAdminRole(PaymentUser user) {
+        if (!"ROLE_ADMIN".equals(user.role())) {
+            throw new IllegalArgumentException("관리자 권한이 필요합니다.");
+        }
     }
 }

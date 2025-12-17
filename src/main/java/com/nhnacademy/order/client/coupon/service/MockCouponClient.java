@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Profile("local")
@@ -56,7 +57,7 @@ public class MockCouponClient implements CouponClient {
         } else if (Objects.equals(request.couponId(), CATEGORY_COUPON_ID)) {
             // Mock: 카테고리(101L) 5,000원 할인
             for (CouponCalculationRequest.CouponCalculationOrderItem item : request.items()) {
-                if (Objects.equals(item.categoryId(), TARGET_CATEGORY_ID)) {
+                if (item.categoryIds().contains(TARGET_CATEGORY_ID)) {
                     int discountAmount = Math.min(item.price() * item.quantity(), 5000); // 상품 금액을 넘지 않도록
                     itemDiscounts.add(new CouponCalculationResponse.ItemDiscount(item.bookId(), discountAmount));
                     totalDiscount += discountAmount;
@@ -83,17 +84,17 @@ public class MockCouponClient implements CouponClient {
     }
 
     @Override
-    public void applyCoupon(CouponApplyRequest request) {
+    public void applyCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 사용 요청: {}", request);
     }
 
     @Override
-    public void withdrawCoupon(CouponApplyRequest request) {
+    public void withdrawCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 사용 취소 요청: {}", request);
     }
 
     @Override
-    public void rollbackCoupon(CouponApplyRequest request) {
+    public void rollbackCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 복원 요청: {}", request);
     }
 }

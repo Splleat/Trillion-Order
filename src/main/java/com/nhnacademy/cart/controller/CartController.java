@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/carts")
+@RequestMapping("/carts")
 @RequiredArgsConstructor
 public class CartController implements CartControllerDocs {
 
@@ -24,7 +24,7 @@ public class CartController implements CartControllerDocs {
 
     /**
      * [장바구니 담기]
-     * POST /api/carts
+     * POST /carts
      * - CartHolder: Resolver가 헤더(회원)/쿠키(비회원)를 판단해 주입
      * - Response: 담기 성공 후 UI 갱신을 위해 '현재 장바구니 총 개수'를 반환
      */

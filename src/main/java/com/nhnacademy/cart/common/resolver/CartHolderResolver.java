@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 @Component
 public class CartHolderResolver implements HandlerMethodArgumentResolver {
-    private static final String COOKIE_NAME = "SESSION";
+    private static final String COOKIE_NAME = "X-Guest-Id";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {

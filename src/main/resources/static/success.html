@@ -4,18 +4,18 @@
     <meta charset="utf-8" />
     <title>결제 성공 - NHN Books</title>
     <style>
-        body { font-family: sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .box_section { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 500px; text-align: center; }
         .p-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 16px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
         .p-grid:last-child { border-bottom: none; }
         .text--left { text-align: left; color: #666; font-weight: bold; }
         .text--right { text-align: right; color: #333; }
         h2 { margin-bottom: 30px; color: #333; }
-        .button { background-color: #3182f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 30px; text-decoration: none; display: inline-block; }
+        .button { background-color: #3182f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 30px; text-decoration: none; display: inline-block; font-weight: bold; }
         .button:hover { background-color: #1b64da; }
         #loading { margin-top: 20px; color: #666; font-weight: bold; font-size: 18px; }
         .error-msg { color: #dc3545; font-weight: bold; margin-top: 20px; word-break: break-all; }
-        .badge { background: #eee; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #555; vertical-align: middle; margin-left: 5px; }
+        .badge { background: #e7f1ff; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #0d6efd; vertical-align: middle; margin-left: 5px; font-weight: bold; }
     </style>
 </head>
 
@@ -34,23 +34,23 @@
         </div>
         <div class="p-grid">
             <div class="text--left">주문번호</div>
-            <div class="text--right" id="orderNumber"></div>
+            <div class="text--right" id="orderNumber" style="font-weight: bold;"></div>
         </div>
         <div class="p-grid">
             <div class="text--left">결제금액</div>
-            <div class="text--right" id="amount"></div>
+            <div class="text--right" id="amount" style="color: #3182f6; font-weight: bold;"></div>
         </div>
         <div class="p-grid">
             <div class="text--left">승인일시</div>
-            <div class="text--right" id="approvedAt"></div>
+            <div class="text--right" id="approvedAt" style="font-size: 14px; color: #888;"></div>
         </div>
         <div class="p-grid">
             <div class="text--left">상태</div>
-            <div class="text--right" id="status" style="color: #3182f6; font-weight: bold;"></div>
+            <div class="text--right" id="status" style="font-weight: bold;"></div>
         </div>
 
         <div style="margin-top: 20px; font-size: 14px;">
-            <a href="#" id="receiptLink" target="_blank" style="color: #666;">영수증 보기</a>
+            <a href="#" id="receiptLink" target="_blank" style="color: #666; text-decoration: underline;">영수증 보기</a>
         </div>
 
         <a href="/checkout.html" class="button">메인으로 돌아가기</a>
@@ -58,71 +58,94 @@
 </div>
 
 <script>
-    // 1. URL 파라미터 파싱
     const urlParams = new URLSearchParams(window.location.search);
     const paymentKey = urlParams.get("paymentKey");
     const orderId = urlParams.get("orderId");
     const amount = urlParams.get("amount");
-
-    // [핵심] checkout.html에서 넘겨준 provider를 받음 (없으면 기본값 TOSS)
     const provider = urlParams.get("provider") || "TOSS";
+
+    // checkout.html에서 넘겨준 신분/권한 정보 파싱
+    const userType = urlParams.get("userType"); // MEMBER or GUEST
+    const userId = urlParams.get("userId");
+    const userRole = urlParams.get("userRole") || "GUEST";
 
     async function confirmPayment() {
         if (!paymentKey || !orderId || !amount) {
-            showError("인증 정보가 부족합니다.");
+            showError("인증 정보가 부족합니다. (paymentKey, orderId, amount 필수)");
             return;
         }
 
+        // 1. 헤더 동적 구성 (Resolver 대응)
+        const headers = {
+            "Content-Type": "application/json",
+            "X-Member-Role": userRole // ★ Role 헤더 추가 필수
+        };
+
+        if (userType === "MEMBER") {
+            headers["X-Member-Id"] = userId;
+        } else if (userType === "GUEST") {
+            headers["X-Guest-Id"] = userId;
+        }
+
         try {
-            // 2. 백엔드로 최종 승인 요청 (PaymentRequestDto에 provider 필드 포함)
-            const response = await fetch("/api/payment/confirm", {
+            console.log("Sending Headers:", headers); // 디버깅용
+
+            // 2. 승인 API 호출
+            const response = await fetch("/payment/confirm", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: headers,
                 body: JSON.stringify({
                     paymentKey: paymentKey,
                     orderNumber: orderId,
                     amount: Number(amount),
-                    provider: provider // "TOSS" 전달 -> RoutingService가 처리
+                    provider: provider
                 })
             });
 
             const json = await response.json();
 
             if (!response.ok) {
-                throw new Error(json.message || "결제 승인 실패");
+                throw new Error(json.message || `승인 실패 (${response.status})`);
             }
 
-            // 3. UI 바인딩 (공통 DTO 기준)
+            // 3. 화면 데이터 바인딩
             document.getElementById("loading").style.display = "none";
             document.getElementById("result-view").style.display = "block";
 
-            document.getElementById("provider").textContent = json.provider; // TOSS
-            document.getElementById("orderNumber").textContent = json.orderId; // or json.orderNumber
-            document.getElementById("amount").textContent = Number(json.totalAmount).toLocaleString() + "원";
-            document.getElementById("status").textContent = json.status;
+            document.getElementById("orderNumber").textContent = json.orderNumber || orderId;
 
-            if(json.approvedAt) {
-                document.getElementById("approvedAt").textContent = new Date(json.approvedAt).toLocaleString();
+            const totalAmount = json.totalAmount !== undefined ? json.totalAmount : amount;
+            document.getElementById("amount").textContent = Number(totalAmount).toLocaleString() + "원";
+
+            document.getElementById("provider").textContent = json.provider || provider;
+            document.getElementById("status").textContent = json.status || "DONE";
+
+            if (json.approvedAt) {
+                document.getElementById("approvedAt").textContent = new Date(json.approvedAt).toLocaleString('ko-KR');
+            } else {
+                document.getElementById("approvedAt").textContent = new Date().toLocaleString('ko-KR');
             }
 
+            const receiptLink = document.getElementById("receiptLink");
             if (json.receiptUrl) {
-                document.getElementById("receiptLink").href = json.receiptUrl;
+                receiptLink.href = json.receiptUrl;
             } else {
-                document.getElementById("receiptLink").style.display = 'none';
+                receiptLink.style.display = "none";
             }
 
         } catch (err) {
             console.error(err);
-            showError(`[승인 실패] ${err.message}`);
+            showError(err.message);
         }
     }
 
     function showError(msg) {
         document.getElementById("loading").style.display = "none";
         document.getElementById("error-view").style.display = "block";
-        document.getElementById("error-view").textContent = msg;
+        document.getElementById("error-view").innerText = `❌ 오류 발생: ${msg}`;
     }
 
+    // 실행
     confirmPayment();
 </script>
 </body>

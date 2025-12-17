@@ -46,10 +46,9 @@ spring:
   cloud:
     config:
       enabled: false
-
-eureka:
-  client:
-    enabled: false
+    openfeign:
+      okhttp:
+        enabled: true
 
 logging:
   level:
@@ -75,9 +74,9 @@ resilience4j:
         # 반-열림 상태에서 받을 요청의 개수 (해당 요청들 중 하나라도 실패하면 서킷을 다시 열고, 모두 통과하면 닫음)
         permitted-number-of-calls-in-half-open-state: 3
     instances:
-      BOOK-SERVICE: {}
-      COUPON-SERVICE: {}
-      MEMBER-SERVICE: {}
+      book-service: {}
+      coupon-service: {}
+      member-service: {}
 
   retry:
     configs:
@@ -94,9 +93,9 @@ resilience4j:
           # 응답이 너무 늦는 경우
           - java.util.concurrent.TimeoutException
     instances:
-      BOOK-SERVICE: {}
-      COUPON-SERVICE: {}
-      MEMBER-SERVICE: {}
+      book-service: {}
+      coupon-service: {}
+      member-service: {}
 
 # 환경 변수 설정
 # 기존: secret-key: ${TOSS_KEY}
@@ -121,4 +120,13 @@ cart:
     #
     batch-size: 300
     # 마이그레이션 스케쥴러 딜레이 (ex. 180000 == 3분)
+    migration-delay: 180000
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
     migration-delay: 180000

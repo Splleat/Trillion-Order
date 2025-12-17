@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,37 +38,37 @@ public class BookService {
     // 재고 감소 (주문 생성)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackDecreaseStocks")
     @Retry(name = "book-service")
-    public void decreaseStocks(Map<Long, Integer> quantityMap) {
-        bookClient.decreaseStocks(new BookStocksRequest(quantityMap));
+    public void decreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
+        bookClient.decreaseStocks(sagaId, new BookStocksRequest(quantityMap));
     }
 
     // 재고 증가 (주문 취소, 주문 상품 환불)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackIncreaseStocks")
     @Retry(name = "book-service")
-    public void increaseStocks(Map<Long, Integer> quantityMap) {
-        bookClient.increaseStocks(new BookStocksRequest(quantityMap));
+    public void increaseStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
+        bookClient.increaseStocks(sagaId, new BookStocksRequest(quantityMap));
     }
 
     // 재고 복구 (주문 생성 실패 시)
     @CircuitBreaker(name = "book-service", fallbackMethod = "fallbackRollbackStocks")
     @Retry(name = "book-service")
-    public void rollbackStocks(Map<Long, Integer> quantityMap) {
-        bookClient.rollbackStocks(new BookStocksRequest(quantityMap));
+    public void rollbackStocks(UUID sagaId, Map<Long, Integer> quantityMap) {
+        bookClient.rollbackStocks(sagaId, new BookStocksRequest(quantityMap));
     }
 
     private Map<Long, BookResponse> fallbackGetBookInfos(List<Long> bookIds, Throwable throwable) {
         return fallbackHandler.handle(SERVICE_NAME, "도서 정보 조회", throwable);
     }
 
-    private void fallbackDecreaseStocks(Map<Long, Integer> quantityMap, Throwable throwable) {
+    private void fallbackDecreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "재고 감소", throwable);
     }
 
-    private void fallbackIncreaseStocks(Map<Long, Integer> quantityMap, Throwable throwable) {
+    private void fallbackIncreaseStocks(UUID sagaId, Map<Long, Integer> quantityMap, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "재고 증가", throwable);
     }
 
-    private void fallbackRollbackStocks(Map<Long, Integer> quantityMap, Throwable throwable) {
+    private void fallbackRollbackStocks(UUID sagaId, Map<Long, Integer> quantityMap, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "재고 복구", throwable);
     }
 }

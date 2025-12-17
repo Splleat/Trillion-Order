@@ -64,8 +64,8 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            SERVICE_NAME1="order-peer1"
-            SERVICE_NAME2="order-peer2"
+            SERVICE_NAME1="trillion-order-peer1"
+            SERVICE_NAME2="triilon-order-peer2"
             echo "SSH 접속 및 디렉토리 이동..."
             mkdir -p ${{ env.DEPLOY_DIR }}
             cd ${{ env.DEPLOY_DIR }}

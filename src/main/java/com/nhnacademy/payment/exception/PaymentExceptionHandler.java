@@ -31,7 +31,7 @@ public class PaymentExceptionHandler {
     public ResponseEntity<PaymentErrorResponse> handlePaymentAmountException(Exception e) {
         log.warn("결제 유효성 검증 실패 : {} ",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "INVALID_PAYMENT_AMOUNT",
+                HttpStatus.BAD_REQUEST.toString(),
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -43,7 +43,7 @@ public class PaymentExceptionHandler {
     public ResponseEntity<PaymentErrorResponse> handlePaymentStateConflictException(Exception e) {
         log.info("결제 상태 충돌 : {}",e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "PAYMENT_STATE_CONFLICT",
+                HttpStatus.CONFLICT.toString(),
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
@@ -53,7 +53,7 @@ public class PaymentExceptionHandler {
     public ResponseEntity<PaymentErrorResponse> handlePaymentNotFoundException(PaymentNotFoundException e){
         log.info("결제 정보를 찾을 수 없음 : {} ", e.getMessage());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "PAYMENT_NOT_FOUND",
+                HttpStatus.BAD_REQUEST.toString(),
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -63,7 +63,7 @@ public class PaymentExceptionHandler {
     public ResponseEntity<PaymentErrorResponse> handlePaymentSaveFailException(PaymentSaveFailException e) {
         log.error("결제 승인은 완료 db 저장에 실패 롤백 주문 건 : {} ", e.getOrderNumber());
         PaymentErrorResponse response = PaymentErrorResponse.of(
-                "PAYMENT_SAVE_FAILED",
+                HttpStatus.INTERNAL_SERVER_ERROR.toString(),
                 e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

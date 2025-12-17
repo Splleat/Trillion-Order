@@ -1,6 +1,7 @@
 package com.nhnacademy.order.common.config;
 
 import com.nhnacademy.order.common.resolver.UserInfoArgumentResolver;
+import com.nhnacademy.payment.resolver.PaymentUserResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -13,10 +14,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     private final UserInfoArgumentResolver userInfoArgumentResolver;
+    private final PaymentUserResolver paymentUserResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(userInfoArgumentResolver);
+        resolvers.add(paymentUserResolver);
     }
 
     // 로컬 테스트용 CORS 설정
