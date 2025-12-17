@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -29,7 +30,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         FROM OrderItem oi
         WHERE oi.order.orderId = :orderId
     """)
-    List<OrderItemResponse> findOrderItemByOrder_OrderId(Long orderId);
+    List<OrderItemResponse> findOrderItemByOrder_OrderId(@Param("orderId") Long orderId);
 
     @Query("""
         SELECT new com.nhnacademy.order.orderitem.dto.OrderItemResponse(
@@ -49,7 +50,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         FROM OrderItem oi
         WHERE oi.order.orderId IN :orderIds
     """)
-    List<OrderItemResponse> findAllByOrderIds(List<Long> orderIds);
+    List<OrderItemResponse> findAllByOrderIds(@Param("orderIds") List<Long> orderIds);
 
 
     @Query("""
@@ -59,7 +60,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         GROUP BY oi.bookId
         ORDER BY SUM(oi.quantity) DESC
     """)
-    List<Long> findTopNSellingBookIds(List<OrderItemStatus> excludeStatuses, Pageable pageable);
+    List<Long> findTopNSellingBookIds(@Param("excludeStatuses") List<OrderItemStatus> excludeStatuses, Pageable pageable);
 
     @Query("""
         SELECT new com.nhnacademy.order.orderitem.dto.OrderItemResponse(
@@ -81,5 +82,5 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         WHERE o.memberId = :memberId
         AND oi.orderItemStatus IN :statuses
     """)
-    Page<OrderItemResponse> findAllByOrder_MemberIdAndOrderItemStatusIn(Long memberId, List<OrderItemStatus> statuses, Pageable pageable);
+    Page<OrderItemResponse> findAllByOrder_MemberIdAndOrderItemStatusIn(@Param("memberId") Long memberId, @Param("statuses") List<OrderItemStatus> statuses, Pageable pageable);
 }

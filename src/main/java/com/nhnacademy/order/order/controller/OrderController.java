@@ -96,7 +96,7 @@ public interface OrderController {
     ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(
             @Parameter(description = "주문의 ID", required = true) @PathVariable Long orderId,
             @Parameter(description = "주문 상품의 ID", required = true) @PathVariable Long orderItemId,
-            @Parameter(description = "변경할 상태 정보", required = true) @RequestBody OrderItemStatusPatchRequest request,
+            @Parameter(description = "변경할 상태 정보", required = true) @RequestBody @Valid OrderItemStatusPatchRequest request,
             UserInfo userInfo);
 
     @Operation(summary = "주문 상품 상태 변경 (비회원)", description = "비회원 주문에 포함된 개별 상품의 상태를 변경합니다.")
@@ -109,7 +109,7 @@ public interface OrderController {
     ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(
             @Parameter(description = "주문의 ID", required = true) @PathVariable Long orderId,
             @Parameter(description = "주문 상품의 ID", required = true) @PathVariable Long orderItemId,
-            @Parameter(description = "변경할 상태 정보 및 비밀번호", required = true) @RequestBody NonMemberOrderItemStatusPatchRequest request);
+            @Parameter(description = "변경할 상태 정보 및 비밀번호", required = true) @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request);
 
     @Operation(summary = "주문 취소 (회원/관리자)", description = "특정 주문을 취소합니다. 결제 이전의 주문만 취소할 수 있습니다.")
     @ApiResponses(value = {

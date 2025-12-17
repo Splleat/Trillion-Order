@@ -103,7 +103,7 @@ public class OrderControllerImpl implements OrderController {
     @Override
     @PatchMapping("/orders/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable Long orderId, @PathVariable Long orderItemId,
-                                                                        @RequestBody OrderItemStatusPatchRequest request,
+                                                                        @RequestBody @Valid OrderItemStatusPatchRequest request,
                                                                         UserInfo userInfo) {
         orderService.patchOrderItemStatus(userInfo, orderId, orderItemId, request);
 
@@ -114,7 +114,7 @@ public class OrderControllerImpl implements OrderController {
     @Override
     @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
-                                                                          @RequestBody NonMemberOrderItemStatusPatchRequest request) {
+                                                                          @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request) {
         orderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         return ResponseEntity.ok().build();

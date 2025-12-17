@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         WHERE o.orderId = :orderId
     """)
-    Optional<Long> findMemberIdByOrderId(Long orderId);
+    Optional<Long> findMemberIdByOrderId(@Param("orderId") Long orderId);
 
     @Query("""
         SELECT o
@@ -27,7 +28,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         LEFT JOIN FETCH o.orderCoupons
         WHERE o.orderId = :orderId
     """)
-    Optional<Order> findOrderWithItemsByOrderId(Long orderId);
+    Optional<Order> findOrderWithItemsByOrderId(@Param("orderId") Long orderId);
 
     @Query("""
         SELECT o
@@ -35,7 +36,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         JOIN FETCH o.orderItems
         WHERE o.orderNumber = :orderNumber
     """)
-    Optional<Order> findOrderWithItemsByOrderNumber(String orderNumber);
+    Optional<Order> findOrderWithItemsByOrderNumber(@Param("orderNumber") String orderNumber);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
@@ -74,7 +75,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         WHERE o.orderId = :orderId
     """)
-    Optional<OrderBaseResponse> findBaseOrderById(Long orderId);
+    Optional<OrderBaseResponse> findBaseOrderById(@Param("orderId") Long orderId);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
@@ -94,7 +95,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         WHERE o.memberId = :memberId
     """)
-    Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, Long memberId);
+    Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, @Param("memberId") Long memberId);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
@@ -115,7 +116,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.memberId = :memberId
         AND o.orderStatus = :orderStatus
     """)
-    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatus(Pageable pageable, Long memberId, OrderStatus orderStatus);
+    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatus(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatus") OrderStatus orderStatus);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
@@ -136,7 +137,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.memberId = :memberId
         AND o.orderStatus IN :orderStatuses
     """)
-    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatusIn(Pageable pageable, Long memberId, List<OrderStatus> orderStatuses);
+    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatusIn(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatuses") List<OrderStatus> orderStatuses);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse(
@@ -155,5 +156,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         WHERE o.orderNumber = :orderNumber
     """)
-    Optional<NonMemberOrderBaseResponse> findNonMemberOrderByOrderNumber(String orderNumber);
+    Optional<NonMemberOrderBaseResponse> findNonMemberOrderByOrderNumber(@Param("orderNumber") String orderNumber);
 }
