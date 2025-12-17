@@ -79,7 +79,7 @@ public class OrderCreateOrchestrator {
             sagaUpdateService.updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         } catch (Exception e) {
-            log.error("주문 생성 실패, 보상 트랜잭션 시작: {}", e.getMessage(), e);
+            log.error("주문 생성 실패: {}", e.getMessage(), e);
 
             // 12. 보상 트랜잭션 시작
             compensate(saga, order);

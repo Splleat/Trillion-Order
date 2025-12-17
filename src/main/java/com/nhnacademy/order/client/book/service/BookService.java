@@ -56,7 +56,7 @@ public class BookService {
         bookClient.rollbackStocks(sagaId, new BookStocksRequest(quantityMap));
     }
 
-    private Map<Long, BookResponse> fallbackGetBookInfos(UUID sagaId, List<Long> bookIds, Throwable throwable) {
+    private Map<Long, BookResponse> fallbackGetBookInfos(List<Long> bookIds, Throwable throwable) {
         return fallbackHandler.handle(SERVICE_NAME, "도서 정보 조회", throwable);
     }
 

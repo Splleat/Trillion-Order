@@ -47,7 +47,7 @@ public class CouponService {
         couponClient.rollbackCoupon(sagaId, new CouponApplyRequest(memberId, couponId));
     }
 
-    public CouponCalculationResponse fallbackCalculateDiscount(UUID sagaId, CouponCalculationRequest request, Throwable throwable) {
+    public CouponCalculationResponse fallbackCalculateDiscount(CouponCalculationRequest request, Throwable throwable) {
         return fallbackHandler.handle(SERVICE_NAME, "쿠폰 할인가 계산", throwable);
     }
 
