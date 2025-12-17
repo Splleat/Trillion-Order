@@ -2,8 +2,6 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
-import com.nhnacademy.order.common.aop.SagaIdContext;
-import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
@@ -131,7 +129,6 @@ public class OrderServiceImpl implements OrderService {
 
     // 주문 생성
     @Override
-    @SagaIdContext
     public OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request) {
         // 1. 불완전한 초기 Order 생성 (OrderStatus: CREATING)
         String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
@@ -146,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
 
-        UUID sagaId = SagaContext.get();
+        UUID sagaId = UUID.randomUUID();
         OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());
 
         try {
