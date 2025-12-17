@@ -48,7 +48,7 @@ public class OrderCancelOrchestrator {
 
         try {
             // 2. 환불
-            // TODO: PaymentService의 환불 로직 추가
+            // TODO: PaymentService의 결제 취소 추가
             // paymentService.refund(...)
             sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.PAYMENT_CANCELED);
 

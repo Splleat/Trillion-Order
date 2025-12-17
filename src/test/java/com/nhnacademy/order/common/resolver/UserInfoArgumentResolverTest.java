@@ -25,6 +25,7 @@ class UserInfoArgumentResolverTest {
 
         // UserInfo 파라미터를 가진 메서드를 모킹하기 위한 준비
         class TestController {
+            @SuppressWarnings("unused")
             public void testMethod(UserInfo userInfo) {}
         }
 
@@ -41,6 +42,7 @@ class UserInfoArgumentResolverTest {
     @DisplayName("supportsParameter: UserInfo 외 다른 타입은 지원하지 않음")
     void supportsParameter_shouldNotSupportOtherTypes() throws NoSuchMethodException {
         class TestController {
+            @SuppressWarnings("unused")
             public void otherMethod(String other) {}
         }
         MethodParameter otherParameter = new MethodParameter(TestController.class.getMethod("otherMethod", String.class), 0);
@@ -67,13 +69,13 @@ class UserInfoArgumentResolverTest {
     }
 
     @Test
-    @DisplayName("resolveArgument: 비회원 - X-Guest-Id와 X-Member-Role 헤더가 있을 때 UserInfo 객체 생성 성공")
-    void resolveArgument_shouldReturnGuestInfo_whenGuestHeadersExist() throws Exception {
+    @DisplayName("resolveArgument: 비회원 - X-Guest-Id 헤더만 있을 때 UserInfo 객체 생성 성공 (role은 null)")
+    void resolveArgument_shouldReturnGuestInfo_whenOnlyGuestHeaderExists() throws Exception {
         // given
         String guestId = "guest-uuid-12345";
         when(webRequest.getHeader("X-Member-Id")).thenReturn(null);
         when(webRequest.getHeader("X-Guest-Id")).thenReturn(guestId);
-        when(webRequest.getHeader("X-Member-Role")).thenReturn("ROLE_GUEST");
+        when(webRequest.getHeader("X-Member-Role")).thenReturn("ROLE_GUEST"); // This should be ignored
 
         // when
         Object result = resolver.resolveArgument(userInfoParameter, null, webRequest, null);
@@ -83,7 +85,7 @@ class UserInfoArgumentResolverTest {
         UserInfo userInfo = (UserInfo) result;
         assertThat(userInfo.userId()).isNull();
         assertThat(userInfo.guestId()).isEqualTo(guestId);
-        assertThat(userInfo.role()).isEqualTo("ROLE_GUEST");
+        assertThat(userInfo.role()).isNull(); // New logic: role is null for guests
     }
 
     @Test
@@ -106,8 +108,8 @@ class UserInfoArgumentResolverTest {
     }
 
     @Test
-    @DisplayName("resolveArgument: X-Member-Role 헤더가 없을 때 null 반환")
-    void resolveArgument_shouldReturnNull_whenRoleHeaderIsMissing() throws Exception {
+    @DisplayName("resolveArgument: 회원 ID가 있고 Role 헤더가 없을 때, role이 null인 UserInfo 객체 반환")
+    void resolveArgument_shouldResolveMember_whenRoleHeaderIsMissing() throws Exception {
         // given
         when(webRequest.getHeader("X-Member-Id")).thenReturn("123");
         when(webRequest.getHeader("X-Guest-Id")).thenReturn("guest-uuid-12345");
@@ -117,12 +119,15 @@ class UserInfoArgumentResolverTest {
         Object result = resolver.resolveArgument(userInfoParameter, null, webRequest, null);
 
         // then
-        assertThat(result).isNull();
+        assertThat(result).isInstanceOf(UserInfo.class);
+        UserInfo userInfo = (UserInfo) result;
+        assertThat(userInfo.userId()).isEqualTo(123L);
+        assertThat(userInfo.role()).isNull();
     }
     
     @Test
-    @DisplayName("resolveArgument: X-Member-Role 헤더가 비어있을 때 null 반환")
-    void resolveArgument_shouldReturnNull_whenRoleHeaderIsBlank() throws Exception {
+    @DisplayName("resolveArgument: 회원 ID가 있고 Role 헤더가 비어있을 때, role이 비어있는 UserInfo 객체 반환")
+    void resolveArgument_shouldResolveMember_whenRoleHeaderIsBlank() throws Exception {
         // given
         when(webRequest.getHeader("X-Member-Id")).thenReturn("123");
         when(webRequest.getHeader("X-Member-Role")).thenReturn("  ");
@@ -131,7 +136,10 @@ class UserInfoArgumentResolverTest {
         Object result = resolver.resolveArgument(userInfoParameter, null, webRequest, null);
 
         // then
-        assertThat(result).isNull();
+        assertThat(result).isInstanceOf(UserInfo.class);
+        UserInfo userInfo = (UserInfo) result;
+        assertThat(userInfo.userId()).isEqualTo(123L);
+        assertThat(userInfo.role()).isEqualTo("  ");
     }
 
     @Test

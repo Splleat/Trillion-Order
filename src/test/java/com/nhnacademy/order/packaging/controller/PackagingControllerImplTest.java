@@ -87,6 +87,21 @@ class PackagingControllerImplTest {
                 .andExpect(status().isNotFound());
     }
 
+    @DisplayName("포장지 수정 실패 - 유효하지 않은 가격")
+    @Test
+    void updatePackaging_Fail_InvalidPrice() throws Exception {
+        // given
+        PackagingUpdateRequest request = new PackagingUpdateRequest(-100);
+
+        // when & then
+        mockMvc.perform(put("/orders/packaging/1")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
     @DisplayName("포장지 삭제 성공")
     @Test
     void deletePackaging_Success() throws Exception {

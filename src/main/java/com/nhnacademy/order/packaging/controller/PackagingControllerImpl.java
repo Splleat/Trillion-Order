@@ -40,7 +40,7 @@ public class PackagingControllerImpl implements PackagingController {
     @Override
     @PutMapping("/{packagingId}")
     public ResponseEntity<Void> updatePackaging(@PathVariable Long packagingId,
-                                                @Valid @RequestBody PackagingUpdateRequest request,
+                                                @RequestBody @Valid PackagingUpdateRequest request,
                                                 UserInfo userInfo) {
 
         packagingService.updatePackaging(userInfo, packagingId, request);

@@ -14,6 +14,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+    String ORDER_BASE_DTO_CONSTRUCTOR = "new com.nhnacademy.order.order.dto.OrderBaseResponse(" +
+            "o.orderId, " +
+            "o.memberId, " +
+            "o.orderNumber, " +
+            "o.orderDetails.orderDate, " +
+            "o.orderStatus, " +
+            "o.orderDetails.originPrice, " +
+            "o.orderDetails.totalPrice, " +
+            "o.orderDetails.deliveryFee, " +
+            "o.orderDetails.pointUsage, " +
+            "o.orderDetails.couponDiscountAmount, " +
+            "o.ordererInfo, " +
+            "o.receiverInfo" +
+            ")";
+
     @Query("""
         SELECT o.memberId
         FROM Order o
@@ -38,106 +53,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     """)
     Optional<Order> findOrderWithItemsByOrderNumber(@Param("orderNumber") String orderNumber);
 
-    @Query("""
-        SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
-            o.orderId,
-            o.memberId,
-            o.orderNumber,
-            o.orderDetails.orderDate,
-            o.orderStatus,
-            o.orderDetails.originPrice,
-            o.orderDetails.totalPrice,
-            o.orderDetails.deliveryFee,
-            o.orderDetails.pointUsage,
-            o.orderDetails.couponDiscountAmount,
-            o.ordererInfo,
-            o.receiverInfo
-        )
-        FROM Order o
-    """)
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o")
     Page<OrderBaseResponse> findAllBaseOrder(Pageable pageable);
 
-    @Query("""
-        SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
-            o.orderId,
-            o.memberId,
-            o.orderNumber,
-            o.orderDetails.orderDate,
-            o.orderStatus,
-            o.orderDetails.originPrice,
-            o.orderDetails.totalPrice,
-            o.orderDetails.deliveryFee,
-            o.orderDetails.pointUsage,
-            o.orderDetails.couponDiscountAmount,
-            o.ordererInfo,
-            o.receiverInfo
-        )
-        FROM Order o
-        WHERE o.orderId = :orderId
-    """)
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.orderId = :orderId")
     Optional<OrderBaseResponse> findBaseOrderById(@Param("orderId") Long orderId);
 
-    @Query("""
-        SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
-            o.orderId,
-            o.memberId,
-            o.orderNumber,
-            o.orderDetails.orderDate,
-            o.orderStatus,
-            o.orderDetails.originPrice,
-            o.orderDetails.totalPrice,
-            o.orderDetails.deliveryFee,
-            o.orderDetails.pointUsage,
-            o.orderDetails.couponDiscountAmount,
-            o.ordererInfo,
-            o.receiverInfo
-        )
-        FROM Order o
-        WHERE o.memberId = :memberId
-    """)
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.memberId = :memberId")
     Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, @Param("memberId") Long memberId);
 
-    @Query("""
-        SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
-            o.orderId,
-            o.memberId,
-            o.orderNumber,
-            o.orderDetails.orderDate,
-            o.orderStatus,
-            o.orderDetails.originPrice,
-            o.orderDetails.totalPrice,
-            o.orderDetails.deliveryFee,
-            o.orderDetails.pointUsage,
-            o.orderDetails.couponDiscountAmount,
-            o.ordererInfo,
-            o.receiverInfo
-        )
-        FROM Order o
-        WHERE o.memberId = :memberId
-        AND o.orderStatus = :orderStatus
-    """)
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.memberId = :memberId AND o.orderStatus = :orderStatus")
     Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatus(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatus") OrderStatus orderStatus);
-
-    @Query("""
-        SELECT new com.nhnacademy.order.order.dto.OrderBaseResponse(
-            o.orderId,
-            o.memberId,
-            o.orderNumber,
-            o.orderDetails.orderDate,
-            o.orderStatus,
-            o.orderDetails.originPrice,
-            o.orderDetails.totalPrice,
-            o.orderDetails.deliveryFee,
-            o.orderDetails.pointUsage,
-            o.orderDetails.couponDiscountAmount,
-            o.ordererInfo,
-            o.receiverInfo
-        )
-        FROM Order o
-        WHERE o.memberId = :memberId
-        AND o.orderStatus IN :orderStatuses
-    """)
-    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatusIn(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatuses") List<OrderStatus> orderStatuses);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse(
