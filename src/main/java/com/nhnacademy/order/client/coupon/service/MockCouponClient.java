@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Profile("local")
@@ -83,17 +84,17 @@ public class MockCouponClient implements CouponClient {
     }
 
     @Override
-    public void applyCoupon(CouponApplyRequest request) {
+    public void applyCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 사용 요청: {}", request);
     }
 
     @Override
-    public void withdrawCoupon(CouponApplyRequest request) {
+    public void withdrawCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 사용 취소 요청: {}", request);
     }
 
     @Override
-    public void rollbackCoupon(CouponApplyRequest request) {
+    public void rollbackCoupon(UUID sagaId, CouponApplyRequest request) {
         log.info("MockCouponClient 쿠폰 복원 요청: {}", request);
     }
 }

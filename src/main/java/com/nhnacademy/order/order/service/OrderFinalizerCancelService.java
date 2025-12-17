@@ -1,7 +1,5 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.common.aop.SagaIdContext;
-import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
@@ -23,7 +21,6 @@ public class OrderFinalizerCancelService {
     private final OrderCancelSagaRepository orderCancelSagaRepository;
     private final SagaUpdateService sagaUpdateService;
 
-    @SagaIdContext
     @Transactional
     public OrderCancelSaga cancelStart(Order order) {
         if (order.getOrderStatus() == OrderStatus.CANCELING) {
@@ -31,10 +28,11 @@ public class OrderFinalizerCancelService {
                     .orElseThrow(() -> new IllegalStateException("주문의 상태는 'CANCELING'이지만, 사가가 존재하지 않는 오류 발생"));
         }
 
+        // 주문 취소 사가를 시작함과 동시에 주문의 상태를 '취소 중'으로 변경 -> 실패하더라도 사용자가 취소 요청이 접수되었음을 인지할 수 있음
         order.setOrderStatus(OrderStatus.CANCELING);
         orderRepository.save(order);
 
-        UUID sagaId = SagaContext.get();
+        UUID sagaId = UUID.randomUUID();
 
         OrderCancelSaga saga = OrderCancelSaga.create(sagaId, order.getOrderId());
         sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STARTED);

@@ -3,8 +3,6 @@ package com.nhnacademy.order.ordersaga.itemrefund.service;
 import com.nhnacademy.order.client.book.service.BookService;
 import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.client.member.service.MemberService;
-import com.nhnacademy.order.common.aop.SagaIdContext;
-import com.nhnacademy.order.common.context.SagaContext;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -37,14 +35,13 @@ public class OrderItemRefundOrchestrator {
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final OrderItemRefundService orderItemRefundService;
 
-    @SagaIdContext
     public void processItemRefund(Long memberId, Order order, OrderItem orderItem) {
         if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND &&
         orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_DAMAGED) {
             throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItem.getOrderItemId());
         }
 
-        UUID sagaId = SagaContext.get();
+        UUID sagaId = UUID.randomUUID();
 
         OrderItemRefundSaga saga = OrderItemRefundSaga.create(sagaId, order.getOrderId(), orderItem.getOrderItemId());
 
@@ -68,11 +65,11 @@ public class OrderItemRefundOrchestrator {
 
         try {
             // 2. 멤버 API에 포인트 증가 요청
-            memberService.increasePoint(memberId, refundAmount);
+            memberService.increasePoint(sagaId, memberId, refundAmount);
             sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
             // 3. 도서 API에 재고 증가 요청
-            bookService.increaseStocks(quantityMap);
+            bookService.increaseStocks(saga.getSagaId(), quantityMap);
             sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.STOCK_INCREASED);
 
             // 4. 사가 성공
@@ -110,14 +107,14 @@ public class OrderItemRefundOrchestrator {
 
         try {
             if (currentStep.ordinal() < ItemRefundSagaStep.POINT_REFUNDED.ordinal()) {
-                memberService.increasePoint(memberId, refundAmount);
+                memberService.increasePoint(sagaId, memberId, refundAmount);
                 sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
                 currentStep = ItemRefundSagaStep.POINT_REFUNDED;
             }
 
             if (currentStep.ordinal() < ItemRefundSagaStep.STOCK_INCREASED.ordinal()) {
-                bookService.increaseStocks(quantityMap);
+                bookService.increaseStocks(sagaId, quantityMap);
                 sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.STOCK_INCREASED);
             }
 

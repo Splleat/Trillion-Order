@@ -56,21 +56,21 @@ public class OrderCancelOrchestrator {
             if (memberId != null) {
                 // 3. 멤버 API에 사용한 포인트만큼 증가 요청
                 if (pointUsage > 0) {
-                    memberService.increasePoint(memberId, pointUsage);
+                    memberService.increasePoint(saga.getSagaId(), memberId, pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
                 }
 
                 // 4. 쿠폰 API에 사용한 쿠폰 반환 요청
                 if (!usedCoupons.isEmpty()) {
                     usedCoupons.forEach(orderCoupon ->
-                        couponService.withdrawCoupon(memberId, orderCoupon.getCouponId())
+                        couponService.withdrawCoupon(saga.getSagaId(), memberId, orderCoupon.getCouponId())
                     );
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
                 }
             }
 
             // 5. 도서 API에 재고 증가 요청
-            bookService.increaseStocks(quantityMap);
+            bookService.increaseStocks(saga.getSagaId(), quantityMap);
             sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STOCK_INCREASED);
 
             // 6. 사가 성공
@@ -120,7 +120,7 @@ public class OrderCancelOrchestrator {
 
             if (memberId != null) {
                 if (pointUsage > 0 && currentStep.ordinal() < CancelSagaStep.POINT_REFUNDED.ordinal()) {
-                    memberService.increasePoint(memberId, pointUsage);
+                    memberService.increasePoint(sagaId, memberId, pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
 
                     currentStep = CancelSagaStep.POINT_REFUNDED;
@@ -128,7 +128,7 @@ public class OrderCancelOrchestrator {
 
                 if (!usedCoupons.isEmpty() && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
                     usedCoupons.forEach(orderCoupon ->
-                        couponService.withdrawCoupon(memberId, orderCoupon.getCouponId())
+                        couponService.withdrawCoupon(sagaId, memberId, orderCoupon.getCouponId())
                     );
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
 
@@ -137,7 +137,7 @@ public class OrderCancelOrchestrator {
             }
 
             if (currentStep.ordinal() < CancelSagaStep.STOCK_INCREASED.ordinal()) {
-                bookService.increaseStocks(quantityMap);
+                bookService.increaseStocks(sagaId, quantityMap);
                 sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.STOCK_INCREASED);
             }
 

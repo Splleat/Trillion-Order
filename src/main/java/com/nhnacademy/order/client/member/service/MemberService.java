@@ -8,6 +8,8 @@ import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -18,33 +20,33 @@ public class MemberService {
     // 포인트 차감 (주문 생성)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackDecreasePoint")
     @Retry(name = "member-service")
-    public void decreasePoint(Long memberId, int point) {
-        memberClient.decreasePoint(new PointUsageRequest(memberId, point));
+    public void decreasePoint(UUID sagaId, Long memberId, int point) {
+        memberClient.decreasePoint(sagaId, new PointUsageRequest(memberId, point));
     }
 
     // 포인트 적립 (주문 취소)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackIncreasePoint")
     @Retry(name = "member-service")
-    public void increasePoint(Long memberId, int point) {
-        memberClient.increasePoint(new PointUsageRequest(memberId, point));
+    public void increasePoint(UUID sagaId, Long memberId, int point) {
+        memberClient.increasePoint(sagaId, new PointUsageRequest(memberId, point));
     }
 
     // 포인트 복구 (주문 생성 실패 시)
     @CircuitBreaker(name = "member-service", fallbackMethod = "fallbackRollbackPoint")
     @Retry(name = "member-service")
-    public void rollbackPoint(Long memberId, int point) {
-        memberClient.rollbackPoint(new PointUsageRequest(memberId, point));
+    public void rollbackPoint(UUID sagaId, Long memberId, int point) {
+        memberClient.rollbackPoint(sagaId, new PointUsageRequest(memberId, point));
     }
 
-    public void fallbackDecreasePoint(Long memberId, int point, Throwable throwable) {
+    public void fallbackDecreasePoint(UUID sagaId, Long memberId, int point, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "포인트 감소", throwable);
     }
 
-    public void fallbackIncreasePoint(Long memberId, int point, Throwable throwable) {
+    public void fallbackIncreasePoint(UUID sagaId, Long memberId, int point, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "포인트 증가", throwable);
     }
 
-    public void fallbackRollbackPoint(Long memberId, int point, Throwable throwable) {
+    public void fallbackRollbackPoint(UUID sagaId, Long memberId, int point, Throwable throwable) {
         fallbackHandler.handle(SERVICE_NAME, "포인트 복구", throwable);
     }
 }
