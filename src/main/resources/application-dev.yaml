@@ -129,3 +129,4 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+    migration-delay: 180000
