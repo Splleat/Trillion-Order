@@ -15,7 +15,6 @@ import java.util.Arrays;
 
 @Component
 public class CartHolderResolver implements HandlerMethodArgumentResolver {
-    private static final String COOKIE_NAME = "X-Guest-Id";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -30,10 +29,10 @@ public class CartHolderResolver implements HandlerMethodArgumentResolver {
 
         // @GuestOnly가 붙어있으면 -> 무조건 쿠키만 뒤져서 GuestHolder 리턴
         if (parameter.hasParameterAnnotation(GuestOnly.class)) {
-            String guestId = getGuestIdFromCookie(request);
+            String guestId = request.getHeader("X-Guest-Id");
             // 병합 시 쿠키가 없으면 빈 껍데기라도 줘야 에러 안 남 (서비스에서 처리)
             if (guestId == null) {
-                throw new IllegalArgumentException("비회원 세션 정보가 없습니다.");
+                throw new IllegalArgumentException("비회원 정보가 없습니다.");
             }
             return CartHolder.guest(guestId);
         }
@@ -49,21 +48,12 @@ public class CartHolderResolver implements HandlerMethodArgumentResolver {
         }
 
         // -> 없으면 쿠키(비회원)
-        String guestId = getGuestIdFromCookie(request);
+        String guestId = request.getHeader("X-Guest-Id");
         if (guestId != null) {
             return CartHolder.guest(guestId);
         }
 
         // 둘 다 없으면...
         throw new IllegalArgumentException("유저 인증이 필요합니다 (Header or Cookie missing)");
-    }
-
-    private String getGuestIdFromCookie(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
-        return Arrays.stream(request.getCookies())
-                .filter(c -> COOKIE_NAME.equals(c.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
     }
 }
