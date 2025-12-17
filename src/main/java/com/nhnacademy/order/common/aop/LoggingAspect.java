@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class LoggingAspect {
-    @Pointcut("execution(public * com.nhnacademy.order..service.*.*(..)) ||" +
-            "execution(public * com.nhnacademy.order..ordersaga..*.*(..))")
+    @Pointcut("within(com.nhnacademy.order..*) && @within(org.springframework.stereotype.Service) ")
     public void serviceLayerExecution() {}
 
     @Around("serviceLayerExecution()")
@@ -24,7 +23,11 @@ public class LoggingAspect {
 
         try {
             return joinPoint.proceed();
-        } finally {
+        } catch (Throwable t) {
+            log.error("[Exception] {} 실행 중 예외 발생: {}", methodName, t.getMessage(), t);
+            throw t;
+        }
+            finally {
             long endTime = System.currentTimeMillis();
             long executionTime = endTime - startTime;
 
