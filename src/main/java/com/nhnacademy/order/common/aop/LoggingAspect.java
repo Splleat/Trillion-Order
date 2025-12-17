@@ -26,8 +26,7 @@ public class LoggingAspect {
         } catch (Throwable t) {
             log.error("[Exception] {} 실행 중 예외 발생: {}", methodName, t.getMessage(), t);
             throw t;
-        }
-            finally {
+        } finally {
             long endTime = System.currentTimeMillis();
             long executionTime = endTime - startTime;
 
