@@ -81,20 +81,19 @@ public class PaymentFlowService {
 
     // [추가] 공통 검증 메서드 (private)
     private void validateOrderOwner(Order order, PaymentUser user) {
-
+        //관리자는 모든 곳에 접근 가능하므로 여기서 메서드 종료
         if ("ROLE_ADMIN".equals(user.role())) {
             return;
         }
-
+        //X-member-Id 할당시
         if (user.isMember()) {
-            // 1. 회원은 무조건 MemberId로 검증
+
             if (order.getMemberId() == null || !order.getMemberId().equals(user.memberId())) {
                 throw new IllegalArgumentException("회원 주문 정보가 일치하지 않습니다.");
             }
+            //X-Guest-Id 할당시 -> 비회원 일시
         } else {
-            // 2. 비회원인 경우
-
-            // A. 최소한의 방어: 회원의 주문(memberId != null)을 비회원이 건드리면 안 됨
+            //이때 주문은 memberId는 null로 저장함.
             if (order.getMemberId() != null) {
                 throw new IllegalArgumentException("비회원은 회원의 주문에 접근할 수 없습니다.");
             }
