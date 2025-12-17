@@ -10,7 +10,7 @@ X-Member-Role: MEMBER
 {
   "ordererName": "홍길동",
   "ordererContact": "010-1234-5678",
-  "deliveryDate": "2024-07-15T10:00:00",
+  "deliveryDate": "2026-07-15T10:00:00",
 
   "receiverName": "김철수",
   "receiverContact": "010-9876-5432",
@@ -45,7 +45,7 @@ X-Member-Role: GUEST
 {
   "ordererName": "이영희",
   "ordererContact": "010-2222-3333",
-  "deliveryDate": "2024-07-15T14:00:00",
+  "deliveryDate": "2028-07-15T14:00:00",
 
   "receiverName": "박민수",
   "receiverContact": "010-4444-5555",

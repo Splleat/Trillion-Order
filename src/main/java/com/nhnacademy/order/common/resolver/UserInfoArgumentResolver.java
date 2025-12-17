@@ -23,25 +23,24 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        // 회원인 경우 -> X-Member-Id, X-Member-Role 헤더
+        // 비회원인 경우 -> X-Guest-Id 헤더
         String guestIdStr = webRequest.getHeader(HEADER_GUEST_ID);
         String userIdStr = webRequest.getHeader(HEADER_USER_ID);
         String userRole = webRequest.getHeader(HEADER_USER_ROLE);
 
         log.info("요청 헤더 - X-Member-Id: {}, X-Guest-Id: {}, X-Member-Role: {}", userIdStr, guestIdStr, userRole);
 
-        if (userRole == null || userRole.isBlank()) {
-            return null;
-        }
-
         if (userIdStr != null && !userIdStr.isBlank()) {
+            // 회원
             Long userId = Long.parseLong(userIdStr);
             return new UserInfo(userId, null, userRole);
+        } else if (guestIdStr != null && !guestIdStr.isBlank()) {
+            // 비회원
+            return new UserInfo(null, guestIdStr, null);
         }
 
-        if (guestIdStr != null && !guestIdStr.isBlank()) {
-            return new UserInfo(null, guestIdStr, userRole);
-        }
-
+        // 회원/비회원 정보 모두 없는 경우
         return null;
     }
 }

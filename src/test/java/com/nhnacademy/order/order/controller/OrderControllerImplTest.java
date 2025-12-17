@@ -10,6 +10,7 @@ import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
+import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.order.dto.NonMemberOrderCancelRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,10 +31,9 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -113,7 +113,8 @@ class OrderControllerImplTest {
     @Test
     @DisplayName("회원 주문 생성 - POST /orders")
     void createMemberOrder_Success() throws Exception {
-        OrderCreateRequest createRequest = new OrderCreateRequest("홍길동", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, Collections.emptyList());
+        OrderItemCreateRequest orderItem = new OrderItemCreateRequest(1L, 2, null, 1L, null);
+        OrderCreateRequest createRequest = new OrderCreateRequest("홍길동", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(orderItem));
         given(orderService.createOrder(any(), any(OrderCreateRequest.class))).willReturn(orderResponse);
 
         mockMvc.perform(post("/orders")
@@ -158,6 +159,7 @@ class OrderControllerImplTest {
     @DisplayName("회원 주문 상품 상태 변경 - PATCH /orders/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusByCustomer_Success() throws Exception {
         OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.SHIPPED);
+        given(orderService.patchOrderItemStatus(any(), anyLong(), anyLong(), any(OrderItemStatusPatchRequest.class))).willReturn(orderResponse);
 
         mockMvc.perform(patch("/orders/{orderId}/items/{orderItemId}", 1L, 1L)
                         .header("X-USER-ID", "1")
@@ -174,6 +176,7 @@ class OrderControllerImplTest {
     @DisplayName("비회원 주문 상품 상태 변경 - PATCH /orders/non-members/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusForNonMember_Success() throws Exception {
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("password123", OrderItemStatus.CANCELED);
+        given(orderService.patchOrderItemStatusForNonMember(anyLong(), anyLong(), any(NonMemberOrderItemStatusPatchRequest.class))).willReturn(orderResponse);
 
         mockMvc.perform(patch("/orders/non-members/{orderId}/items/{orderItemId}", 1L, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -187,6 +190,8 @@ class OrderControllerImplTest {
     @Test
     @DisplayName("회원 주문 취소 - DELETE /orders/{orderId}")
     void cancelOrder_Success() throws Exception {
+        doNothing().when(orderService).cancelOrder(any(), anyLong());
+
         mockMvc.perform(delete("/orders/{orderId}", 1L)
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER"))
@@ -200,6 +205,7 @@ class OrderControllerImplTest {
     @DisplayName("비회원 주문 취소 - DELETE /orders/non-members/{orderId}")
     void cancelOrderForNonMember_Success() throws Exception {
         NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest("password123");
+        doNothing().when(orderService).cancelOrderForNonMember(anyLong(), anyString());
 
         mockMvc.perform(delete("/orders/non-members/{orderId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -208,5 +214,74 @@ class OrderControllerImplTest {
                 .andExpect(status().isNoContent());
 
         verify(orderService).cancelOrderForNonMember(eq(1L), eq("password123"));
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 - 유효하지 않은 입력")
+    void createMemberOrder_Fail_InvalidInput() throws Exception {
+        // ordererName is blank
+        OrderCreateRequest createRequest = new OrderCreateRequest("", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(new OrderItemCreateRequest(1L, 1, null, null, null)));
+
+        mockMvc.perform(post("/orders")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "MEMBER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("비회원 주문 조회 실패 - 유효하지 않은 입력")
+    void getOrderForNonMember_Fail_InvalidInput() throws Exception {
+        // orderNumber is blank
+        NonMemberOrderGetRequest request = new NonMemberOrderGetRequest("", "password123");
+
+        mockMvc.perform(post("/orders/non-members/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("주문 상품 상태 변경 실패 - 유효하지 않은 상태")
+    void patchOrderItemStatusByCustomer_Fail_InvalidInput() throws Exception {
+        // status is null
+        OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(null);
+
+        mockMvc.perform(patch("/orders/{orderId}/items/{orderItemId}", 1L, 1L)
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "MEMBER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("비회원 주문 상품 상태 변경 실패 - 유효하지 않은 입력")
+    void patchOrderItemStatusForNonMember_Fail_InvalidInput() throws Exception {
+        // password is blank
+        NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("", OrderItemStatus.CANCELED);
+
+        mockMvc.perform(patch("/orders/non-members/{orderId}/items/{orderItemId}", 1L, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("비회원 주문 취소 실패 - 유효하지 않은 입력")
+    void cancelOrderForNonMember_Fail_InvalidInput() throws Exception {
+        // password is blank
+        NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest("");
+
+        mockMvc.perform(delete("/orders/non-members/{orderId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cancelRequest)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 }
