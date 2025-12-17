@@ -12,7 +12,11 @@
 
 package com.nhnacademy.order.delivery.dto;
 
+import jakarta.validation.constraints.Min;
+
 public record DeliveryPolicyUpdateRequest(
+    @Min(value = 0, message = "배송비는 0원 이상이어야 합니다.")
     int deliveryPolicyFee,
+    @Min(value = 0, message = "무료 배송 기준액은 0원 이상이어야 합니다.")
     int deliveryPolicyThreshold
 ) {}

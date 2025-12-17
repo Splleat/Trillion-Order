@@ -12,6 +12,9 @@
 
 package com.nhnacademy.order.packaging.dto;
 
+import jakarta.validation.constraints.Min;
+
 public record PackagingUpdateRequest(
+    @Min(value = 0, message = "포장지 가격은 0원 이상이어야 합니다.")
     int packagingPrice
 ) {}

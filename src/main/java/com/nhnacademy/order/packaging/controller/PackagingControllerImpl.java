@@ -16,6 +16,7 @@ import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import com.nhnacademy.order.packaging.service.PackagingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +40,7 @@ public class PackagingControllerImpl implements PackagingController {
     @Override
     @PutMapping("/{packagingId}")
     public ResponseEntity<Void> updatePackaging(@PathVariable Long packagingId,
-                                                @RequestBody PackagingUpdateRequest request,
+                                                @Valid @RequestBody PackagingUpdateRequest request,
                                                 UserInfo userInfo) {
 
         packagingService.updatePackaging(userInfo, packagingId, request);

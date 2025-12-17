@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -38,6 +39,6 @@ public interface DeliveryController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청입니다."),
             @ApiResponse(responseCode = "403", description = "권한이 없습니다.")
     })
-    ResponseEntity<Void> updateDeliveryPolicy(@Parameter(description = "수정할 배송 정책 정보", required = true) @RequestBody DeliveryPolicyUpdateRequest request,
+    ResponseEntity<Void> updateDeliveryPolicy(@Parameter(description = "수정할 배송 정책 정보", required = true) @RequestBody @Valid DeliveryPolicyUpdateRequest request,
                                               UserInfo userInfo);
 }

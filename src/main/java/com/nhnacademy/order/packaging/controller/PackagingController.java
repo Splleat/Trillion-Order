@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,7 +43,7 @@ public interface PackagingController {
             @ApiResponse(responseCode = "404", description = "포장지를 찾을 수 없습니다.")
     })
     ResponseEntity<Void> updatePackaging(@Parameter(description = "수정할 포장지의 ID", required = true) @PathVariable Long packagingId,
-                                         @Parameter(description = "수정할 포장지 정보", required = true) @RequestBody PackagingUpdateRequest request,
+                                         @Parameter(description = "수정할 포장지 정보", required = true) @RequestBody @Valid PackagingUpdateRequest request,
                                          UserInfo userInfo);
 
     @Operation(summary = "포장지 삭제", description = "포장지를 삭제합니다. 관리자 권한이 필요합니다.")
