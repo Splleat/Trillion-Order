@@ -13,12 +13,12 @@
 
 ### 1-1. 비회원 장바구니 초기화 (깨끗한 상태에서 시작)
 DELETE {{host}}/carts
-Cookie: X-Guest-Id={{X-Guest-Id}}
+X-Guest-Id: {{X-Guest-Id}}
 
 ### 1-2. 비회원으로 상품 담기 (Book: 301, Qty: 10)
 POST {{host}}/carts
 Content-Type: application/json
-Cookie: X-Guest-Id={{X-Guest-Id}}
+X-Guest-Id: {{X-Guest-Id}}
 
 {
   "bookId": 301,
@@ -28,7 +28,7 @@ Cookie: X-Guest-Id={{X-Guest-Id}}
 ### 1-3. 비회원으로 상품 하나 더 담기 (Book: 302, Qty: 5)
 POST {{host}}/carts
 Content-Type: application/json
-Cookie: X-Guest-Id={{X-Guest-Id}}
+X-Guest-Id: {{X-Guest-Id}}
 
 {
   "bookId": 302,
@@ -45,7 +45,7 @@ Cookie: X-Guest-Id={{X-Guest-Id}}
 # 헤더(회원)와 쿠키(비회원)를 동시에 전송
 POST {{host}}/carts/merge
 X-User-Id: {{memberId}}
-Cookie: X-Guest-Id={{X-Guest-Id}}
+X-Guest-Id: {{X-Guest-Id}}
 
 
 # ------------------------------------------
@@ -58,4 +58,4 @@ X-User-Id: {{memberId}}
 
 ### 3-2. [비회원] 장바구니 확인 (성공 시: 비어 있어야 함 [])
 GET {{host}}/carts
-Cookie: X-Guest-Id={{X-Guest-Id}}
+X-Guest-Id: {{X-Guest-Id}}
