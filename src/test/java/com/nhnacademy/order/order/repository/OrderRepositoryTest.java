@@ -53,11 +53,11 @@ class OrderRepositoryTest {
 
         // OrderItem 객체들 생성 및 저장 (order1에 연결)
         order1Item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, 0);
-        order1Item1.completeOrderItem("테스트 책 101", 15000);
+        order1Item1.completeOrderItem("테스트 책 101", null, 15000, 0);
         entityManager.persist(order1Item1);
 
         OrderItem order1Item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, 0);
-        order1Item2.completeOrderItem("테스트 책 102", 25000);
+        order1Item2.completeOrderItem("테스트 책 102", null, 25000, 0);
         entityManager.persist(order1Item2);
 
         entityManager.persist(order1Item1);
@@ -108,7 +108,7 @@ class OrderRepositoryTest {
         Order foundOrder = resultOptional.get();
         assertThat(foundOrder.getOrderId()).isEqualTo(targetOrderId);
         assertThat(foundOrder.getOrderItems()).isNotNull().hasSize(2);
-        assertThat(foundOrder.getOrderItems().getFirst().getBookId()).isEqualTo(order1Item1.getBookId());
+        assertThat(foundOrder.getOrderItems().stream().map(OrderItem::getBookId)).contains(order1Item1.getBookId());
     }
 
     @Test
@@ -138,7 +138,7 @@ class OrderRepositoryTest {
         Order foundOrder = resultOptional.get();
         assertThat(foundOrder.getOrderNumber()).isEqualTo(targetOrderNumber);
         assertThat(foundOrder.getOrderItems()).isNotNull().hasSize(2);
-        assertThat(foundOrder.getOrderItems().getFirst().getBookId()).isEqualTo(order1Item1.getBookId());
+        assertThat(foundOrder.getOrderItems().stream().map(OrderItem::getBookId)).contains(order1Item1.getBookId());
     }
 
     @Test

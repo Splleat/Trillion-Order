@@ -2,15 +2,12 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.Order;
-import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
-import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
-import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
@@ -23,8 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,20 +52,37 @@ class OrderServiceUpdateTest {
         // given
         long orderId = 1L;
         long orderItemId = 101L;
-        UserInfo adminInfo = new UserInfo(999L, "ADMIN");
+        UserInfo adminInfo = new UserInfo(999L, null, "ADMIN");
 
         OrderItem orderItem = mock(OrderItem.class);
         Order order = mock(Order.class);
+        com.nhnacademy.order.order.domain.OrderDetails orderDetails = mock(com.nhnacademy.order.order.domain.OrderDetails.class);
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(order));
         when(order.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
 
+        // Stubbing for OrderResponse.create(order)
+        when(order.getOrderId()).thenReturn(orderId);
+        when(order.getMemberId()).thenReturn(adminInfo.userId());
+        when(order.getOrderNumber()).thenReturn("order-number-123");
+        when(order.getOrderDetails()).thenReturn(orderDetails);
+        when(orderDetails.orderDate()).thenReturn(LocalDateTime.now());
+        when(order.getOrderStatus()).thenReturn(com.nhnacademy.order.order.domain.OrderStatus.PENDING);
+        when(orderDetails.originPrice()).thenReturn(10000);
+        when(orderDetails.totalPrice()).thenReturn(9000);
+        when(orderDetails.deliveryFee()).thenReturn(3000);
+        when(order.getOrdererInfo()).thenReturn(new com.nhnacademy.order.order.domain.OrdererInfo("name", "010-1234-5678"));
+        when(order.getReceiverInfo()).thenReturn(new com.nhnacademy.order.order.domain.ReceiverInfo("name", "010-1234-5678", "address"));
+        when(order.getOrderItems()).thenReturn(java.util.Collections.emptySet());
+
+
         OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.RETURNED);
 
         // when
-        orderServiceImpl.patchOrderItemStatus(adminInfo, orderId, orderItemId, request);
+        com.nhnacademy.order.order.dto.OrderResponse response = orderServiceImpl.patchOrderItemStatus(adminInfo, orderId, orderItemId, request);
 
         // then
+        org.junit.jupiter.api.Assertions.assertNotNull(response);
         // 환불 상태 변경 요청 시, 회원 환불 오케스트레이터가 올바른 인자들로 호출되는지 검증
         verify(orderItemRefundOrchestrator, times(1)).processItemRefund(adminInfo.userId(), order, orderItem);
         // 비회원 환불 오케스트레이터는 호출되지 않아야 함
@@ -88,21 +102,38 @@ class OrderServiceUpdateTest {
         when(orderItem.getOrderItemId()).thenReturn(orderItemId);
 
         Order nonMemberOrder = mock(Order.class);
+        com.nhnacademy.order.order.domain.OrderDetails orderDetails = mock(com.nhnacademy.order.order.domain.OrderDetails.class);
         when(nonMemberOrder.getNonMemberPassword()).thenReturn(encodedPassword);
         lenient().when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
-        when(nonMemberOrder.getOrderItems()).thenReturn(List.of(orderItem));
+        when(nonMemberOrder.getOrderItems()).thenReturn(Set.of(orderItem));
         when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.DELIVERED);
         when(orderItem.getShippingDate()).thenReturn(LocalDateTime.now());
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(nonMemberOrder));
         when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
 
+        // Stubbing for OrderResponse.create(order)
+        when(nonMemberOrder.getOrderId()).thenReturn(orderId);
+        when(nonMemberOrder.getMemberId()).thenReturn(null);
+        when(nonMemberOrder.getOrderNumber()).thenReturn("non-member-order-456");
+        when(nonMemberOrder.getOrderDetails()).thenReturn(orderDetails);
+        when(orderDetails.orderDate()).thenReturn(LocalDateTime.now());
+        when(nonMemberOrder.getOrderStatus()).thenReturn(com.nhnacademy.order.order.domain.OrderStatus.PENDING);
+        when(orderDetails.originPrice()).thenReturn(20000);
+        when(orderDetails.totalPrice()).thenReturn(20000);
+        when(orderDetails.deliveryFee()).thenReturn(3000);
+        when(nonMemberOrder.getOrdererInfo()).thenReturn(new com.nhnacademy.order.order.domain.OrdererInfo("non-member", "010-9876-5432"));
+        when(nonMemberOrder.getReceiverInfo()).thenReturn(new com.nhnacademy.order.order.domain.ReceiverInfo("non-member-receiver", "010-9876-5432", "address"));
+        lenient().when(orderItem.getOrder()).thenReturn(nonMemberOrder);
+
+
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest(rawPassword, OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
 
         // when
-        orderServiceImpl.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
+        com.nhnacademy.order.order.dto.OrderResponse response = orderServiceImpl.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         // then
+        org.junit.jupiter.api.Assertions.assertNotNull(response);
         verify(passwordEncoder, times(1)).matches(rawPassword, encodedPassword);
     }
 
@@ -112,12 +143,12 @@ class OrderServiceUpdateTest {
     void cancelOrder_Success() {
         // given
         long orderId = 1L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
 
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.PREPARING);
         Order cancelableOrder = mock(Order.class);
-        when(cancelableOrder.getOrderItems()).thenReturn(List.of(item1));
+        when(cancelableOrder.getOrderItems()).thenReturn(Set.of(item1));
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(cancelableOrder));
         doNothing().when(orderCancelOrchestrator).processCancelOrder(anyLong(), any(Order.class));
@@ -136,12 +167,12 @@ class OrderServiceUpdateTest {
     void cancelOrder_Failure_CannotCancel() {
         // given
         long orderId = 1L;
-        UserInfo userInfo = new UserInfo(1L, "MEMBER");
+        UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
 
         OrderItem item1 = mock(OrderItem.class);
         when(item1.getOrderItemStatus()).thenReturn(OrderItemStatus.SHIPPED); // 취소 불가능 상태
         Order uncancelableOrder = mock(Order.class);
-        when(uncancelableOrder.getOrderItems()).thenReturn(List.of(item1));
+        when(uncancelableOrder.getOrderItems()).thenReturn(Set.of(item1));
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(uncancelableOrder));
 

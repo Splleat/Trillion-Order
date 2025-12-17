@@ -13,6 +13,7 @@ public record NonMemberOrderBaseResponse(
     String orderNumber,
     LocalDateTime orderDate,
     OrderStatus orderStatus,
+    int originPrice,
     int totalPrice,
     int deliveryFee,
     OrdererInfo ordererInfo,
@@ -25,9 +26,11 @@ public record NonMemberOrderBaseResponse(
             orderNumber,
             orderDate,
             orderStatus,
-            totalPrice, // 비회원은 originPrice = totalPrice임
+            originPrice,
             totalPrice,
             deliveryFee,
+            0,
+            0,
             ordererInfo,
             receiverInfo
         );

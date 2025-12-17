@@ -68,6 +68,8 @@ class OrderControllerImplTest {
                 50000,
                 48500,
                 2500,
+                0,
+                0, // totalCouponDiscount
                 ordererInfo,
                 receiverInfo,
                 Collections.emptyList()
@@ -77,11 +79,11 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("관리자 주문 전체 조회 - GET /api/orders/admin")
+    @DisplayName("관리자 주문 전체 조회 - GET /orders/admin")
     void getAllOrderByAdmin_Success() throws Exception {
         given(orderService.findAllOrders(any(), any(Pageable.class))).willReturn(orderResponsePage);
 
-        mockMvc.perform(get("/api/orders/admin")
+        mockMvc.perform(get("/orders/admin")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN")
                         .param("page", "0")
@@ -93,11 +95,11 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("회원 주문 전체 조회 - GET /api/orders")
+    @DisplayName("회원 주문 전체 조회 - GET /orders")
     void getAllOrderByCustomer_Success() throws Exception {
         given(orderService.findAllOrderByMemberId(any(), any(Pageable.class))).willReturn(orderResponsePage);
 
-        mockMvc.perform(get("/api/orders")
+        mockMvc.perform(get("/orders")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER")
                         .param("page", "0")
@@ -109,28 +111,28 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("회원 주문 생성 - POST /api/orders")
+    @DisplayName("회원 주문 생성 - POST /orders")
     void createMemberOrder_Success() throws Exception {
         OrderCreateRequest createRequest = new OrderCreateRequest("홍길동", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, Collections.emptyList());
         given(orderService.createOrder(any(), any(OrderCreateRequest.class))).willReturn(orderResponse);
 
-        mockMvc.perform(post("/api/orders")
+        mockMvc.perform(post("/orders")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/api/orders/1"))
+                .andExpect(header().string("Location", "http://localhost/orders/1"))
                 .andExpect(jsonPath("$.orderId").value(1L));
     }
 
     @Test
-    @DisplayName("회원 주문 단건 조회 - GET /api/orders/{orderId}")
+    @DisplayName("회원 주문 단건 조회 - GET /orders/{orderId}")
     void getOrderByCustomer_Success() throws Exception {
         given(orderService.findOrderByOrderId(any(), eq(1L))).willReturn(orderResponse);
 
-        mockMvc.perform(get("/api/orders/{orderId}", 1L)
+        mockMvc.perform(get("/orders/{orderId}", 1L)
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER"))
                 .andDo(print())
@@ -139,12 +141,12 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 단건 조회 - POST /api/orders/non-members/")
+    @DisplayName("비회원 주문 단건 조회 - POST /orders/non-members/")
     void getOrderForNonMember_Success() throws Exception {
         NonMemberOrderGetRequest request = new NonMemberOrderGetRequest("ORD-20251202-12345", "password123");
         given(orderService.findOrderByOrderNumber(eq("ORD-20251202-12345"), eq("password123"))).willReturn(orderResponse);
 
-        mockMvc.perform(post("/api/orders/non-members/")
+        mockMvc.perform(post("/orders/non-members/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -153,11 +155,11 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("회원 주문 상품 상태 변경 - PATCH /api/orders/{orderId}/items/{orderItemId}")
+    @DisplayName("회원 주문 상품 상태 변경 - PATCH /orders/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusByCustomer_Success() throws Exception {
         OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.SHIPPED);
 
-        mockMvc.perform(patch("/api/orders/{orderId}/items/{orderItemId}", 1L, 1L)
+        mockMvc.perform(patch("/orders/{orderId}/items/{orderItemId}", 1L, 1L)
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -169,11 +171,11 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /api/orders/non-members/{orderId}/items/{orderItemId}")
+    @DisplayName("비회원 주문 상품 상태 변경 - PATCH /orders/non-members/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusForNonMember_Success() throws Exception {
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("password123", OrderItemStatus.CANCELED);
 
-        mockMvc.perform(patch("/api/orders/non-members/{orderId}/items/{orderItemId}", 1L, 1L)
+        mockMvc.perform(patch("/orders/non-members/{orderId}/items/{orderItemId}", 1L, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -183,9 +185,9 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("회원 주문 취소 - DELETE /api/orders/{orderId}")
+    @DisplayName("회원 주문 취소 - DELETE /orders/{orderId}")
     void cancelOrder_Success() throws Exception {
-        mockMvc.perform(delete("/api/orders/{orderId}", 1L)
+        mockMvc.perform(delete("/orders/{orderId}", 1L)
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "MEMBER"))
                 .andDo(print())
@@ -195,11 +197,11 @@ class OrderControllerImplTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 취소 - DELETE /api/orders/non-members/{orderId}")
+    @DisplayName("비회원 주문 취소 - DELETE /orders/non-members/{orderId}")
     void cancelOrderForNonMember_Success() throws Exception {
         NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest("password123");
 
-        mockMvc.perform(delete("/api/orders/non-members/{orderId}", 1L)
+        mockMvc.perform(delete("/orders/non-members/{orderId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cancelRequest)))
                 .andDo(print())

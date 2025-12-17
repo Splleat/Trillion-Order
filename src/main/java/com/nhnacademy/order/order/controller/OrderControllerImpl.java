@@ -32,7 +32,6 @@ import java.net.URI;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
 public class OrderControllerImpl implements OrderController {
 
     private final OrderService orderService;
@@ -47,13 +46,21 @@ public class OrderControllerImpl implements OrderController {
         return ResponseEntity.ok(response);
     }
 
-    // 주문 전체 조회 (회원)
+    // 결제 완료된 주문 전체 조회 (회원)
     @Override
     @GetMapping("/orders")
-    public ResponseEntity<Page<OrderResponse>> getAllOrderByCustomer(Pageable pageable,
+    public ResponseEntity<Page<OrderResponse>> getAllCompletedOrderByCustomer(Pageable pageable,
                                                                      UserInfo userInfo) {
         Page<OrderResponse> response = orderService.findAllOrderByMemberId(userInfo, pageable);
 
+        return ResponseEntity.ok(response);
+    }
+
+    // 취소된 주문 전체 조회 (회원)
+    @Override
+    @GetMapping("/orders/canceled")
+    public ResponseEntity<Page<OrderResponse>> getAllCanceledOrderByCustomer(Pageable pageable, UserInfo userInfo) {
+        Page<OrderResponse> response = orderService.findAllCanceledOrderByMemberId(userInfo, pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -116,7 +123,7 @@ public class OrderControllerImpl implements OrderController {
     // 주문 취소 (회원)
     @Override
     @DeleteMapping("/orders/{orderId}")
-    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId, UserInfo userInfo) {
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long orderId, UserInfo userInfo) {
         orderService.cancelOrder(userInfo, orderId);
 
         return ResponseEntity.noContent().build();
@@ -125,7 +132,7 @@ public class OrderControllerImpl implements OrderController {
     // 주문 취소 (비회원)
     @Override
     @DeleteMapping("/orders/non-members/{orderId}")
-    public ResponseEntity<Void> cancelOrderForNonMember(@PathVariable Long orderId,
+    public ResponseEntity<OrderResponse> cancelOrderForNonMember(@PathVariable Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
         orderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
 

@@ -1,7 +1,7 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.common.exception.AccessDeniedException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -59,9 +59,9 @@ class OrderServiceSecurityTest {
     @MockitoBean
     private CouponService couponService;
     @MockitoBean
-    private OrderCreateService orderCreateService;
+    private OrderInitialCreateService orderInitialCreateService;
     @MockitoBean
-    private OrderCancelService orderCancelService;
+    private OrderFinalizerCancelService orderFinalizerCancelService;
     @MockitoBean
     private OrderCreateOrchestrator orderCreateOrchestrator;
     @MockitoBean
@@ -78,7 +78,7 @@ class OrderServiceSecurityTest {
     @DisplayName("권한 실패: 일반 회원이 관리자 기능(전체 주문 조회) 호출")
     void findAllOrders_Failure_AccessDeniedForMember() {
         // given
-        UserInfo memberInfo = new UserInfo(1L, "MEMBER");
+        UserInfo memberInfo = new UserInfo(1L, null, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
         when(orderRepository.findAll(pageable)).thenReturn(Page.empty());
 
@@ -100,7 +100,7 @@ class OrderServiceSecurityTest {
     @MethodSource("adminOnlyStatusChanges")
     void patchOrderItemStatus_Failure_AdminRoleRequired(OrderItemStatus adminOnlyStatus) {
         // given
-        UserInfo memberInfo = new UserInfo(1L, "MEMBER");
+        UserInfo memberInfo = new UserInfo(1L, null, "MEMBER");
         long orderId = 1L;
         long orderItemId = 101L;
         OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(adminOnlyStatus);

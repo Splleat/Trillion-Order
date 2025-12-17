@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@TestPropertySource(properties = "spring.sql.init.mode=never")
 class OrderItemRepositoryTest {
 
     @Autowired
@@ -44,15 +46,15 @@ class OrderItemRepositoryTest {
 
         // 주문1에 아이템 2개, 주문2에 아이템 1개 추가
         OrderItem item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, 500);
-        item1.completeOrderItem("테스트 책 1", 15000);
+        item1.completeOrderItem("테스트 책 1", null, 15000, 0);
         entityManager.persist(item1);
 
         OrderItem item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, 0);
-        item2.completeOrderItem("테스트 책 2", 25000);
+        item2.completeOrderItem("테스트 책 2", null, 25000, 0);
         entityManager.persist(item2);
 
         OrderItem item3 = OrderItem.createInitial(order2, 103L, 5, (LocalDateTime) null, 0);
-        item3.completeOrderItem("테스트 책 3", 10000);
+        item3.completeOrderItem("테스트 책 3", null, 10000, 0);
         entityManager.persist(item3);
 
         entityManager.flush();

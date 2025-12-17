@@ -30,9 +30,14 @@ public class OrderItem extends BaseTimeEntity {
 
     private String bookName;
 
+    private String bookImage;
+
     private int quantity;
 
-    private Integer price;
+    private int price;
+
+    @Setter
+    private int couponDiscountAmount;
 
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate; // 출고일
@@ -50,32 +55,43 @@ public class OrderItem extends BaseTimeEntity {
             order,
             bookId,
             null,
-            quantity,
             null,
+            quantity,
+            0,
+            0,
             shippingDate,
             packagingPrice
         );
     }
 
-    private OrderItem(Order order, Long bookId, String bookName, int quantity, Integer price, LocalDateTime shippingDate, Integer packagingPrice) {
+    private OrderItem(Order order, Long bookId, String bookName, String bookImage, int quantity, Integer price, int couponDiscountAmount, LocalDateTime shippingDate, Integer packagingPrice) {
         this.orderItemId = null;
         this.order = order;
         this.bookId = bookId;
         this.bookName = bookName;
+        this.bookImage = bookImage;
         this.quantity = quantity;
         this.price = price;
+        this.couponDiscountAmount = couponDiscountAmount;
         this.shippingDate = shippingDate;
         this.packagingPrice = packagingPrice;
         this.orderItemStatus = OrderItemStatus.PREPARING;
     }
 
-    public void completeOrderItem(String bookName, int price) {
+    public void completeOrderItem(String bookName, String bookImage, int price, int couponDiscountAmount) {
         this.bookName = bookName;
+        this.bookImage = bookImage;
         this.price = price;
+        this.couponDiscountAmount = couponDiscountAmount;
     }
 
     public void ship() {
         this.orderItemStatus = OrderItemStatus.SHIPPED;
+    }
+
+    public void delivered() {
+        this.orderItemStatus = OrderItemStatus.DELIVERED;
+
         if (this.shippingDate == null) {
             this.shippingDate = LocalDateTime.now();
         }

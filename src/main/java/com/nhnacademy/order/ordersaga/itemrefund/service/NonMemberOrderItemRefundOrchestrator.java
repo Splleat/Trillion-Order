@@ -1,8 +1,6 @@
 package com.nhnacademy.order.ordersaga.itemrefund.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.common.aop.SagaIdContext;
-import com.nhnacademy.order.common.context.SagaContext;
+import com.nhnacademy.order.client.book.service.BookService;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -34,14 +32,13 @@ public class NonMemberOrderItemRefundOrchestrator {
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final OrderItemRefundService orderItemRefundService;
 
-    @SagaIdContext
     public void processNonMemberItemRefund(Order order, OrderItem orderItem) {
         if (orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND &&
                 orderItem.getOrderItemStatus() != OrderItemStatus.RETURN_REQUESTED_DAMAGED) {
             throw new OrderStatusTransitionException("반품 요청 상태가 아닌 상품: " + orderItem.getOrderItemId());
         }
 
-        UUID sagaId = SagaContext.get();
+        UUID sagaId = UUID.randomUUID();
 
         NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(sagaId, order.getOrderId(), orderItem.getOrderItemId());
 
@@ -51,7 +48,8 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         // TODO: 환불 요청 DTO에서 quantity도 받아서 처리?
 
-        int refundMoney = Math.max(orderItem.getPrice() - deliveryFee, 0);
+        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
+        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
 
         // 1. 사가 시작
         sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STARTED);
@@ -62,7 +60,7 @@ public class NonMemberOrderItemRefundOrchestrator {
             // paymentService.refundPayment(...)
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.PAYMENT_REFUNDED);
 
-            bookService.increaseStocks(quantityMap);
+            bookService.increaseStocks(saga.getSagaId(), quantityMap);
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
@@ -85,7 +83,8 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         int deliveryFee = getDeliveryFee();
 
-        int refundMoney = Math.max(0, orderItem.getPrice() - deliveryFee);
+        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
+        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
 
         NonMemberRefundSagaStep currentStep = saga.getLastCompletedStep();
 
@@ -98,7 +97,7 @@ public class NonMemberOrderItemRefundOrchestrator {
             }
 
             if (currentStep.ordinal() < NonMemberRefundSagaStep.STOCK_INCREASED.ordinal()) {
-                bookService.increaseStocks(quantityMap);
+                bookService.increaseStocks(saga.getSagaId(), quantityMap);
 
                 sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
             }

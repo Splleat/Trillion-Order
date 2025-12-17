@@ -22,6 +22,9 @@ public record OrderDetails(
     @Column(name = "point_usage")
     int pointUsage,
 
+    @Column(name = "coupon_discount_amount")
+    int couponDiscountAmount, // 총 쿠폰 할인액
+
     // 총 상품 금액: (모든 도서 가격 * 수량) + 모든 도서의 포장비 합
     @Column(name = "origin_price")
     int originPrice,
@@ -38,10 +41,11 @@ public record OrderDetails(
             LocalDateTime.now(),
             shippingPostCode,
             deliveryDate,
-            0,  // 확정된 배송비로 교체
+            0,  // deliveryFee
             pointUsage,
-            0,  // 확정된 초기 결제액으로 교체
-            0,            // 확정된 최종 결제액으로 교체
+            0,  // couponDiscountAmount
+            0,  // originPrice
+            0,  // totalPrice
             couponId
         );
     }
@@ -53,8 +57,23 @@ public record OrderDetails(
             this.deliveryDate,
             deliveryFee,
             this.pointUsage,
+            this.couponDiscountAmount,
             originPrice,
             totalPrice,
+            this.couponId
+        );
+    }
+
+    public OrderDetails withCouponDiscount(int couponDiscountAmount) {
+        return new OrderDetails(
+            this.orderDate,
+            this.shippingPostCode,
+            this.deliveryDate,
+            this.deliveryFee,
+            this.pointUsage,
+            couponDiscountAmount,
+            this.originPrice,
+            this.totalPrice,
             this.couponId
         );
     }
@@ -66,6 +85,7 @@ public record OrderDetails(
             this.deliveryDate,
             this.deliveryFee,
             this.pointUsage,
+            this.couponDiscountAmount,
             this.originPrice,
             newTotalPrice,
             this.couponId
@@ -79,6 +99,7 @@ public record OrderDetails(
             this.deliveryDate,
             newDeliveryFee,
             this.pointUsage,
+            this.couponDiscountAmount,
             this.originPrice,
             this.totalPrice,
             this.couponId

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/orders/delivery-policy")
+@RequestMapping("/orders/delivery-policy")
 public class DeliveryControllerImpl implements DeliveryController {
     private final DeliveryPolicyService deliveryPolicyService;
 

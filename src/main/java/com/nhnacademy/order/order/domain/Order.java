@@ -1,6 +1,7 @@
 package com.nhnacademy.order.order.domain;
 
 import com.nhnacademy.order.common.entity.BaseTimeEntity;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
@@ -10,8 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -49,11 +50,15 @@ public class Order extends BaseTimeEntity {
     @Embedded
     private ReceiverInfo receiverInfo;
 
+    @Setter
     @Embedded
     private OrderDetails orderDetails;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private Set<OrderItem> orderItems = new HashSet<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<OrderCoupon> orderCoupons = new HashSet<>();
 
     public static Order createInitial(Long memberId, String encryptedPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails orderDetails) {
         // UUID 대신 주문 일시(yyyyMMdd) + AUTO_INCREMENT된 식별자(orderId)?
@@ -71,7 +76,8 @@ public class Order extends BaseTimeEntity {
             ordererInfo,
             receiverInfo,
             orderDetails,
-            new ArrayList<>()
+            new HashSet<>(),
+            new HashSet<>()
         );
     }
 
@@ -84,29 +90,19 @@ public class Order extends BaseTimeEntity {
         orderItem.setOrder(this);
     }
 
+    public void addOrderCoupon(OrderCoupon orderCoupon) {
+        orderCoupons.add(orderCoupon);
+        orderCoupon.setOrder(this);
+    }
+
+    public void updateOrderDetails(OrderDetails orderDetails) {
+        this.orderDetails = orderDetails;
+    }
+
     public OrderItem findOrderItemInOrder(Long orderItemId) {
         return this.getOrderItems().stream()
                 .filter(orderItem -> orderItem.getOrderItemId().equals(orderItemId))
                 .findFirst()
                 .orElseThrow(() -> new OrderItemNotFoundException("존재하지 않는 주문 상품 ID: " + orderItemId));
-    }
-
-    public void reflectItemStatusChange() {
-        int newTotalPrice = this.orderItems.stream()
-                .filter(item -> item.getOrderItemStatus() != OrderItemStatus.CANCELED && item.getOrderItemStatus() != OrderItemStatus.RETURNED)
-                .mapToInt(item -> item.getPrice() + item.getPackagingPrice())
-                .sum();
-
-        OrderDetails updatedOrderDetails = this.orderDetails.withNewTotalPrice(newTotalPrice);
-
-        boolean allItemsCanceledOrReturned = this.orderItems.stream()
-                .allMatch(item -> item.getOrderItemStatus() == OrderItemStatus.CANCELED || item.getOrderItemStatus() == OrderItemStatus.RETURNED);
-
-        if (allItemsCanceledOrReturned) {
-            this.orderStatus = OrderStatus.CANCELED;
-            updatedOrderDetails = updatedOrderDetails.withNewDeliveryFee(0);
-        }
-
-        this.orderDetails = updatedOrderDetails;
     }
 }

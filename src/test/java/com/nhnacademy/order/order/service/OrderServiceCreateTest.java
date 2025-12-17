@@ -1,10 +1,10 @@
 package com.nhnacademy.order.order.service;
 
-import com.nhnacademy.order.client.dto.BookResponse;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
+import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
@@ -36,9 +36,9 @@ class OrderServiceCreateTest {
     @Mock
     private OrderRepository orderRepository;
     @Mock
-    private OrderCreateService orderCreateService;
+    private OrderInitialCreateService orderInitialCreateService;
     @Mock
-    private OrderFinalizerService orderFinalizerService;
+    private OrderFinalizerCreateService orderFinalizerCreateService;
     @Mock
     private OrderCreateOrchestrator orderCreateOrchestrator;
     @Mock
@@ -50,7 +50,7 @@ class OrderServiceCreateTest {
 
     @BeforeEach
     void setUp() {
-        userInfo = new UserInfo(1L, "MEMBER");
+        userInfo = new UserInfo(1L, null, "MEMBER");
 
         List<OrderItemCreateRequest> itemRequests = List.of(
             new OrderItemCreateRequest(1L, 2, 101L, 1L, LocalDateTime.now().plusDays(3)),
@@ -78,18 +78,18 @@ class OrderServiceCreateTest {
     void createOrder_Success() {
         // given
         // 초기 주문 생성 Mock
-        when(orderCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
         // 사가 프로세스 성공 Mock
         doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
         // 최종 처리 성공 Mock
-        doNothing().when(orderFinalizerService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
+        doNothing().when(orderFinalizerCreateService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
 
         // when
         OrderResponse orderResponse = orderServiceImpl.createOrder(userInfo, orderCreateRequest);
 
         // then
         // 1. 초기 주문이 생성되었는가?
-        verify(orderCreateService, times(1)).createInitialOrder(
+        verify(orderInitialCreateService, times(1)).createInitialOrder(
             eq(userInfo.userId()),
             isNull(),
             any(OrdererInfo.class),
@@ -102,7 +102,7 @@ class OrderServiceCreateTest {
         verify(orderCreateOrchestrator, times(1)).processCreateOrder(any(OrderCreateSaga.class), eq(initialOrder));
 
         // 3. 최종 처리 서비스가 올바르게 호출되었는가?
-        verify(orderFinalizerService, times(1)).finalizeOrderCreation(eq(initialOrder), any(OrderCreateSaga.class));
+        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(initialOrder), any(OrderCreateSaga.class));
 
         // 4. 응답이 정상적으로 생성되었는가?
         assertThat(orderResponse).isNotNull();
@@ -114,10 +114,10 @@ class OrderServiceCreateTest {
     void createOrder_Failure_SagaFails() {
         // given
         // 초기 주문 생성 Mock
-        when(orderCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
 
         // 사가 프로세스가 실패하도록 설정
-        RuntimeException sagaException = new RuntimeException("외부 서비스 호출 실패");
+        RuntimeException sagaException = new OrderCreateFailureException("외부 서비스 호출 실패");
         doThrow(sagaException).when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
 
         // 보상 로직 Mock
@@ -140,6 +140,62 @@ class OrderServiceCreateTest {
         assertThat(savedOrder.getOrderStatus()).isEqualTo(OrderStatus.CREATION_FAILED);
         
         // 4. 성공 경로인 최종 처리 서비스는 호출되지 않아야 함
-        verify(orderFinalizerService, never()).finalizeOrderCreation(any(), any());
+        verify(orderFinalizerCreateService, never()).finalizeOrderCreation(any(), any());
+    }
+        
+    @Test
+    @DisplayName("비회원 주문 생성 - 성공")
+    void createOrder_NonMember_Success() {
+        // given
+        // 비회원(userInfo != null, userInfo.userId() == null) 시나리오
+        UserInfo nonMemberInfo = new UserInfo(null, "some-guest-uuid", "GUEST");
+
+        // 비회원용 요청 데이터 (쿠폰 ID와 포인트 사용 없음)
+        OrderCreateRequest nonMemberRequest = new OrderCreateRequest(
+            "비회원", "010-0000-0000", LocalDateTime.now().plusDays(1),
+            "수령인", "010-1111-2222", "서울시 종로구", "54321",
+            "password123", 0, null, orderCreateRequest.orderItems() // nonMemberPassword 설정, pointUsage=0, couponId=null
+        );
+
+        // 비회원용 초기 Order 객체
+        Order nonMemberInitialOrder = Order.createInitial(
+            null, // 비회원이므로 userId는 null
+            "encodedPassword", // nonMemberPassword는 인코딩됨
+            new OrdererInfo(nonMemberRequest.ordererName(), nonMemberRequest.ordererContact()),
+            new ReceiverInfo(nonMemberRequest.receiverName(), nonMemberRequest.receiverContact(), nonMemberRequest.receiverAddress()),
+            OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage(), nonMemberRequest.couponId())
+        );
+
+        // Mock 설정
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(nonMemberInitialOrder);
+        doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
+        doNothing().when(orderFinalizerCreateService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
+
+        // when
+        OrderResponse orderResponse = orderServiceImpl.createOrder(nonMemberInfo, nonMemberRequest);
+
+        // then
+        // 1. 초기 주문 생성 시 userId가 null로, nonMemberPassword가 인코딩된 값으로 전달되었는지 검증
+        verify(orderInitialCreateService, times(1)).createInitialOrder(
+            isNull(),
+            eq("encodedPassword"),
+            any(OrdererInfo.class),
+            any(ReceiverInfo.class),
+            any(OrderDetails.class),
+            eq(nonMemberRequest.orderItems())
+        );
+
+        // 2. 사가 프로세스가 올바르게 호출되었는가?
+        verify(orderCreateOrchestrator, times(1)).processCreateOrder(any(OrderCreateSaga.class), eq(nonMemberInitialOrder));
+
+        // 3. 최종 처리 서비스가 올바르게 호출되었는가?
+        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(nonMemberInitialOrder), any(OrderCreateSaga.class));
+
+        // 4. 응답이 정상적으로 생성되었는가?
+        assertThat(orderResponse).isNotNull();
+        assertThat(orderResponse.ordererInfo().ordererName()).isEqualTo("비회원");
     }
 }
+        
+        

@@ -44,7 +44,7 @@ class DeliveryControllerImplTest {
         given(deliveryPolicyService.getDeliveryPolicy()).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/orders/delivery-policy"))
+        mockMvc.perform(get("/orders/delivery-policy"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deliveryPolicyId").value(1L))
                 .andExpect(jsonPath("$.deliveryPolicyFee").value(3000))
@@ -58,7 +58,7 @@ class DeliveryControllerImplTest {
         given(deliveryPolicyService.getDeliveryPolicy()).willThrow(new PolicyNotConfiguredException("배송 정책이 설정되지 않음"));
 
         // when & then
-        mockMvc.perform(get("/api/orders/delivery-policy"))
+        mockMvc.perform(get("/orders/delivery-policy"))
                 .andExpect(status().isNotFound());
     }
 
@@ -70,7 +70,7 @@ class DeliveryControllerImplTest {
         doNothing().when(deliveryPolicyService).updateDeliveryPolicy(any(), any());
 
         // when & then
-        mockMvc.perform(put("/api/orders/delivery-policy")
+        mockMvc.perform(put("/orders/delivery-policy")
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +86,7 @@ class DeliveryControllerImplTest {
         doThrow(new com.nhnacademy.order.common.exception.AccessDeniedException("")).when(deliveryPolicyService).updateDeliveryPolicy(any(), any());
 
         // when & then
-        mockMvc.perform(put("/api/orders/delivery-policy")
+        mockMvc.perform(put("/orders/delivery-policy")
                         .header("X-USER-ID", "2")
                         .header("X-USER-ROLE", "MEMBER")
                         .contentType(MediaType.APPLICATION_JSON)

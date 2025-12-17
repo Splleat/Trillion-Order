@@ -15,6 +15,8 @@ public record OrderBaseResponse(
     int originPrice,
     int totalPrice,
     int deliveryFee,
+    int pointUsage,
+    int totalCouponDiscount, // 총 쿠폰 할인액
     OrdererInfo ordererInfo,
     ReceiverInfo receiverInfo
 ) {}

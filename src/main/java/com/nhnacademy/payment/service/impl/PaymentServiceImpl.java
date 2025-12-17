@@ -3,11 +3,13 @@ package com.nhnacademy.payment.service.impl;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.repository.OrderRepository;
-import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
+import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.dto.response.PaymentApiResponse;
 import com.nhnacademy.payment.entity.Payment;
+import com.nhnacademy.payment.entity.PaymentProvider;
 import com.nhnacademy.payment.entity.PaymentStatus;
+import com.nhnacademy.payment.exception.PaymentAlreadyCanceledException;
 import com.nhnacademy.payment.exception.PaymentNotFoundException;
-import com.nhnacademy.payment.exception.PaymentStateConflictException;
 import com.nhnacademy.payment.repository.PaymentRepository;
 import com.nhnacademy.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -30,17 +32,20 @@ public class PaymentServiceImpl implements PaymentService {
     //DB에 담는 시점에서만 Transactional 호출하면 됨.
     @Override
     @Transactional
-    public Payment savePayment(TossPaymentResponseDto response, Order order) {
+    public Payment savePayment(PaymentApiResponse response, Order order) {
 
         Payment savePayment = Payment.builder()
-                .paymentKey(response.getPaymentKey())
+                .paymentKey(response.paymentKey())
                 .paymentStatus(PaymentStatus.DONE)
-                .paymentRequestAt(LocalDateTime.parse(response.getRequestedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-                .paymentApprovedAt(LocalDateTime.parse(response.getApprovedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
-                .paymentReceipt(response.getReceipt().getUrl())
+                .paymentRequestAt(LocalDateTime.parse(response.requestedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .paymentApprovedAt(LocalDateTime.parse(response.approvedAt(), DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .paymentReceipt(response.receiptUrl())
                 .order(order)
-                .totalAmount(response.getTotalAmount()) //결제 승인당시 최종 금액 -> 불변
+                .totalAmount(response.totalAmount())
+                .provider(PaymentProvider.valueOf(response.provider()))
                 .build();
+
+        paymentRepository.save(savePayment);
 
         paymentRepository.save(savePayment);
         savePayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.COMPLETED);
@@ -61,7 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         //이미 취소된 결제 건 이라면?
         if(findPayment.getPaymentStatus().equals(PaymentStatus.CANCELED)) {
-            throw new PaymentStateConflictException("이미 전체 취소된 결제 건 입니다.");
+            throw new PaymentAlreadyCanceledException("이미 전체 취소된 결제 건 입니다.");
         }
 
         findPayment.cancelPayment(cancelAmount);
@@ -70,33 +75,67 @@ public class PaymentServiceImpl implements PaymentService {
             findPayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.CANCELED);
         }
     }
+
     //결제 정보 반환 -> 서버에서 처리할때만 사용할듯
     @Override
     @Transactional(readOnly = true)
     public Payment getPaymentByOrderNumber(String orderNumber) {
-        Payment payment = paymentRepository.findByOrder_OrderNumber(orderNumber);
-        if(payment==null){
-            throw new PaymentNotFoundException("결제 정보가 존재하지 않습니다.");
-        }
-
-        return payment;
+        return paymentRepository.findByOrder_OrderNumber(orderNumber).orElseThrow(
+                ()->new PaymentNotFoundException("결제 정보가 존재하지 않습니다")
+        );
     }
 
-
-    //특정 결제 내역 조회 -> 사용자에게 보여줄 페이지(단건 조회)
+    //관리자 특정 결제 내역 조회 -> 사용자에게 보여줄 페이지(단건 조회)
     @Override
     @Transactional(readOnly = true)
     public Payment getPaymentById(Long paymentId) {
-
         return paymentRepository.findById(paymentId).orElseThrow(
                 () -> new PaymentNotFoundException("결제 정보가 존재하지 않습니다."+paymentId)
         );
     }
 
-    //결제 내역 전체 조회,
+    //관리자 전용 결제 내역 전체 조회,
     @Override
     @Transactional(readOnly = true)
     public Page<Payment> getAllPayments(Pageable pageable) {
         return paymentRepository.findAll(pageable);
+    }
+
+
+    //회원 결제내역 전체 조회(회원)
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Payment> getAllMemberPayments(Long memberId, Pageable pageable) {
+        if(memberId == null ){
+            return Page.empty(pageable);
+        }
+        return paymentRepository.findByOrder_MemberId(memberId,pageable);
+    }
+
+    //회원 결제 내역 단건 조회(회원,비회원)
+    @Override
+    @Transactional(readOnly = true)
+    public Payment getMemberPaymentByOrderNumber(PaymentUser user, String orderNumber) {
+        if (user.isMember()) {
+            return paymentRepository.findByOrder_OrderNumberAndOrder_MemberId(orderNumber, user.memberId())
+                    .orElseThrow(() -> new PaymentNotFoundException("본인의 결제 내역만 조회할 수 있습니다."));
+        }
+
+        // Case 2: 비회원인 경우 -> 주문번호로 조회 후 소유권 검증
+        Payment payment = paymentRepository.findByOrder_OrderNumber(orderNumber)
+                .orElseThrow(() -> new PaymentNotFoundException("결제 정보가 존재하지 않습니다."));
+
+        validateGuestOwner(payment, user); // 비회원 검증 로직 수행
+
+        return payment;
+    }
+
+    private void validateGuestOwner(Payment payment, PaymentUser user) {
+        Order order = payment.getOrder();
+
+        // 해당 주문이 회원 주문(memberId 존재)이라면, 비회원은 절대 볼 수 없음
+        if (order.getMemberId() != null) {
+            throw new PaymentNotFoundException("비회원은 회원의 결제 정보를 조회할 수 없습니다.");
+        }
     }
 }

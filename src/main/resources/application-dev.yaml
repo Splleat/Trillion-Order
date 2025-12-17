@@ -1,20 +1,31 @@
 server:
   port: 10407
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
 
 spring:
   application:
     name: order-service
+  # 장바구니 서비스는 보통 Redis를 필수적으로 사용 (TTL 기능 등)
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   # JPA, Datasource, H2 설정
   datasource:
     url: jdbc:h2:mem:test
     username: test
     password: 1234
+    driver-class-name: org.h2.Driver
     dbcp2:
       connection-init-sqls: SELECT 1
   h2:
     console:
       enabled: true
+      path: /h2-console
   jpa:
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
@@ -35,14 +46,14 @@ spring:
   cloud:
     config:
       enabled: false
-
-eureka:
-  client:
-    enabled: false
+    openfeign:
+      okhttp:
+        enabled: true
 
 logging:
   level:
-    org.hibernate.type: trace
+    root: WARN  # 기본 로그 레벨을 WARN으로 설정하여 대부분의 프레임워크 로그 숨김
+    com.nhnacademy.order: INFO # 애플리케이션 비즈니스 로직 로그만 INFO 레벨로 출력
 
 # Resilience4j 설정
 resilience4j:
@@ -87,5 +98,34 @@ resilience4j:
       member-service: {}
 
 # 환경 변수 설정
+# 기존: secret-key: ${TOSS_KEY}
+# 변경: 콜론(:) 뒤에 임시 값을 적어주면 환경변수가 없을 때 이 값을 씁니다
 toss:
-  secret-key: ${TOSS_KEY}
+  secret-key: ${TOSS_KEY:test_secret_key_1234}
+
+
+# 장바구니 설정
+cart:
+  # 장바구니 최대 종류 제한
+  max-items: 100
+  # TTL 설정
+  guest-ttl-days: 3
+  member-ttl-minutes: 60
+  # 장바구니 만료일
+  retention-days: 90
+  # 스케쥴러 설정
+  scheduler:
+    # cleanup 스케쥴러 동작 시간
+    cleanup-cron: "0 0 3 * * *"
+    #
+    batch-size: 300
+    # 마이그레이션 스케쥴러 딜레이 (ex. 180000 == 3분)
+    migration-delay: 180000
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+

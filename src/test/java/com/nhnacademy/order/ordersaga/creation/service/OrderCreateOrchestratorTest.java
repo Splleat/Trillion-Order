@@ -1,11 +1,11 @@
 package com.nhnacademy.order.ordersaga.creation.service;
 
-import com.nhnacademy.order.client.service.BookService;
-import com.nhnacademy.order.client.service.CouponService;
-import com.nhnacademy.order.client.service.MemberService;
+import com.nhnacademy.order.client.book.service.BookService;
+import com.nhnacademy.order.client.coupon.service.CouponService;
+import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderDetails;
-import com.nhnacademy.order.order.service.OrderCompensateService;
+import com.nhnacademy.order.order.service.OrderFinalizerCompensateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
@@ -44,7 +44,7 @@ class OrderCreateOrchestratorTest {
     @Mock
     private BookService bookService;
     @Mock
-    private OrderCompensateService orderCompensateService;
+    private OrderFinalizerCompensateService orderFinalizerCompensateService;
 
     private OrderCreateSaga saga;
     private Order order;
@@ -55,7 +55,7 @@ class OrderCreateOrchestratorTest {
         // Given: An order and its items
         OrderDetails orderDetails = new OrderDetails(
                 LocalDateTime.now(), "12345", LocalDateTime.now().plusDays(3),
-                3000, 500, 10000, 12500, 1L);
+                3000, 500, 0, 10000, 12500, 1L);
 
         order = new Order();
         ReflectionTestUtils.setField(order, "orderId", 1L);
@@ -99,17 +99,17 @@ class OrderCreateOrchestratorTest {
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
 
         // 2. Verify all external service calls were made with the correct sagaId
-        verify(bookService, times(1)).decreaseStocks(quantityMap);
-        verify(couponService, times(1)).applyCoupon(order.getMemberId(), order.getOrderDetails().couponId());
-        verify(memberService, times(1)).decreasePoint(order.getMemberId(), order.getOrderDetails().pointUsage());
+        verify(bookService, times(1)).decreaseStocks(any(UUID.class), eq(quantityMap));
+        verify(couponService, times(1)).applyCoupon(any(UUID.class), eq(order.getMemberId()), eq(order.getOrderDetails().couponId()));
+        verify(memberService, times(1)).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(order.getOrderDetails().pointUsage()));
 
         // 3. Verify the final saga status is COMPLETED
         verify(sagaUpdateService, times(1)).updateCreateSagaStatus(saga, SagaStatus.COMPLETED);
 
         // 4. Verify compensation was NOT triggered
-        verify(orderCompensateService, never()).compensateOrder(any(), any());
-        verify(bookService, never()).increaseStocks(any());
-        verify(couponService, never()).withdrawCoupon(anyLong(), anyLong());
-        verify(memberService, never()).increasePoint(anyLong(), anyInt());
+        verify(orderFinalizerCompensateService, never()).compensateOrder(any(), any());
+        verify(bookService, never()).increaseStocks(any(UUID.class), any());
+        verify(couponService, never()).withdrawCoupon(any(UUID.class), anyLong(), anyLong());
+        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyInt());
     }
 }

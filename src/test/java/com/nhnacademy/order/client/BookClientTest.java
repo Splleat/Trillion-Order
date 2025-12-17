@@ -1,11 +1,11 @@
-
 package com.nhnacademy.order.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.nhnacademy.order.client.dto.BookResponse;
-import com.nhnacademy.order.client.dto.BookStocksRequest;
+import com.nhnacademy.order.client.book.BookClient;
+import com.nhnacademy.order.client.book.dto.BookResponse;
+import com.nhnacademy.order.client.book.dto.BookStocksRequest;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
@@ -20,11 +20,14 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * SpringBoot의 도움 없이, 순수 Feign과 Wiremock으로 BookClient의 기본 동작을 테스트합니다.
@@ -55,11 +58,11 @@ class BookClientTest {
         // given
         List<Long> bookIds = List.of(1L, 2L);
         List<BookResponse> expectedResponse = List.of(
-                new BookResponse(1L, "Book 1", 10000),
-                new BookResponse(2L, "Book 2", 20000)
+                new BookResponse(1L, "Book 1", Set.of(101L), 10000, true, "testImage1"),
+                new BookResponse(2L, "Book 2", Set.of(102L), 20000, true , "testImage2")
         );
 
-        wireMockServer.stubFor(get(urlPathEqualTo("/api/book/1"))
+        wireMockServer.stubFor(get(urlPathEqualTo("/books/info"))
                 .withQueryParam("bookIds", equalTo("1"))
                 .withQueryParam("bookIds", equalTo("2"))
                 .willReturn(aResponse()
@@ -72,7 +75,7 @@ class BookClientTest {
 
         // then
         assertThat(actualResponse).isEqualTo(expectedResponse);
-        wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/book/1"))
+        wireMockServer.verify(getRequestedFor(urlPathEqualTo("/books/info"))
                 .withQueryParam("bookIds", equalTo("1"))
                 .withQueryParam("bookIds", equalTo("2")));
     }
@@ -81,33 +84,35 @@ class BookClientTest {
     @DisplayName("재고 증가 성공")
     void testIncreaseStocks_Success() throws JsonProcessingException {
         // given
+        UUID mockSagaId = mock(UUID.class);
         BookStocksRequest request = new BookStocksRequest(Map.of(1L, 10, 2L, 5));
 
-        wireMockServer.stubFor(patch(urlPathEqualTo("/api/book/2"))
+        wireMockServer.stubFor(patch(urlPathEqualTo("/books/stocks/increase"))
                 .withRequestBody(equalToJson(objectMapper.writeValueAsString(request)))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())));
 
         // when & then
-        assertDoesNotThrow(() -> bookClient.increaseStocks(request));
+        assertDoesNotThrow(() -> bookClient.increaseStocks(mockSagaId, request));
 
-        wireMockServer.verify(patchRequestedFor(urlPathEqualTo("/api/book/2"))
+        wireMockServer.verify(patchRequestedFor(urlPathEqualTo("/books/stocks/increase"))
                 .withRequestBody(equalToJson(objectMapper.writeValueAsString(request))));
     }
 
     @Test
     @DisplayName("재고 감소 성공")
     void testDecreaseStocks_Success() throws JsonProcessingException {
+        UUID mockSagaId = mock(UUID.class);
         // given
         BookStocksRequest request = new BookStocksRequest(Map.of(1L, 10, 2L, 5));
 
-        wireMockServer.stubFor(patch(urlPathEqualTo("/api/book/3"))
+        wireMockServer.stubFor(patch(urlPathEqualTo("/books/stocks/decrease"))
                 .withRequestBody(equalToJson(objectMapper.writeValueAsString(request)))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())));
 
         // when & then
-        assertDoesNotThrow(() -> bookClient.decreaseStocks(request));
+        assertDoesNotThrow(() -> bookClient.decreaseStocks(mockSagaId, request));
 
-        wireMockServer.verify(patchRequestedFor(urlPathEqualTo("/api/book/3"))
+        wireMockServer.verify(patchRequestedFor(urlPathEqualTo("/books/stocks/decrease"))
                 .withRequestBody(equalToJson(objectMapper.writeValueAsString(request))));
     }
 }

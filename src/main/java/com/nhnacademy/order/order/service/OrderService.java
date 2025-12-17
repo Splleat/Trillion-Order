@@ -13,9 +13,12 @@ public interface OrderService {
     OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request);
     OrderResponse findOrderByOrderId(UserInfo userInfo, Long orderId);
     Page<OrderResponse> findAllOrderByMemberId(UserInfo userInfo, Pageable pageable);
-    void patchOrderItemStatus(UserInfo userInfo, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request);
-    void patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request);
+    OrderResponse patchOrderItemStatus(UserInfo userInfo, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request);
+    OrderResponse patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request);
     OrderResponse findOrderByOrderNumber(String orderNumber, String nonMemberPassword);
     void cancelOrder(UserInfo userInfo, Long orderId);
     void cancelOrderForNonMember(Long orderId, String nonMemberPassword);
+
+    Page<OrderResponse> findAllCanceledOrderByMemberId(UserInfo userInfo, Pageable pageable);
+
 }

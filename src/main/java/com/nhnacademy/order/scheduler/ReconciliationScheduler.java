@@ -1,7 +1,5 @@
 package com.nhnacademy.order.scheduler;
 
-import com.nhnacademy.order.order.domain.OrderStatus;
-import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
@@ -20,7 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class ReconciliationScheduler {
-    private final OrderRepository orderRepository;
     private final OrderCreateSagaRepository orderCreateSagaRepository;
     private final OrderCancelSagaRepository orderCancelSagaRepository;
     private final OrderItemRefundSagaRepository orderItemRefundSagaRepository;
@@ -31,6 +28,8 @@ public class ReconciliationScheduler {
     // 주문 생성 -> 주문 생성 완료 -> 결제까지 한 번에 동기적으로 성공해야 함.
 
     // 동기적으로 잘 생성되고 있는 주문을 스케줄러가 잡게 되는 경우가 발생하지 않도록 수정 시간(updatedAt) 사용
+
+    // TODO: 오랜 기간 PENDING에 머물러 있는 주문을 삭제하는 스케줄러 로직 생성
 
     // 멈춰있거나 완료된 사가를 처리
     @Scheduled(fixedRate = 300000)
