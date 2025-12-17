@@ -8,7 +8,7 @@
 # ==========================================
 
 ### 1. 상품 담기 (Book: 101, Qty: 2)
-POST {{host}}/api/carts
+POST {{host}}/carts
 Content-Type: application/json
 Cookie: X-Guest-Id={{X-Guest-Id}}
 
@@ -18,7 +18,7 @@ Cookie: X-Guest-Id={{X-Guest-Id}}
 }
 
 ### 2. 다른 상품 담기 (Book: 102, Qty: 1)
-POST {{host}}/api/carts
+POST {{host}}/carts
 Content-Type: application/json
 Cookie: X-Guest-Id={{X-Guest-Id}}
 
