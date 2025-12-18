@@ -12,7 +12,9 @@ public record CouponCalculationRequest(
 ) {
     public record CouponCalculationOrderItem(
         Long bookId,
+        // TODO: 필드 삭제 검토 -> 해당 내용은 쿠폰 서비스가 직접 조회
         Set<Long> categoryIds,
+        // TODO: 필드 삭제 검토 -> 해당 내용은 쿠폰 서비스가 직접 조회
         int price,
         int quantity
     ) {

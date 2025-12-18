@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@Profile("!local")
+//@Profile("!local")
 @FeignClient(name = "book-service")
 public interface BookClient {
     @GetMapping("/books/info")
