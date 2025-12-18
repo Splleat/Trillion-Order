@@ -13,6 +13,7 @@
 package com.nhnacademy.order.packaging.service;
 
 import com.nhnacademy.order.common.dto.UserInfo;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 
@@ -20,6 +21,7 @@ import java.util.List;
 
 public interface PackagingService {
     List<PackagingResponse> getAllPackaging();
+    PackagingResponse createPackaging(UserInfo userInfo, PackagingCreateRequest request);
     void updatePackaging(UserInfo userInfo, Long packagingId, PackagingUpdateRequest request);
     void deletePackaging(UserInfo userInfo, Long packagingId);
 }

@@ -13,6 +13,7 @@
 package com.nhnacademy.order.packaging.controller;
 
 import com.nhnacademy.order.common.dto.UserInfo;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,15 @@ public interface PackagingController {
             @ApiResponse(responseCode = "200", description = "포장지 조회 성공"),
     })
     ResponseEntity<List<PackagingResponse>> getAllPackaging();
+
+    @Operation(summary = "포장지 생성", description = "새로운 포장지 정보를 생성합니다. 관리자 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "포장지 생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청입니다."),
+            @ApiResponse(responseCode = "403", description = "권한이 없습니다.")
+    })
+    ResponseEntity<PackagingResponse> createPackaging(@RequestBody @Valid PackagingCreateRequest request,
+                                                      UserInfo userInfo);
 
     @Operation(summary = "포장지 수정", description = "포장지 정보를 수정합니다. 관리자 권한이 필요합니다.")
     @ApiResponses(value = {
