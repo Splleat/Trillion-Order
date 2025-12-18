@@ -16,6 +16,7 @@ import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.packaging.domain.Packaging;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
@@ -41,6 +42,16 @@ public class PackagingServiceImpl implements PackagingService {
         return packagingList.stream()
                 .map(PackagingResponse::create)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public PackagingResponse createPackaging(UserInfo userInfo, PackagingCreateRequest request) {
+        Packaging packaging = Packaging.create(request.packagingType(), request.packagingPrice());
+
+        packagingRepository.save(packaging);
+
+        return PackagingResponse.create(packaging);
     }
 
     @Override
