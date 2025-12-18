@@ -29,6 +29,7 @@ public class OrderCoupon {
     @Column(name = "discount_amount", nullable = false)
     private int discountAmount;
 
+    // TODO: 필드 삭제 검토
     @Enumerated(EnumType.STRING)
     @Column(name = "coupon_type", nullable = false)
     private CouponType couponType;

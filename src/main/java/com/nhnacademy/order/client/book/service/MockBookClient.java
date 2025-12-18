@@ -13,7 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Profile("local") // 일단 못쓰게
+@Profile("local123") // 일단 못쓰게
 @Component
 public class MockBookClient implements BookClient {
 
