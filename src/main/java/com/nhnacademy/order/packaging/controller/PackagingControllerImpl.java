@@ -13,6 +13,7 @@
 package com.nhnacademy.order.packaging.controller;
 
 import com.nhnacademy.order.common.dto.UserInfo;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import com.nhnacademy.order.packaging.service.PackagingService;
@@ -33,6 +34,14 @@ public class PackagingControllerImpl implements PackagingController {
     @GetMapping
     public ResponseEntity<List<PackagingResponse>> getAllPackaging() {
         List<PackagingResponse> response = packagingService.getAllPackaging();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @PostMapping
+    public ResponseEntity<PackagingResponse> createPackaging(PackagingCreateRequest request, UserInfo userInfo) {
+        PackagingResponse response = packagingService.createPackaging(userInfo, request);
 
         return ResponseEntity.ok(response);
     }
