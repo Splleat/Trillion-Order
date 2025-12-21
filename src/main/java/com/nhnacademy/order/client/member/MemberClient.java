@@ -1,5 +1,6 @@
 package com.nhnacademy.order.client.member;
 
+import com.nhnacademy.order.client.member.dto.PointAccumulationRequest;
 import com.nhnacademy.order.client.member.dto.PointUsageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Profile;
@@ -12,12 +13,15 @@ import java.util.UUID;
 @Profile("!local")
 @FeignClient(name = "member-service")
 public interface MemberClient {
-    @PatchMapping("/points/use")
+    @PatchMapping("/members/points/use")
     void decreasePoint(@RequestHeader("X-Saga-Id") UUID sagaId, @RequestBody PointUsageRequest request);
 
-    @PatchMapping("/points/refund")
+    @PatchMapping("/members/points/refund")
     void increasePoint(@RequestHeader("X-Saga-Id") UUID sagaId, @RequestBody PointUsageRequest request);
 
-    @PatchMapping("/points/rollback")
+    @PatchMapping("/members/points/rollback")
     void rollbackPoint(@RequestHeader("X-Saga-Id") UUID sagaId, @RequestBody PointUsageRequest request);
+
+    @PatchMapping("/members/points/accumulate")
+    void accumulatePoint(@RequestHeader("X-Saga-Id") UUID idempotencyKey, @RequestBody PointAccumulationRequest request);
 }

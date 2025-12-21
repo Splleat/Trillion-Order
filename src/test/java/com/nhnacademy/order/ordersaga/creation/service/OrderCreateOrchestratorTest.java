@@ -49,7 +49,6 @@ class OrderCreateOrchestratorTest {
 
     private OrderCreateSaga saga;
     private Order order;
-    private UUID mockSagaId;
     private Long mockCouponId = 1L;
 
     @BeforeEach
@@ -76,7 +75,7 @@ class OrderCreateOrchestratorTest {
         order.addOrderItem(orderItem);
 
         // Given: A saga is created for this order
-        mockSagaId = UUID.randomUUID();
+        UUID mockSagaId = UUID.randomUUID();
         saga = OrderCreateSaga.create(mockSagaId, order.getOrderId());
         
         // Simulate JPA generating the UUID for the sagaId
@@ -106,7 +105,7 @@ class OrderCreateOrchestratorTest {
         inOrder.verify(couponService).applyCoupon(any(UUID.class), eq(order.getMemberId()), eq(mockCouponId));
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
-        inOrder.verify(memberService).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(pointUsage));
+        inOrder.verify(memberService).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(order.getOrderId()), eq(pointUsage));
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
 
         // 2. Verify the final saga status is COMPLETED
@@ -116,6 +115,6 @@ class OrderCreateOrchestratorTest {
         verify(orderFinalizerCompensateService, never()).compensateOrder(any(), any());
         verify(bookService, never()).increaseStocks(any(UUID.class), any());
         verify(couponService, never()).withdrawCoupon(any(UUID.class), anyLong(), anyLong());
-        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyInt());
+        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyLong(), anyInt());
     }
 }

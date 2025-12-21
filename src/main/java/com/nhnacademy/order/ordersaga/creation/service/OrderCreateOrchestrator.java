@@ -73,7 +73,7 @@ public class OrderCreateOrchestrator {
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
 
                 // 9. 사용 포인트가 존재하면 멤버 API에 포인트 감소 요청
-                memberService.decreasePoint(saga.getSagaId(), memberId, pointUsage);
+                memberService.decreasePoint(saga.getSagaId(), memberId, order.getOrderId(), pointUsage);
 
                 // 10. 사가 상태 업데이트 (포인트 감소 성공)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
@@ -120,7 +120,7 @@ public class OrderCreateOrchestrator {
         // 3. 역순으로 보상 트랜잭션 시작
         if (currentStep == CreateSagaStep.POINT_USING || currentStep == CreateSagaStep.POINT_USED) {
             if (pointUsage > 0) {
-                memberService.rollbackPoint(saga.getSagaId(), memberId, pointUsage);
+                memberService.rollbackPoint(saga.getSagaId(), memberId, order.getOrderId(), pointUsage);
             }
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
 

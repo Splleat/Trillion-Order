@@ -1,16 +1,14 @@
-package com.nhnacademy.order.order.service;
+package com.nhnacademy.order.orderitem.service;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
-import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Set;
 
 enum Role {
     ADMIN,  // 관리자만 가능
@@ -23,12 +21,11 @@ enum Role {
 public enum OrderItemStatusUpdateStrategy {
     SHIPPED(OrderItemStatus.SHIPPED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
+        public void updateStatus(Order order, OrderItem orderItem) {
 
             // 상품 준비 상태가 아니면 배송 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
-                throw new OrderStatusTransitionException("준비 상태가 아닌 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("준비 상태가 아닌 상품: " + orderItem.getOrderItemId());
             }
 
             orderItem.ship();
@@ -36,11 +33,9 @@ public enum OrderItemStatusUpdateStrategy {
     },
     DELIVERED(OrderItemStatus.DELIVERED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
+        public void updateStatus(Order order, OrderItem orderItem) {
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.SHIPPED)) {
-                throw new OrderStatusTransitionException("배송 중이 아닌 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("배송 중이 아닌 상품: " + orderItem.getOrderItemId());
             }
 
             orderItem.delivered();
@@ -48,17 +43,15 @@ public enum OrderItemStatusUpdateStrategy {
     },
     REQUEST_RETURN_CHANGE_OF_MIND(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND, Role.USER) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
+        public void updateStatus(Order order, OrderItem orderItem) {
             // 배송 완료 상태가 아니면 반품 요청 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
-                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItem.getOrderItemId());
             }
 
             // 출고일 기준 10일 경과 시 반품 요청 불가
             if (LocalDateTime.now().isAfter(orderItem.getShippingDate().plusDays(10))) {
-                throw new OrderStatusTransitionException("단순 변심 반품 기간이 지난 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("단순 변심 반품 기간이 지난 상품: " + orderItem.getOrderItemId());
             }
 
             orderItem.setOrderItemStatus(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
@@ -66,17 +59,15 @@ public enum OrderItemStatusUpdateStrategy {
     },
     REQUEST_RETURN_DAMAGED(OrderItemStatus.RETURN_REQUESTED_DAMAGED, Role.USER) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
+        public void updateStatus(Order order, OrderItem orderItem) {
             // 배송 완료 상태가 아니면 반품 요청 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
-                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItem.getOrderItemId());
             }
 
             // 출고일 기준 30일 경과 시 반품 요청 불가
             if (LocalDateTime.now().isAfter(orderItem.getShippingDate().plusDays(30))) {
-                throw new OrderStatusTransitionException("파손 반품 기간이 지난 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("파손 반품 기간이 지난 상품: " + orderItem.getOrderItemId());
             }
 
             orderItem.setOrderItemStatus(OrderItemStatus.RETURN_REQUESTED_DAMAGED);
@@ -84,7 +75,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     RETURNED(OrderItemStatus.RETURNED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
+        public void updateStatus(Order order, OrderItem orderItem) {
             // 이제 반품은 사가에 의해서 이루어짐
 //            OrderItem orderItem = findOrderItem(order, orderItemId);
 //
@@ -103,12 +94,10 @@ public enum OrderItemStatusUpdateStrategy {
     },
     CANCELED(OrderItemStatus.CANCELED, Role.DISABLE) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
+        public void updateStatus(Order order, OrderItem orderItem) {
             // 상품 준비 중 상태가 아니면 취소 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
-                throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품: " + orderItem.getOrderItemId());
             }
 
             // 상태 변경
@@ -117,12 +106,10 @@ public enum OrderItemStatusUpdateStrategy {
     },
     CONFIRMED(OrderItemStatus.CONFIRMED, Role.USER) {
         @Override
-        public void updateStatus(Order order, Long orderItemId) {
-            OrderItem orderItem = findOrderItem(order, orderItemId);
-
+        public void updateStatus(Order order, OrderItem orderItem) {
             // 배송 완료 상태가 아니면 구매 확정 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
-                throw new OrderStatusTransitionException("구매 확정이 불가능한 상태의 상품: " + orderItemId);
+                throw new OrderStatusTransitionException("구매 확정이 불가능한 상태의 상품: " + orderItem.getOrderItemId());
             }
 
             orderItem.setOrderItemStatus(OrderItemStatus.CONFIRMED);
@@ -132,7 +119,7 @@ public enum OrderItemStatusUpdateStrategy {
     private final OrderItemStatus targetStatus;
     private final Role requiredRole;
 
-    public abstract void updateStatus(Order order, Long orderItemId);
+    public abstract void updateStatus(Order order, OrderItem orderItem);
 
     public boolean hasPermission(String userRole) {
         // 비활성화된 기능
@@ -148,13 +135,6 @@ public enum OrderItemStatusUpdateStrategy {
 
         // 그 외에는 모두 가능
         return true;
-    }
-
-    protected OrderItem findOrderItem(Order order, Long orderItemId) {
-        return order.getOrderItems().stream()
-                .filter(orderItem -> orderItem.getOrderItemId().equals(orderItemId))
-                .findFirst()
-                .orElseThrow(() -> new OrderItemNotFoundException("해당 주문에 존재하지 않는 상품: " + orderItemId));
     }
 
     public static OrderItemStatusUpdateStrategy from(OrderItemStatus status) {

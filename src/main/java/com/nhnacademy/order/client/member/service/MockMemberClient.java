@@ -1,6 +1,7 @@
 package com.nhnacademy.order.client.member.service;
 
 import com.nhnacademy.order.client.member.MemberClient;
+import com.nhnacademy.order.client.member.dto.PointAccumulationRequest;
 import com.nhnacademy.order.client.member.dto.PointUsageRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -26,5 +27,10 @@ public class MockMemberClient implements MemberClient {
     @Override
     public void rollbackPoint(UUID sagaId, PointUsageRequest request) {
         log.info("MockMemberClient 포인트 복구 요청: {}", request);
+    }
+
+    @Override
+    public void accumulatePoint(UUID idempotencyKey, PointAccumulationRequest request) {
+        log.info("MockMemberClient 포인트 적립 요청: {}", request);
     }
 }

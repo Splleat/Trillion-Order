@@ -2,15 +2,16 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.Order;
+import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
+import com.nhnacademy.order.orderitem.service.OrderItemService;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
-import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
-import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,12 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,105 +37,85 @@ class OrderServiceUpdateTest {
 
     @Mock
     private OrderRepository orderRepository;
-
+    @Mock
+    private OrderItemService orderItemService; // 리팩토링으로 추가된 의존성
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private OrderCancelOrchestrator orderCancelOrchestrator;
-    @Mock
-    private OrderItemRefundOrchestrator orderItemRefundOrchestrator;
-    @Mock
-    private NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
 
     @Test
-    @DisplayName("회원 주문 상품 상태 변경 - 성공: 환불 요청 시 오케스트레이터 호출")
-    void patchOrderItemStatus_Success_MemberReturn() {
+    @DisplayName("회원 주문 상품 상태 변경 - 성공: OrderItemService에 위임")
+    void patchOrderItemStatus_Success_DelegatesToOrderItemService() {
         // given
         long orderId = 1L;
         long orderItemId = 101L;
-        UserInfo adminInfo = new UserInfo(999L, null, "ADMIN");
+        UserInfo userInfo = new UserInfo(999L, null, "ADMIN");
+        OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.CONFIRMED);
 
-        OrderItem orderItem = mock(OrderItem.class);
         Order order = mock(Order.class);
-        com.nhnacademy.order.order.domain.OrderDetails orderDetails = mock(com.nhnacademy.order.order.domain.OrderDetails.class);
+        OrderItem orderItem = mock(OrderItem.class);
+        OrderDetails orderDetails = mock(OrderDetails.class);
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(order));
         when(order.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
 
-        // Stubbing for OrderResponse.create(order)
+        // OrderResponse 생성을 위한 최소한의 stubbing
         when(order.getOrderId()).thenReturn(orderId);
-        when(order.getMemberId()).thenReturn(adminInfo.userId());
-        when(order.getOrderNumber()).thenReturn("order-number-123");
+        when(order.getOrderItems()).thenReturn(Collections.emptySet());
         when(order.getOrderDetails()).thenReturn(orderDetails);
-        when(orderDetails.orderDate()).thenReturn(LocalDateTime.now());
-        when(order.getOrderStatus()).thenReturn(com.nhnacademy.order.order.domain.OrderStatus.PENDING);
-        when(orderDetails.originPrice()).thenReturn(10000);
-        when(orderDetails.totalPrice()).thenReturn(9000);
-        when(orderDetails.deliveryFee()).thenReturn(3000);
-        when(order.getOrdererInfo()).thenReturn(new com.nhnacademy.order.order.domain.OrdererInfo("name", "010-1234-5678"));
-        when(order.getReceiverInfo()).thenReturn(new com.nhnacademy.order.order.domain.ReceiverInfo("name", "010-1234-5678", "address"));
-        when(order.getOrderItems()).thenReturn(java.util.Collections.emptySet());
+        when(order.getOrderDetails().orderDate()).thenReturn(LocalDateTime.now().minusDays(1));
 
-
-        OrderItemStatusPatchRequest request = new OrderItemStatusPatchRequest(OrderItemStatus.RETURNED);
+        // doNothing()은 void 메소드에 사용
+        doNothing().when(orderItemService).updateOrderItemStatus(userInfo, order, orderItem, request.status());
 
         // when
-        com.nhnacademy.order.order.dto.OrderResponse response = orderServiceImpl.patchOrderItemStatus(adminInfo, orderId, orderItemId, request);
+        com.nhnacademy.order.order.dto.OrderResponse response = orderServiceImpl.patchOrderItemStatus(userInfo, orderId, orderItemId, request);
 
         // then
-        org.junit.jupiter.api.Assertions.assertNotNull(response);
-        // 환불 상태 변경 요청 시, 회원 환불 오케스트레이터가 올바른 인자들로 호출되는지 검증
-        verify(orderItemRefundOrchestrator, times(1)).processItemRefund(adminInfo.userId(), order, orderItem);
-        // 비회원 환불 오케스트레이터는 호출되지 않아야 함
-        verify(nonMemberOrderItemRefundOrchestrator, never()).processNonMemberItemRefund(any(), any());
+        assertNotNull(response);
+        // OrderServiceImpl의 역할은 OrderItemService의 메서드를 호출하는 것
+        // 정확한 인자로 1번 호출되었는지 검증
+        verify(orderItemService, times(1)).updateOrderItemStatus(userInfo, order, orderItem, request.status());
     }
 
     @Test
-    @DisplayName("비회원 주문 상품 상태 변경 - 성공: 환불 요청")
-    void patchOrderItemStatusForNonMember_Success_ReturnRequest() {
+    @DisplayName("비회원 주문 상품 상태 변경 - 성공: OrderItemService에 위임")
+    void patchOrderItemStatusForNonMember_Success_DelegatesToOrderItemService() {
         // given
         long orderId = 2L;
         long orderItemId = 201L;
         String rawPassword = "password1234";
         String encodedPassword = "encoded-password";
-
-        OrderItem orderItem = mock(OrderItem.class);
-        when(orderItem.getOrderItemId()).thenReturn(orderItemId);
+        NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest(rawPassword, OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
 
         Order nonMemberOrder = mock(Order.class);
-        com.nhnacademy.order.order.domain.OrderDetails orderDetails = mock(com.nhnacademy.order.order.domain.OrderDetails.class);
-        when(nonMemberOrder.getNonMemberPassword()).thenReturn(encodedPassword);
-        lenient().when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
-        when(nonMemberOrder.getOrderItems()).thenReturn(Set.of(orderItem));
-        when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.DELIVERED);
-        when(orderItem.getShippingDate()).thenReturn(LocalDateTime.now());
+        OrderItem orderItem = mock(OrderItem.class);
+        OrderDetails orderDetails = mock(OrderDetails.class);
 
         when(orderRepository.findOrderWithItemsByOrderId(orderId)).thenReturn(Optional.of(nonMemberOrder));
+        when(nonMemberOrder.getNonMemberPassword()).thenReturn(encodedPassword);
         when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+        when(nonMemberOrder.findOrderItemInOrder(orderItemId)).thenReturn(orderItem);
 
-        // Stubbing for OrderResponse.create(order)
+        // OrderResponse 생성을 위한 최소한의 stubbing
         when(nonMemberOrder.getOrderId()).thenReturn(orderId);
-        when(nonMemberOrder.getMemberId()).thenReturn(null);
-        when(nonMemberOrder.getOrderNumber()).thenReturn("non-member-order-456");
+        when(nonMemberOrder.getOrderItems()).thenReturn(Collections.emptySet());
         when(nonMemberOrder.getOrderDetails()).thenReturn(orderDetails);
-        when(orderDetails.orderDate()).thenReturn(LocalDateTime.now());
-        when(nonMemberOrder.getOrderStatus()).thenReturn(com.nhnacademy.order.order.domain.OrderStatus.PENDING);
-        when(orderDetails.originPrice()).thenReturn(20000);
-        when(orderDetails.totalPrice()).thenReturn(20000);
-        when(orderDetails.deliveryFee()).thenReturn(3000);
-        when(nonMemberOrder.getOrdererInfo()).thenReturn(new com.nhnacademy.order.order.domain.OrdererInfo("non-member", "010-9876-5432"));
-        when(nonMemberOrder.getReceiverInfo()).thenReturn(new com.nhnacademy.order.order.domain.ReceiverInfo("non-member-receiver", "010-9876-5432", "address"));
-        lenient().when(orderItem.getOrder()).thenReturn(nonMemberOrder);
+        when(nonMemberOrder.getOrderDetails().orderDate()).thenReturn(LocalDateTime.now().minusDays(1));
 
 
-        NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest(rawPassword, OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        doNothing().when(orderItemService).updateOrderItemStatus(null, nonMemberOrder, orderItem, request.status());
 
         // when
         com.nhnacademy.order.order.dto.OrderResponse response = orderServiceImpl.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         // then
-        org.junit.jupiter.api.Assertions.assertNotNull(response);
+        assertNotNull(response);
         verify(passwordEncoder, times(1)).matches(rawPassword, encodedPassword);
+        // OrderServiceImpl의 역할은 OrderItemService의 메서드를 호출하는 것
+        // 비회원이므로 userInfo는 null로 전달되는지 검증
+        verify(orderItemService, times(1)).updateOrderItemStatus(null, nonMemberOrder, orderItem, request.status());
     }
 
 
@@ -158,7 +139,6 @@ class OrderServiceUpdateTest {
 
         // then
         verify(orderRepository, times(1)).findOrderWithItemsByOrderId(orderId);
-        // ✨ 변경된 로직 검증: OrderServiceImpl이 OrderCancelOrchestrator를 호출하는지 확인
         verify(orderCancelOrchestrator, times(1)).processCancelOrder(userInfo.userId(), cancelableOrder);
     }
 
