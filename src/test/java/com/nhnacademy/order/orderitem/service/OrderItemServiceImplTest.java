@@ -24,8 +24,7 @@ class OrderItemServiceImplTest {
 
     @Mock
     private OrderItemRefundOrchestrator orderItemRefundOrchestrator;
-    @Mock
-    private NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
+
     @Mock
     private OrderItemUpdateService orderItemUpdateService;
 

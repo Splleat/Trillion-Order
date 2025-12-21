@@ -1,7 +1,6 @@
 package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.client.member.MemberClient;
-import com.nhnacademy.order.client.member.dto.PointAccumulationRequest;
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.order.common.dto.UserInfo;
@@ -23,20 +22,16 @@ import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.orderitem.service.OrderItemService;
-import com.nhnacademy.order.orderitem.service.OrderItemUpdateService;
-import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
-import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
-import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
+import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 import java.util.stream.Collectors;

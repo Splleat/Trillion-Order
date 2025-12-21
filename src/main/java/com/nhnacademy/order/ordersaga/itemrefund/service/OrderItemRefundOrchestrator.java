@@ -29,7 +29,6 @@ import java.util.UUID;
 public class OrderItemRefundOrchestrator {
     private final SagaUpdateService sagaUpdateService;
     private final MemberService memberService;
-    private final CouponService couponService;
     private final BookService bookService;
 
     private final DeliveryPolicyRepository deliveryPolicyRepository;

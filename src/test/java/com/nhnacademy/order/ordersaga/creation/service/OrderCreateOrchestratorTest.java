@@ -49,7 +49,6 @@ class OrderCreateOrchestratorTest {
 
     private OrderCreateSaga saga;
     private Order order;
-    private UUID mockSagaId;
     private Long mockCouponId = 1L;
 
     @BeforeEach
@@ -76,7 +75,7 @@ class OrderCreateOrchestratorTest {
         order.addOrderItem(orderItem);
 
         // Given: A saga is created for this order
-        mockSagaId = UUID.randomUUID();
+        UUID mockSagaId = UUID.randomUUID();
         saga = OrderCreateSaga.create(mockSagaId, order.getOrderId());
         
         // Simulate JPA generating the UUID for the sagaId
