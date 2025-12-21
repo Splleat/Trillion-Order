@@ -67,6 +67,26 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    // 초기 주문 생성
+    private Order createInitialOrder(UserInfo userInfo, OrderCreateRequest request) {
+        String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
+                .map(passwordEncoder::encode)
+                .orElse(null);
+        OrdererInfo ordererInfo = new OrdererInfo(request.ordererName(), request.ordererContact());
+        ReceiverInfo receiverInfo = new ReceiverInfo(request.receiverName(), request.receiverContact(), request.receiverAddress());
+        OrderDetails initialOrderDetails = OrderDetails.createInitial(request.receiverPostCode(), request.deliveryDate(), request.pointUsage());
+        OrderCoupon initialOrderCoupon = null;
+
+        if (request.couponId() != null) {
+            initialOrderCoupon = OrderCoupon.createInitial(request.couponId());
+        }
+
+        // 비회원인 경우 userId가 null
+        Long userId = (userInfo != null) ? userInfo.userId() : null;
+
+        return orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems());
+    }
+
     // 주문 상품 상태 변경
     private void updateOrderItemStatus(UserInfo userInfo, Order order, Long orderItemId, OrderItemStatus status) {
 
@@ -132,22 +152,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request) {
         // 1. 불완전한 초기 Order 생성 (OrderStatus: CREATING)
-        String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
-                .map(passwordEncoder::encode)
-                .orElse(null);
-        OrdererInfo ordererInfo = new OrdererInfo(request.ordererName(), request.ordererContact());
-        ReceiverInfo receiverInfo = new ReceiverInfo(request.receiverName(), request.receiverContact(), request.receiverAddress());
-        OrderDetails initialOrderDetails = OrderDetails.createInitial(request.receiverPostCode(), request.deliveryDate(), request.pointUsage());
-        OrderCoupon initialOrderCoupon = null;
-
-        if (request.couponId() != null) {
-            initialOrderCoupon = OrderCoupon.createInitial(request.couponId());
-        }
-
-        // 비회원인 경우 userId가 null
-        Long userId = (userInfo != null) ? userInfo.userId() : null;
-
-        Order order = orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems());
+        Order order = createInitialOrder(userInfo, request);
 
         UUID sagaId = UUID.randomUUID();
         OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());

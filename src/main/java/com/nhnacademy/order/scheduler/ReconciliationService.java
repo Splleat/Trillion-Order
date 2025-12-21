@@ -1,5 +1,6 @@
 package com.nhnacademy.order.scheduler;
 
+import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.order.service.OrderFinalizerCancelService;
@@ -10,6 +11,7 @@ import com.nhnacademy.order.orderitem.service.OrderItemRefundService;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
+import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberOrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.OrderItemRefundSaga;
@@ -26,6 +28,7 @@ public class ReconciliationService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderCreateSagaRepository orderCreateSagaRepository;
     private final OrderFinalizerCancelService orderFinalizerCancelService;
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderItemRefundService orderItemRefundService;
@@ -33,6 +36,18 @@ public class ReconciliationService {
     private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
     private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     private final OrderFinalizerCompensateService orderFinalizerCompensateService;
+
+    public void processAbandonedOrder(Order order) {
+        try {
+            log.warn("[주문 스케줄러] 오래된 PENDING 주문 보상 처리 시작: {}", order.getOrderId());
+            orderCreateSagaRepository.findByOrderId(order.getOrderId()).ifPresentOrElse(
+                saga -> orderCreateOrchestrator.compensate(saga, order),
+                () -> log.error("[주문 스케줄러] 처리할 주문 생성 사가를 찾지 못했습니다: {}", order.getOrderId())
+            );
+        } catch (Exception e) {
+            log.error("[주문 스케줄러] 오래된 PENDING 주문 보상 처리 실패: {}", order.getOrderId(), e);
+        }
+    }
 
     public void processStuckCreateSagaCompensation(OrderCreateSaga saga) {
         try {
