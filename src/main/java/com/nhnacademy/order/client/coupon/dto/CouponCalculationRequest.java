@@ -12,16 +12,12 @@ public record CouponCalculationRequest(
 ) {
     public record CouponCalculationOrderItem(
         Long bookId,
-        // TODO: 필드 삭제 검토 -> 해당 내용은 쿠폰 서비스가 직접 조회
-        Set<Long> categoryIds,
-        // TODO: 필드 삭제 검토 -> 해당 내용은 쿠폰 서비스가 직접 조회
-        int price,
+        int price, // 주문 당시 가격을 기준으로 해야 해서 남겨둠
         int quantity
     ) {
-        public static CouponCalculationOrderItem create(OrderItem orderItem, Set<Long> categoryIds) {
+        public static CouponCalculationOrderItem create(OrderItem orderItem) {
             return new CouponCalculationOrderItem(
                 orderItem.getBookId(),
-                categoryIds,
                 orderItem.getPrice(),
                 orderItem.getQuantity()
             );

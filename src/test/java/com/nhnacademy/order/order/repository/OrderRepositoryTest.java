@@ -40,7 +40,7 @@ class OrderRepositoryTest {
         // given: 모든 테스트가 공유하는 데이터 준비
         OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678");
         ReceiverInfo receiverInfo = new ReceiverInfo("이순신", "010-9876-5432", "서울");
-        OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0, null);
+        OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0);
 
         // Order 객체들 생성 및 저장
         order1 = Order.createInitial(targetMemberId, null, ordererInfo, receiverInfo, orderDetails);
@@ -187,7 +187,7 @@ class OrderRepositoryTest {
     @DisplayName("주문 번호로 비회원 주문 정보 조회 - 성공")
     void findNonMemberOrderByOrderNumber_Success() {
         // given: 이 테스트는 비회원 주문 데이터가 필요하므로 직접 생성합니다.
-        Order nonMemberOrder = Order.createInitial(null, "encrypted-password", new OrdererInfo(null, null), new ReceiverInfo(null, null, null), OrderDetails.createInitial(null, null, 0, null));
+        Order nonMemberOrder = Order.createInitial(null, "encrypted-password", new OrdererInfo(null, null), new ReceiverInfo(null, null, null), OrderDetails.createInitial(null, null, 0));
         entityManager.persist(nonMemberOrder);
         entityManager.flush();
         entityManager.clear();

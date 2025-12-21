@@ -5,13 +5,7 @@ import com.nhnacademy.order.ordercoupon.domain.CouponType;
 import java.util.List;
 
 public record CouponCalculationResponse(
-    // TODO: 필드 삭제 검토
-    Long couponId,
-    // TODO: 필드 삭제 검토
-    CouponType couponType,
-
-    // TODO: 필요한가?
-    Long targetId,
+    Long targetId, // targetId가 null이면 장바구니 쿠폰
 
     int totalDiscountAmount,
     List<ItemDiscount> itemDiscounts

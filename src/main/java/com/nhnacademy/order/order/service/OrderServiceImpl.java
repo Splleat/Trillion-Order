@@ -13,6 +13,7 @@ import com.nhnacademy.order.order.exception.OrderNotFoundException;
 import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
@@ -136,12 +137,17 @@ public class OrderServiceImpl implements OrderService {
                 .orElse(null);
         OrdererInfo ordererInfo = new OrdererInfo(request.ordererName(), request.ordererContact());
         ReceiverInfo receiverInfo = new ReceiverInfo(request.receiverName(), request.receiverContact(), request.receiverAddress());
-        OrderDetails initialOrderDetails = OrderDetails.createInitial(request.receiverPostCode(), request.deliveryDate(), request.pointUsage(), request.couponId());
+        OrderDetails initialOrderDetails = OrderDetails.createInitial(request.receiverPostCode(), request.deliveryDate(), request.pointUsage());
+        OrderCoupon initialOrderCoupon = null;
+
+        if (request.couponId() != null) {
+            initialOrderCoupon = OrderCoupon.createInitial(request.couponId());
+        }
 
         // 비회원인 경우 userId가 null
         Long userId = (userInfo != null) ? userInfo.userId() : null;
 
-        Order order = orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, request.orderItems());
+        Order order = orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems());
 
         UUID sagaId = UUID.randomUUID();
         OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());

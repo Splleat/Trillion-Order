@@ -36,7 +36,7 @@ class OrderItemRepositoryTest {
     void setUp() {
         OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678");
         ReceiverInfo receiverInfo = new ReceiverInfo("이순신", "010-9876-5432", "서울");
-        OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0, null);
+        OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0);
 
         // 주문 2개 생성
         order1 = Order.createInitial(1L, null, ordererInfo, receiverInfo, orderDetails);

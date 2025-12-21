@@ -6,6 +6,7 @@ import com.nhnacademy.order.client.member.service.MemberService;
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.service.OrderFinalizerCompensateService;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.ordersaga.creation.domain.CreateSagaStep;
@@ -37,7 +38,10 @@ public class OrderCreateOrchestrator {
 
         int pointUsage = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::pointUsage).orElse(0);
 
-        Long couponId = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::couponId).orElse(null);
+        // 비즈니스 로직 상 쿠폰은 1개만 사용 가능하나, 확장성을 위해 Set<Long>으로 처리
+        Set<Long> couponIds = order.getOrderCoupons().stream()
+                .map(OrderCoupon::getCouponId)
+                .collect(Collectors.toSet());
 
         // List<OrderItemCreateRequest> -> Map<bookId, quantity> 추출
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
@@ -53,7 +57,7 @@ public class OrderCreateOrchestrator {
             // 4. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
-            if (couponId != null) {
+            couponIds.forEach(couponId -> {
                 // 5. 쿠폰 사용 중
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLYING);
 
@@ -62,7 +66,7 @@ public class OrderCreateOrchestrator {
 
                 // 7. 사가 상태 업데이트 (쿠폰 적용)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
-            }
+            });
 
             if (pointUsage > 0) {
                 // 8. 포인트 사용 중
@@ -102,7 +106,10 @@ public class OrderCreateOrchestrator {
 
         Long memberId = order.getMemberId();
 
-        Long couponId = Optional.ofNullable(order.getOrderDetails()).map(OrderDetails::couponId).orElse(null);
+        // 비즈니스 로직 상 쿠폰은 1개만 사용 가능하나, 확장성을 위해 Set<Long>으로 처리
+        Set<Long> couponIds = order.getOrderCoupons().stream()
+                .map(OrderCoupon::getCouponId)
+                .collect(Collectors.toSet());
 
         Map<Long, Integer> quantityMap = order.getOrderItems().stream()
                 .collect(Collectors.toMap(OrderItem::getBookId, OrderItem::getQuantity));
@@ -121,9 +128,8 @@ public class OrderCreateOrchestrator {
         }
 
         if (currentStep == CreateSagaStep.COUPON_APPLYING || currentStep == CreateSagaStep.COUPON_APPLIED) {
-            if (couponId != null) {
-                couponService.withdrawCoupon(saga.getSagaId(), memberId, couponId);
-            }
+            couponIds.forEach(couponId -> couponService.withdrawCoupon(saga.getSagaId(), memberId, couponId));
+
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
             currentStep = CreateSagaStep.STOCK_DECREASED;
