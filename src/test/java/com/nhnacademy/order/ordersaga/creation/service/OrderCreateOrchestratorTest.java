@@ -106,7 +106,7 @@ class OrderCreateOrchestratorTest {
         inOrder.verify(couponService).applyCoupon(any(UUID.class), eq(order.getMemberId()), eq(mockCouponId));
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
-        inOrder.verify(memberService).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(pointUsage));
+        inOrder.verify(memberService).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(order.getOrderId()), eq(pointUsage));
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USED);
 
         // 2. Verify the final saga status is COMPLETED
@@ -116,6 +116,6 @@ class OrderCreateOrchestratorTest {
         verify(orderFinalizerCompensateService, never()).compensateOrder(any(), any());
         verify(bookService, never()).increaseStocks(any(UUID.class), any());
         verify(couponService, never()).withdrawCoupon(any(UUID.class), anyLong(), anyLong());
-        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyInt());
+        verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyLong(), anyInt());
     }
 }

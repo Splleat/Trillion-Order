@@ -65,7 +65,7 @@ public class OrderItemRefundOrchestrator {
 
         try {
             // 2. 멤버 API에 포인트 증가 요청
-            memberService.increasePoint(sagaId, memberId, refundAmount);
+            memberService.increasePoint(sagaId, memberId, order.getOrderId(), refundAmount);
             sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
             // 3. 도서 API에 재고 증가 요청
@@ -107,7 +107,7 @@ public class OrderItemRefundOrchestrator {
 
         try {
             if (currentStep.ordinal() < ItemRefundSagaStep.POINT_REFUNDED.ordinal()) {
-                memberService.increasePoint(sagaId, memberId, refundAmount);
+                memberService.increasePoint(sagaId, memberId, order.getOrderId(), refundAmount);
                 sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.POINT_REFUNDED);
 
                 currentStep = ItemRefundSagaStep.POINT_REFUNDED;

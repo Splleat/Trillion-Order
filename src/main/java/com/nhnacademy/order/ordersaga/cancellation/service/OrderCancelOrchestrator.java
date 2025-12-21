@@ -56,7 +56,7 @@ public class OrderCancelOrchestrator {
             if (memberId != null) {
                 // 3. 멤버 API에 사용한 포인트만큼 증가 요청
                 if (pointUsage > 0) {
-                    memberService.increasePoint(saga.getSagaId(), memberId, pointUsage);
+                    memberService.increasePoint(saga.getSagaId(), memberId, order.getOrderId(), pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
                 }
 
@@ -120,7 +120,7 @@ public class OrderCancelOrchestrator {
 
             if (memberId != null) {
                 if (pointUsage > 0 && currentStep.ordinal() < CancelSagaStep.POINT_REFUNDED.ordinal()) {
-                    memberService.increasePoint(sagaId, memberId, pointUsage);
+                    memberService.increasePoint(sagaId, memberId, order.getOrderId(), pointUsage);
                     sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
 
                     currentStep = CancelSagaStep.POINT_REFUNDED;
