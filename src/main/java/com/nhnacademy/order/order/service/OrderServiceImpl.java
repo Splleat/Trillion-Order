@@ -1,5 +1,7 @@
 package com.nhnacademy.order.order.service;
 
+import com.nhnacademy.order.client.member.MemberClient;
+import com.nhnacademy.order.client.member.dto.PointAccumulationRequest;
 import com.nhnacademy.order.common.aop.AuthRole;
 import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.order.common.dto.UserInfo;
@@ -20,6 +22,8 @@ import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
+import com.nhnacademy.order.orderitem.service.OrderItemService;
+import com.nhnacademy.order.orderitem.service.OrderItemUpdateService;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
@@ -48,12 +52,14 @@ public class OrderServiceImpl implements OrderService {
     // Service
     private final OrderInitialCreateService orderInitialCreateService;
     private final OrderFinalizerCreateService orderFinalizerCreateService;
+    private final OrderItemService orderItemService;
+
+    // Client
+    private final MemberClient memberClient;
 
     // 사가 패턴
     private final OrderCreateOrchestrator orderCreateOrchestrator;
     private final OrderCancelOrchestrator orderCancelOrchestrator;
-    private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
-    private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
 
     // 비회원 주문 비밀번호 인코딩
     private final PasswordEncoder passwordEncoder;
@@ -85,42 +91,6 @@ public class OrderServiceImpl implements OrderService {
         Long userId = (userInfo != null) ? userInfo.userId() : null;
 
         return orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems());
-    }
-
-    // 주문 상품 상태 변경
-    private void updateOrderItemStatus(UserInfo userInfo, Order order, Long orderItemId, OrderItemStatus status) {
-
-        OrderItemStatusUpdateStrategy strategy = OrderItemStatusUpdateStrategy.from(status);
-
-        String role = (userInfo != null) ? userInfo.role() : null;
-
-        if (!strategy.hasPermission(role)) {
-            throw new AccessDeniedException("주문 상품 상태 변경 권한이 없음");
-        }
-
-        // 이제 단건 환불인 경우는 사가에서 상태 변경을 처리
-        if (strategy == OrderItemStatusUpdateStrategy.RETURNED) {
-
-            OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
-
-            // 회원
-            try {
-                if (userInfo != null) {
-                    orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
-                } else {
-                    // 비회원
-                    nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
-                }
-            } catch (Exception e) {
-                log.error("주문 상품 환불 처리 실패: {}", e.getMessage(), e);
-                // 예외를 삼켜서 사용자는 모르게 함
-                // '환불 요청' -> '관리자 승인' -> '환불' 순서로 진행되기 때문에 환불 중 오류가 발생해도 '환불 요청' 상태 유지
-                // 스케줄러가 알아서 다시 환불 처리함
-            }
-        } else {
-            // 단건 환불이 아닌 경우 바로 상태 변경
-            strategy.updateStatus(order, orderItemId);
-        }
     }
 
     // 전체 주문 조회
@@ -257,32 +227,34 @@ public class OrderServiceImpl implements OrderService {
     // 주문 상품 상태 변경 (회원 & 관리자)
     @Override
     @CheckAuth(role = AuthRole.MEMBER, checkOrderOwner = true)
-    @Transactional
     public OrderResponse patchOrderItemStatus(UserInfo userInfo, Long orderId, Long orderItemId, OrderItemStatusPatchRequest request) {
 
         // 1. 주문 조회
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
+
         // 2. 주문 상품 상태 변경
-        updateOrderItemStatus(userInfo, order, orderItemId, request.status());
+        orderItemService.updateOrderItemStatus(userInfo, order, orderItem, request.status());
 
         return OrderResponse.create(order);
     }
 
     // 비회원 주문 상품 상태 변경 (주문 취소, 환불 요청)
     @Override
-    @Transactional
     public OrderResponse patchOrderItemStatusForNonMember(Long orderId, Long orderItemId, NonMemberOrderItemStatusPatchRequest request) {
         // 1. 주문 조회
         Order order = orderRepository.findOrderWithItemsByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE + orderId));
 
+        OrderItem orderItem = order.findOrderItemInOrder(orderItemId);
+
         // 2. 비회원 비밀번호 확인
         nonMemberPasswordCheck(request.nonMemberPassword(), order.getNonMemberPassword());
 
         // 3. 주문 상품 상태 변경
-        updateOrderItemStatus(null, order, orderItemId, request.status());
+        orderItemService.updateOrderItemStatus(null, order, orderItem, request.status());
 
         return OrderResponse.create(order);
     }
