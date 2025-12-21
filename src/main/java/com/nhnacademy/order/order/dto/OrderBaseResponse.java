@@ -5,6 +5,7 @@ import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record OrderBaseResponse(
     Long orderId,
@@ -19,4 +20,5 @@ public record OrderBaseResponse(
     int totalCouponDiscount, // 총 쿠폰 할인액
     OrdererInfo ordererInfo,
     ReceiverInfo receiverInfo
-) {}
+) {
+}

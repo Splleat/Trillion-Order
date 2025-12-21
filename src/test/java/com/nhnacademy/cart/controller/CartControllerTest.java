@@ -102,13 +102,13 @@ class CartControllerTest {
     // ======================================================================
 
     @Test
-    @DisplayName("POST /api/carts : 장바구니 담기 성공 (201 Created)")
+    @DisplayName("POST /carts : 장바구니 담기 성공 (201 Created)")
     void addCartItem() throws Exception {
         // given
         CartCreateRequestDto request = new CartCreateRequestDto(100L, 2);
 
         // when & then
-        mockMvc.perform(post("/api/carts")
+        mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -118,14 +118,14 @@ class CartControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/carts/{bookId} : 수량 변경 성공 (200 OK)")
+    @DisplayName("PUT /carts/{bookId} : 수량 변경 성공 (200 OK)")
     void updateCartItem() throws Exception {
         // given
         Long bookId = 100L;
         CartUpdateRequestDto request = new CartUpdateRequestDto(5);
 
         // when & then
-        mockMvc.perform(put("/api/carts/{bookId}", bookId)
+        mockMvc.perform(put("/carts/{bookId}", bookId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -134,30 +134,30 @@ class CartControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/carts/{bookId} : 상품 삭제 성공 (200 OK)")
+    @DisplayName("DELETE /carts/{bookId} : 상품 삭제 성공 (200 OK)")
     void removeCartItem() throws Exception {
         // given
         Long bookId = 100L;
 
         // when & then
-        mockMvc.perform(delete("/api/carts/{bookId}", bookId))
+        mockMvc.perform(delete("/carts/{bookId}", bookId))
                 .andExpect(status().isNoContent());
 
         verify(cartService).removeCartItem(memberHolder, bookId);
     }
 
     @Test
-    @DisplayName("DELETE /api/carts : 장바구니 비우기 성공 (200 OK)")
+    @DisplayName("DELETE /carts : 장바구니 비우기 성공 (200 OK)")
     void clearCart() throws Exception {
         // when & then
-        mockMvc.perform(delete("/api/carts"))
+        mockMvc.perform(delete("/carts"))
                 .andExpect(status().isNoContent());
 
         verify(cartService).clearCart(memberHolder);
     }
 
     @Test
-    @DisplayName("GET /api/carts : 장바구니 목록 조회 및 정렬 확인 (200 OK)")
+    @DisplayName("GET /carts : 장바구니 목록 조회 및 정렬 확인 (200 OK)")
     void getCartItems() throws Exception {
         // given
         LocalDateTime now = LocalDateTime.now();
@@ -168,7 +168,7 @@ class CartControllerTest {
         given(cartService.getCartItems(memberHolder)).willReturn(List.of(itemOld, itemNew));
 
         // when & then
-        mockMvc.perform(get("/api/carts"))
+        mockMvc.perform(get("/carts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(2))
                 // 정렬 로직 (reversed) 확인: New -> Old 순서여야 함
@@ -179,14 +179,14 @@ class CartControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/carts/summary : 장바구니 요약정보 조회 (200 OK)")
+    @DisplayName("GET /carts/summary : 장바구니 요약정보 조회 (200 OK)")
     void getCartSummary() throws Exception {
         // given
         CartSummaryDto summary = new CartSummaryDto(5,5);
         given(cartService.getCartSummary(memberHolder)).willReturn(summary);
 
         // when & then
-        mockMvc.perform(get("/api/carts/summary"))
+        mockMvc.perform(get("/carts/summary"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lineCount").value(5))
                 .andExpect(jsonPath("$.totalQuantity").value(5));
@@ -196,7 +196,7 @@ class CartControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/carts/merge : 장바구니 병합 (200 OK)")
+    @DisplayName("POST /carts/merge : 장바구니 병합 (200 OK)")
     void mergeCart() throws Exception {
         // given
         // setUp에서 등록한 ArgumentResolver에 의해:
@@ -204,7 +204,7 @@ class CartControllerTest {
         // 두 번째 파라미터(@GuestOnly) -> guestHolder 주입됨
 
         // when & then
-        mockMvc.perform(post("/api/carts/merge"))
+        mockMvc.perform(post("/carts/merge"))
                 .andExpect(status().isNoContent());
 
         // Verify: 올바른 홀더들이 순서대로 넘어갔는지 확인

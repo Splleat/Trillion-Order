@@ -58,38 +58,40 @@ public class OrderFinalizerCreateService {
                 .sum();
         OrderDetails currentOrderDetails = order.getOrderDetails();
 
-        int totalCouponDiscount = 0;
+        // 3. 쿠폰 사용 처리 (현재 비즈니스 로직 상 1개의 쿠폰만 사용 가능)
+        Set<OrderCoupon> orderCoupons = order.getOrderCoupons();
 
-        // 3. 쿠폰 사용 처리
-        Long couponId = currentOrderDetails.couponId();
+        if (memberId != null) {
+            orderCoupons.forEach(orderCoupon -> {
+                // 3-1. 쿠폰 할인 계산 요청
+                List<CouponCalculationRequest.CouponCalculationOrderItem> couponItems = orderItems.stream()
+                        .map(item -> new CouponCalculationRequest.CouponCalculationOrderItem(
+                                item.getBookId(),
+                                item.getPrice(),
+                                item.getQuantity()))
+                        .toList();
+                CouponCalculationRequest couponRequest = new CouponCalculationRequest(memberId, orderCoupon.getCouponId(), couponItems);
+                // 3-2. 쿠폰 할인 계산 응답
+                CouponCalculationResponse couponResponse = couponService.calculateDiscount(couponRequest);
 
-        if (couponId != null && memberId != null) {
-            // 3-1. 쿠폰 할인 계산 요청
-            List<CouponCalculationRequest.CouponCalculationOrderItem> couponItems = orderItems.stream()
-                .map(item -> new CouponCalculationRequest.CouponCalculationOrderItem(
-                    item.getBookId(),
-                    bookResponseMap.get(item.getBookId()).categoryIds(),
-                    item.getPrice(),
-                    item.getQuantity()))
-                .toList();
-            CouponCalculationRequest couponRequest = new CouponCalculationRequest(memberId, couponId, couponItems);
-            // 3-2. 쿠폰 할인 계산 응답
-            CouponCalculationResponse couponResponse = couponService.calculateDiscount(couponRequest);
+                int couponDiscount = couponResponse.totalDiscountAmount();
 
-            totalCouponDiscount = couponResponse.totalDiscountAmount();
+                // 3-3. OrderCoupon 완성
+                orderCoupon.completeOrderCoupon(couponDiscount, couponResponse.targetId());
 
-            // 3-3. OrderCoupon 엔티티 생성 및 Order에 추가
-            OrderCoupon orderCoupon = new OrderCoupon(null, order, couponResponse.couponId(), totalCouponDiscount, couponResponse.couponType(), couponResponse.targetId());
-            order.addOrderCoupon(orderCoupon);
-
-            // 3-4. 각 OrderItem에 쿠폰 할인 금액 반영
-            Map<Long, Integer> itemDiscountMap = couponResponse.itemDiscounts().stream()
-                .collect(Collectors.toMap(CouponCalculationResponse.ItemDiscount::bookId, CouponCalculationResponse.ItemDiscount::discountAmount));
-            orderItems.forEach(item -> {
-                int discount = itemDiscountMap.getOrDefault(item.getBookId(), 0);
-                item.setCouponDiscountAmount(discount);
+                // 3-4. 각 OrderItem에 쿠폰 할인 금액 반영
+                Map<Long, Integer> itemDiscountMap = couponResponse.itemDiscounts().stream()
+                        .collect(Collectors.toMap(CouponCalculationResponse.ItemDiscount::bookId, CouponCalculationResponse.ItemDiscount::discountAmount));
+                orderItems.forEach(item -> {
+                    int discount = itemDiscountMap.getOrDefault(item.getBookId(), 0);
+                    item.setCouponDiscountAmount(discount);
+                });
             });
         }
+
+        int totalCouponDiscount = orderItems.stream()
+                .mapToInt(OrderItem::getCouponDiscountAmount)
+                .sum();
 
         // 4. 최종 가격 계산
         int pointUsage = currentOrderDetails.pointUsage();

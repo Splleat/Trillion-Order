@@ -1,5 +1,7 @@
 package com.nhnacademy.payment.controller;
 
+import com.nhnacademy.order.common.aop.AuthRole;
+import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.payment.config.PaymentUser;
 import com.nhnacademy.payment.dto.reqeust.PaymentCancelRequestDto;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/payment")
+@RequestMapping("/payments")
 public class PaymentController {
     private final PaymentService paymentService;
     private final PaymentFlowService paymentFlowService;

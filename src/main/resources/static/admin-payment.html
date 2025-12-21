@@ -96,7 +96,7 @@
     const tbody = document.getElementById("payment-list-body");
 
     try {
-      const response = await fetch(`/admin/payment?page=${page}&size=${pageSize}&sort=paymentId,desc`, {
+      const response = await fetch(`/admin/payments?page=${page}&size=${pageSize}&sort=paymentId,desc`, {
         method: 'GET',
         headers: ADMIN_HEADERS // ★ 헤더 주입
       });

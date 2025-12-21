@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/payment")
+@RequestMapping("/admin/payments")
 public class AdminPaymentController {
     private final PaymentService paymentService;
     private final PaymentFlowService paymentFlowService;

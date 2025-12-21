@@ -10,7 +10,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-@Slf4j // 로그 기능을 위해 추가
+@Slf4j
 @Component
 public class PaymentUserResolver implements HandlerMethodArgumentResolver {
 
@@ -31,14 +31,11 @@ public class PaymentUserResolver implements HandlerMethodArgumentResolver {
 
         // 1. 헤더 값 가져오기
         String memberIdHeader = webRequest.getHeader(HEADER_MEMBER_ID);
-        String memberRoleHeader = webRequest.getHeader(HEADER_MEMBER_ROLE); // 역할 헤더 추가
+        String memberRoleHeader = webRequest.getHeader(HEADER_MEMBER_ROLE);
         String guestIdHeader = webRequest.getHeader(HEADER_GUEST_ID);
 
         Long memberId = null;
-        Long guestId = null;
-
-        // 역할 기본값 처리 (헤더가 없으면 "GUEST" 혹은 null 등 정책에 따라 설정)
-        String role = StringUtils.hasText(memberRoleHeader) ? memberRoleHeader : "GUEST";
+        String guestId = null;
 
         // 2. 회원 ID 파싱 (변수명 오타 수정: memberIdStr -> memberIdHeader)
         if (StringUtils.hasText(memberIdHeader)) {
@@ -51,11 +48,7 @@ public class PaymentUserResolver implements HandlerMethodArgumentResolver {
 
         // 3. 비회원 ID 파싱 (변수명 오타 수정: guestIdStr -> guestIdHeader)
         if (StringUtils.hasText(guestIdHeader)) {
-            try {
-                guestId = Long.valueOf(guestIdHeader);
-            } catch (NumberFormatException e) {
-                log.error("Guest ID 형식이 올바르지 않습니다: {}", guestIdHeader);
-            }
+            guestId = guestIdHeader;
         }
 
         // 4. 검증: 둘 다 없으면 에러
@@ -63,7 +56,17 @@ public class PaymentUserResolver implements HandlerMethodArgumentResolver {
             throw new IllegalArgumentException("사용자 식별 정보(MemberId or GuestId)가 헤더에 없습니다.");
         }
 
+        //isMember null -> Guest라고 판단 가능
         boolean isMember = (memberId != null);
+
+        String role;
+        if (isMember) {
+            // 회원인 경우: 헤더 값을 믿음 (없으면 MEMBER)
+            role = StringUtils.hasText(memberRoleHeader) ? memberRoleHeader : "MEMBER";
+        } else {
+            // 비회원인 경우: 헤더 값 무시하고 무조건 GUEST로 고정 (보안 핵심!)
+            role = "GUEST";
+        }
 
         // 5. role 정보까지 포함하여 객체 생성
         return new PaymentUser(memberId, guestId, role, isMember);

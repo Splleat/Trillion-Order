@@ -2,6 +2,7 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.packaging.domain.Packaging;
@@ -24,7 +25,7 @@ public class OrderInitialCreateService {
 
     // 초기 주문 생성 - 보상 트랜잭션 도중 서버 종료 시 필요함
     @Transactional
-    public Order createInitialOrder(Long memberId, String nonMemberPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails initialOrderDetails, List<OrderItemCreateRequest> itemCreateRequests) {
+    public Order createInitialOrder(Long memberId, String nonMemberPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails initialOrderDetails, OrderCoupon initialOrderCoupon, List<OrderItemCreateRequest> itemCreateRequests) {
         Order order = Order.createInitial(
                 memberId,
                 nonMemberPassword,
@@ -32,6 +33,11 @@ public class OrderInitialCreateService {
                 receiverInfo,
                 initialOrderDetails
         );
+
+        // 초기 쿠폰 생성
+        if (initialOrderCoupon != null) {
+            order.addOrderCoupon(initialOrderCoupon);
+        }
 
         // 초기 주문 상품 목록 생성
         List<Long> orderPackagingIds = itemCreateRequests.stream()
