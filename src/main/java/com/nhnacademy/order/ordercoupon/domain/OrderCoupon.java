@@ -1,13 +1,11 @@
 package com.nhnacademy.order.ordercoupon.domain;
 
-import com.nhnacademy.order.common.entity.BaseTimeEntity;
 import com.nhnacademy.order.order.domain.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.aspectj.weaver.ast.Or;
 
 @Getter
 @NoArgsConstructor
