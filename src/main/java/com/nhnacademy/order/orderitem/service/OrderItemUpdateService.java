@@ -22,8 +22,9 @@ public class OrderItemUpdateService {
 
     // 주문 상품 구매 확정 시 호출될 포인트 적립 메서드
     public void accumulatePoint(Order order, OrderItem orderItem) {
-        // 멱등성을 위한 키 생성
-        UUID idempotencyKey = UUID.randomUUID();
+        // 멱등성을 위한 키는 주문 ID와 주문 상품 ID를 기반으로 고유하게 생성함
+        String idempotencySource = order.getOrderId() + ":" + orderItem.getOrderItemId();
+        UUID idempotencyKey = UUID.nameUUIDFromBytes(idempotencySource.getBytes());
 
         Long memberId = order.getMemberId();
         Long orderId = order.getOrderId();
