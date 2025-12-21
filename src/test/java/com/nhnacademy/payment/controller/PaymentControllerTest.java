@@ -123,14 +123,14 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("결제 승인 성공 테스트 POST - /payment/confirm")
+    @DisplayName("결제 승인 성공 테스트 POST - /payments/confirm")
     void confirmPaymentSuccess() throws Exception {
         // given
         given(paymentFlowService.confirmPayment(eq(mockUser), any(PaymentRequestDto.class)))
                 .willReturn(payment);
 
         // when & then
-        mockMvc.perform(post("/payment/confirm")
+        mockMvc.perform(post("/payments/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -142,13 +142,13 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("결제 취소 요청 테스트 POST - /payment/cancel")
+    @DisplayName("결제 취소 요청 테스트 POST - /payments/cancel")
     void cancelPayment() throws Exception {
         // given
         PaymentCancelRequestDto cancelRequest = new PaymentCancelRequestDto(ORDER_NUMBER, "단순 변심", 30000);
 
         // when & then
-        mockMvc.perform(post("/payment/cancel")
+        mockMvc.perform(post("/payments/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cancelRequest)))
                 .andDo(print())
@@ -164,14 +164,14 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("회원 결제 내역 단건 조회 GET - /payment/{orderNumber}")
+    @DisplayName("회원 결제 내역 단건 조회 GET - /payments/{orderNumber}")
     void getPaymentByOrderNumber() throws Exception {
         // given
         given(paymentService.getMemberPaymentByOrderNumber(eq(mockUser), eq(ORDER_NUMBER)))
                 .willReturn(payment);
 
         // when & then
-        mockMvc.perform(get("/payment/{orderNumber}", ORDER_NUMBER))
+        mockMvc.perform(get("/payments/{orderNumber}", ORDER_NUMBER))
                 .andDo(print())
                 .andExpect(status().isOk())
                 // [수정 완료] orderId -> orderNumber
@@ -180,7 +180,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("회원 결제 전체 조회 (페이징) GET - /payment")
+    @DisplayName("회원 결제 전체 조회 (페이징) GET - /payments")
     void getMemberPayments_Success() throws Exception {
         // given
         Pageable pageable = PageRequest.of(0, 10);
@@ -190,7 +190,7 @@ class PaymentControllerTest {
                 .willReturn(paymentPage);
 
         // when & then
-        mockMvc.perform(get("/payment")
+        mockMvc.perform(get("/payments")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
@@ -207,7 +207,7 @@ class PaymentControllerTest {
         given(mockUser.isMember()).willReturn(false);
 
         // when & then
-        mockMvc.perform(get("/payment")
+        mockMvc.perform(get("/payments")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())

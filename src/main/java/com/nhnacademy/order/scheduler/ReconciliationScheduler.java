@@ -1,5 +1,7 @@
 package com.nhnacademy.order.scheduler;
 
+import com.nhnacademy.order.order.domain.OrderStatus;
+import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.ordersaga.cancellation.repository.OrderCancelSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
@@ -23,27 +25,37 @@ public class ReconciliationScheduler {
     private final OrderItemRefundSagaRepository orderItemRefundSagaRepository;
     private final ReconciliationService reconciliationService;
     private final NonMemberOrderItemRefundSagaRepository nonMemberOrderItemRefundSagaRepository;
+    private final OrderRepository orderRepository;
 
     // 처음에는 불완전한 주문 생성 사가를 다시 처리해 주문을 생성하려 했지만, 스케줄러가 잡은 모든 주문 생성 사가는 보상 처리하는 것이 비즈니스 흐름 상 올바른 것 같음.
     // 주문 생성 -> 주문 생성 완료 -> 결제까지 한 번에 동기적으로 성공해야 함.
 
     // 동기적으로 잘 생성되고 있는 주문을 스케줄러가 잡게 되는 경우가 발생하지 않도록 수정 시간(updatedAt) 사용
 
-    // TODO: 오랜 기간 PENDING에 머물러 있는 주문을 삭제하는 스케줄러 로직 생성
-
-    // 멈춰있거나 완료된 사가를 처리
-    @Scheduled(fixedRate = 300000)
+    // 멈춰있거나 완료된 사가, 오래된 PENDING 주문을 처리
+    @Scheduled(fixedRate = 300000) // 5분 마다 실행
     @SchedulerLock(name = "ReconciliationScheduler.reconcileSagaState") // 분산 락 설정 -> 서버가 여러 개여도 하나의 스케줄러만 실행
     public void reconcileSagaState() {
-        // 변경 시간(updatedAt)이 1분이 지난 대상만 처리 (수정 가능)
-        // @Scheduled가 사용된 메서드는 매개변수 사용 불가능
-        LocalDateTime cutOffTime = LocalDateTime.now().minusMinutes(1);
+        log.info("Reconciliation scheduler started.");
 
-        // 1. 멈춘 사가 복구 / 재시도
-        reconcileStuckSagas(cutOffTime);
+        // 1. 멈춘 사가 복구 / 재시도 (1분 이상 경과)
+        LocalDateTime sagaCutOffTime = LocalDateTime.now().minusMinutes(1);
+        reconcileStuckSagas(sagaCutOffTime);
 
-        // 2. 완료된 사가와 도메인 연결
-        bridgeCompletedSagas(cutOffTime);
+        // 2. 완료된 사가와 도메인 연결 (1분 이상 경과)
+        bridgeCompletedSagas(sagaCutOffTime);
+
+        // 3. 오랜 기간 PENDING에 머문 주문 정리 (1시간 이상 경과)
+        LocalDateTime pendingOrderCutOffTime = LocalDateTime.now().minusHours(1);
+        cleanUpOldPendingOrder(pendingOrderCutOffTime);
+
+        log.info("Reconciliation scheduler finished.");
+    }
+
+    // 오랜 기간 PENDING에 머문 주문 정리
+    private void cleanUpOldPendingOrder(LocalDateTime cutOffTime) {
+        orderRepository.findAllOrderStatusAndUpdatedAtBefore(OrderStatus.PENDING, cutOffTime)
+                .forEach(reconciliationService::processAbandonedOrder);
     }
 
     // 사가를 진행하다 멈춘 경우를 처리하는 로직

@@ -6,6 +6,7 @@ import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.exception.OrderCreateFailureException;
 import com.nhnacademy.order.order.repository.OrderRepository;
+import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
@@ -69,8 +70,10 @@ class OrderServiceCreateTest {
             null,
             new OrdererInfo(orderCreateRequest.ordererName(), orderCreateRequest.ordererContact()),
             new ReceiverInfo(orderCreateRequest.receiverName(), orderCreateRequest.receiverContact(), orderCreateRequest.receiverAddress()),
-            OrderDetails.createInitial(orderCreateRequest.receiverPostCode(), orderCreateRequest.deliveryDate(), orderCreateRequest.pointUsage(), orderCreateRequest.couponId())
+            OrderDetails.createInitial(orderCreateRequest.receiverPostCode(), orderCreateRequest.deliveryDate(), orderCreateRequest.pointUsage())
         );
+        // Add coupon to the initial order for test consistency
+        initialOrder.addOrderCoupon(OrderCoupon.createInitial(orderCreateRequest.couponId()));
     }
 
     @Test
@@ -78,7 +81,7 @@ class OrderServiceCreateTest {
     void createOrder_Success() {
         // given
         // 초기 주문 생성 Mock
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
         // 사가 프로세스 성공 Mock
         doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
         // 최종 처리 성공 Mock
@@ -88,13 +91,14 @@ class OrderServiceCreateTest {
         OrderResponse orderResponse = orderServiceImpl.createOrder(userInfo, orderCreateRequest);
 
         // then
-        // 1. 초기 주문이 생성되었는가?
+        // 1. 초기 주문이 생성되었는가? (OrderCoupon 포함)
         verify(orderInitialCreateService, times(1)).createInitialOrder(
             eq(userInfo.userId()),
             isNull(),
             any(OrdererInfo.class),
             any(ReceiverInfo.class),
             any(OrderDetails.class),
+            any(OrderCoupon.class), // OrderCoupon is now an argument
             eq(orderCreateRequest.orderItems())
         );
 
@@ -114,7 +118,7 @@ class OrderServiceCreateTest {
     void createOrder_Failure_SagaFails() {
         // given
         // 초기 주문 생성 Mock
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
 
         // 사가 프로세스가 실패하도록 설정
         RuntimeException sagaException = new OrderCreateFailureException("외부 서비스 호출 실패");
@@ -163,12 +167,12 @@ class OrderServiceCreateTest {
             "encodedPassword", // nonMemberPassword는 인코딩됨
             new OrdererInfo(nonMemberRequest.ordererName(), nonMemberRequest.ordererContact()),
             new ReceiverInfo(nonMemberRequest.receiverName(), nonMemberRequest.receiverContact(), nonMemberRequest.receiverAddress()),
-            OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage(), nonMemberRequest.couponId())
+            OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage())
         );
 
         // Mock 설정
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any())).thenReturn(nonMemberInitialOrder);
+        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(nonMemberInitialOrder);
         doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
         doNothing().when(orderFinalizerCreateService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
 
@@ -183,6 +187,7 @@ class OrderServiceCreateTest {
             any(OrdererInfo.class),
             any(ReceiverInfo.class),
             any(OrderDetails.class),
+            isNull(), // No coupon used for non-member
             eq(nonMemberRequest.orderItems())
         );
 

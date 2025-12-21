@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderCreateSagaRepository extends JpaRepository<OrderCreateSaga, Long> {
+    Optional<OrderCreateSaga> findByOrderId(Long orderId);
     List<OrderCreateSaga> findAllByOverallStatusInAndUpdatedAtBefore(List<SagaStatus> sagaStatuses, LocalDateTime updatedAt);
     List<OrderCreateSaga> findAllByOverallStatusAndBridgedFalseAndUpdatedAtBefore(SagaStatus sagaStatus, LocalDateTime updatedAt);
 }

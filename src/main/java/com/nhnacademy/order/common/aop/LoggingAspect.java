@@ -14,7 +14,10 @@ public class LoggingAspect {
     @Pointcut("within(com.nhnacademy.order..*) && @within(org.springframework.stereotype.Service) ")
     public void serviceLayerExecution() {}
 
-    @Around("serviceLayerExecution()")
+    @Pointcut("within(com.nhnacademy.order.scheduler..*)")
+    public void schedulerExecution() {}
+
+    @Around("serviceLayerExecution() || schedulerExecution()")
     public Object logServiceExecution(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodName = joinPoint.getSignature().toShortString();
         log.info("---> [시작] {}", methodName);

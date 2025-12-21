@@ -121,7 +121,7 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    @DisplayName("관리자 결제 전체 조회 (페이징) GET - /admin/payment")
+    @DisplayName("관리자 결제 전체 조회 (페이징) GET - /admin/payments")
     void getPayments() throws Exception {
         // given
         Pageable pageable = PageRequest.of(0, 10);
@@ -130,7 +130,7 @@ class AdminPaymentControllerTest {
         given(paymentService.getAllPayments(any(Pageable.class))).willReturn(paymentPage);
 
         // when & then
-        mockMvc.perform(get("/admin/payment")
+        mockMvc.perform(get("/admin/payments")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
@@ -141,13 +141,13 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    @DisplayName("관리자 결제 단건 조회 (ID) GET - /admin/payment/{paymentId}")
+    @DisplayName("관리자 결제 단건 조회 (ID) GET - /admin/payments/{paymentId}")
     void getPaymentById() throws Exception {
         // given
         given(paymentService.getPaymentById(PAYMENT_ID)).willReturn(payment);
 
         // when & then
-        mockMvc.perform(get("/admin/payment/{paymentId}", PAYMENT_ID))
+        mockMvc.perform(get("/admin/payments/{paymentId}", PAYMENT_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentId").value(PAYMENT_ID))
@@ -155,13 +155,13 @@ class AdminPaymentControllerTest {
     }
 
     @Test
-    @DisplayName("관리자 결제 취소 POST - /admin/payment/cancel")
+    @DisplayName("관리자 결제 취소 POST - /admin/payments/cancel")
     void cancelPayment() throws Exception {
         // given
         PaymentCancelRequestDto cancelRequest = new PaymentCancelRequestDto(ORDER_NUMBER, "관리자 직권 취소", 50000);
 
         // when & then
-        mockMvc.perform(post("/admin/payment/cancel")
+        mockMvc.perform(post("/admin/payments/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cancelRequest)))
                 .andDo(print())
