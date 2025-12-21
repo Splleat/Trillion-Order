@@ -84,14 +84,14 @@ public class OrderItemServiceImpl implements OrderItemService {
             }
             case CONFIRMED -> {
                 try {
+                    orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
                     if (userInfo != null) {
                         orderItemUpdateService.accumulatePoint(order, orderItem);
                     }
-                    orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
                 } catch (Exception e) {
                     log.error("주문 상품 구매 확정 실패: {}", e.getMessage(), e);
-                    throw e;
                     // 구매 확정 실패는 사용자에게 알려야 함
+                    throw e;
                 }
             }
             default -> orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
