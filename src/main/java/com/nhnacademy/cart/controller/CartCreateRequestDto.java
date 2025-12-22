@@ -15,6 +15,6 @@ class CartCreateRequestDto {
 
     @NotNull(message = "수량 값은 필수입니다.")
     @Min(value = 1, message = "수량은 최소 1개 이상이어야 합니다.")
-    @Max(value = 1_000_000_000, message = "수량은 최대 1억개까지 가능합니다.")
+    @Max(value = 100_000_000, message = "수량은 최대 1억개까지 가능합니다.")
     private Integer cartQuantity;
 }
