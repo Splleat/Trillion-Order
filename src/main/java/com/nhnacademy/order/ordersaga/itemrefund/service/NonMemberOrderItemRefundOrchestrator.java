@@ -79,7 +79,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         UUID sagaId = saga.getSagaId();
 
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         int deliveryFee = getDeliveryFee();
 

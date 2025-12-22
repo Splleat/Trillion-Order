@@ -89,7 +89,7 @@ public class OrderItemRefundOrchestrator {
 
         UUID sagaId = saga.getSagaId();
 
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         Long memberId = order.getMemberId();
 
