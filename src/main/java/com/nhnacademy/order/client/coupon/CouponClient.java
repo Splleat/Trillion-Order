@@ -4,14 +4,12 @@ import com.nhnacademy.order.client.coupon.dto.CouponApplyRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.UUID;
 
-@Profile("!local")
 @FeignClient(name = "coupon-service")
 public interface CouponClient {
     @PostMapping("/coupons/calculate")
