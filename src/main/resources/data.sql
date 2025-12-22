@@ -1,5 +1,5 @@
 -- 배송 정책
-INSERT INTO "delivery_policy" ("deliverypolicy_fee", "deliverypolicy_threshold") VALUES (3000, 50000);
+INSERT INTO "delivery_policy" ("deliverypolicy_fee", "deliverypolicy_threshold") VALUES (5000, 30000);
 
 -- 포장 정책
 INSERT INTO "packaging" ("packaging_type", "packaging_price") VALUES ('WOOD', 500);
