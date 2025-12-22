@@ -102,6 +102,17 @@ X-Member-Role: MEMBER
   "status": "CANCELED"
 }
 
+### 주문 상품 상태 변경: 주문 취소 (비회원)
+DELETE http://{{hostname}}/orders/non-members/1
+Content-Type: application/json
+X-Guest-Id: GUEST
+X-Member-Role: GUEST
+
+{
+    "status": "CANCELED",
+    "nonMemberPassword": "1234"
+}
+
 ### 주문 상품 상태 변경: 배송 중 (관리자)
 PATCH http://{{hostname}}/orders/1/items/1
 X-Member-Id: 1
@@ -153,7 +164,7 @@ Content-Type: application/json
 }
 
 ### 주문 상품 상태 변경: 반품 요청 (비회원)
-PATCH http://{{hostname}}/orders/non-members/2/items/3
+PATCH http://{{hostname}}/orders/non-members/1/items/1
 Content-Type: application/json
 X-Guest-Id: GUEST
 X-Member-Role: GUEST
