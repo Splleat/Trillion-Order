@@ -44,7 +44,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         int deliveryFee = getDeliveryFee();
 
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         // TODO: 환불 요청 DTO에서 quantity도 받아서 처리?
 
@@ -79,7 +79,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         UUID sagaId = saga.getSagaId();
 
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         int deliveryFee = getDeliveryFee();
 

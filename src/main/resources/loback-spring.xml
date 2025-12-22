@@ -1,81 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- =====================
-         공통 속성
-         ===================== -->
-    <springProperty scope="context"
-                    name="APP_NAME"
-                    source="spring.application.name"
-                    defaultValue="app"/>
+    <property name="LOG_PATH" value="/app/logs"/>
+    <property name="APP_NAME" value="${LOG_FILENAME:-user-service}"/>
 
-    <property name="LOG_DIR" value="/logs"/>
-
-    <!-- =====================
-         콘솔 Appender
-         ===================== -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <pattern>
+                    <pattern>{"message":"%msg"}</pattern>
+                </pattern>
+                <mdc/>
+                <stackTrace/>
+            </providers>
         </encoder>
-    </appender>
-
-    <!-- =====================
-         파일 Appender
-         ===================== -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/${APP_NAME}.log</file>
-
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>50MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
-
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
     </appender>
 
-    <!-- =====================
-         🚀 배포환경 (기본): Logstash ON
-         ===================== -->
-    <springProfile name="!dev">
-
-        <appender name="LOGSTASH"
-                  class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-            <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5044}</destination>
-
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <customFields>
-                    {"app":"${APP_NAME}"}
-                </customFields>
-            </encoder>
-
-            <!-- Logstash 장애 시 앱 보호 -->
-            <reconnectionDelay>10 seconds</reconnectionDelay>
-        </appender>
-
-        <root level="TRACE">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
-            <appender-ref ref="LOGSTASH"/>
-        </root>
-    </springProfile>
-
-    <!-- =====================
-         🧪 로컬(dev): Logstash OFF
-         ===================== -->
-    <springProfile name="dev">
-        <root level="TRACE">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
-        </root>
-    </springProfile>
-
+    <root level="INFO">
+        <appender-ref ref="ROLLING_FILE"/>
+    </root>
 </configuration>

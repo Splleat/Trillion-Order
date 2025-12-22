@@ -48,7 +48,7 @@ public class OrderItemRefundOrchestrator {
         sagaUpdateService.updateItemRefundSagaStep(saga, ItemRefundSagaStep.STARTED);
 
         // 단순하게 API를 유지하기 위해서 단일 상품임에도 맵을 만들어서 사용
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         // 상품 가격 * 개수 - 쿠폰 할인액
         int refundAmount = Math.max(0, (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount());
@@ -89,7 +89,7 @@ public class OrderItemRefundOrchestrator {
 
         UUID sagaId = saga.getSagaId();
 
-        Map<Long, Integer> quantityMap = Map.of(orderItem.getOrderItemId(), orderItem.getQuantity());
+        Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         Long memberId = order.getMemberId();
 

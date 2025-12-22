@@ -36,8 +36,6 @@ public class ReconciliationScheduler {
     @Scheduled(fixedRate = 300000) // 5분 마다 실행
     @SchedulerLock(name = "ReconciliationScheduler.reconcileSagaState") // 분산 락 설정 -> 서버가 여러 개여도 하나의 스케줄러만 실행
     public void reconcileSagaState() {
-        log.info("Reconciliation scheduler started.");
-
         // 1. 멈춘 사가 복구 / 재시도 (1분 이상 경과)
         LocalDateTime sagaCutOffTime = LocalDateTime.now().minusMinutes(1);
         reconcileStuckSagas(sagaCutOffTime);
@@ -48,8 +46,6 @@ public class ReconciliationScheduler {
         // 3. 오랜 기간 PENDING에 머문 주문 정리 (1시간 이상 경과)
         LocalDateTime pendingOrderCutOffTime = LocalDateTime.now().minusHours(1);
         cleanUpOldPendingOrder(pendingOrderCutOffTime);
-
-        log.info("Reconciliation scheduler finished.");
     }
 
     // 오랜 기간 PENDING에 머문 주문 정리
