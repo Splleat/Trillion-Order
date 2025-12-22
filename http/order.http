@@ -19,8 +19,8 @@ X-Member-Role: MEMBER
 
   "nonMemberPassword": null,
 
-  "pointUsage": 1000,
-  "couponId": 1,
+  "pointUsage": 0,
+  "couponId": null,
 
   "orderItems": [
     {
@@ -93,7 +93,7 @@ X-Member-Role: GUEST
 }
 
 ### 주문 상품 상태 변경: 주문 취소 (회원)
-DELETE http://{{hostname}}/orders/1
+DELETE http://{{hostname}}/orders/2
 Content-Type: application/json
 X-Member-Id: 1
 X-Member-Role: MEMBER

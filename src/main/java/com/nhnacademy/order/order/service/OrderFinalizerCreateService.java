@@ -67,7 +67,6 @@ public class OrderFinalizerCreateService {
                 List<CouponCalculationRequest.CouponCalculationOrderItem> couponItems = orderItems.stream()
                         .map(item -> new CouponCalculationRequest.CouponCalculationOrderItem(
                                 item.getBookId(),
-                                item.getPrice(),
                                 item.getQuantity()))
                         .toList();
                 CouponCalculationRequest couponRequest = new CouponCalculationRequest(memberId, orderCoupon.getCouponId(), couponItems);
