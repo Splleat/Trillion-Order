@@ -20,7 +20,6 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -58,8 +57,8 @@ class BookClientTest {
         // given
         List<Long> bookIds = List.of(1L, 2L);
         List<BookResponse> expectedResponse = List.of(
-                new BookResponse(1L, "Book 1", Set.of(101L), 10000, true, "testImage1"),
-                new BookResponse(2L, "Book 2", Set.of(102L), 20000, true , "testImage2")
+                new BookResponse(1L, "Book 1", 10000, true, "testImage1"),
+                new BookResponse(2L, "Book 2", 20000, true , "testImage2")
         );
 
         wireMockServer.stubFor(get(urlPathEqualTo("/books/info"))
