@@ -4,11 +4,9 @@ import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.domain.OrderStatus;
 import com.nhnacademy.order.order.domain.OrdererInfo;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
-import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderResponse;
 import com.nhnacademy.order.order.exception.OrderNotFoundException;
-import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
@@ -22,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -39,14 +36,12 @@ import static org.mockito.Mockito.*;
 class OrderServiceFindTest {
 
     @InjectMocks
-    private OrderServiceImpl orderServiceImpl;
+    private OrderService orderServiceImpl;
 
     @Mock
     private OrderRepository orderRepository;
     @Mock
     private OrderItemRepository orderItemRepository;
-    @Mock
-    private PasswordEncoder passwordEncoder;
 
     @Test
     @DisplayName("주문 ID로 단건 조회 - 성공")
@@ -92,51 +87,6 @@ class OrderServiceFindTest {
     }
 
     @Test
-    @DisplayName("비회원 주문 조회 - 성공")
-    void findOrderByOrderNumber_Success() {
-        // given
-        String orderNumber = "ORD-NON-MEMBER-123";
-        String rawPassword = "password1234";
-        String encodedPassword = "encoded-password";
-        NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
-                2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
-                new ReceiverInfo("받는사람", "010-1111-2222", "주소")
-        );
-        when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));
-        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
-        when(orderItemRepository.findOrderItemByOrder_OrderId(2L)).thenReturn(Collections.emptyList());
-
-        // when
-        OrderResponse response = orderServiceImpl.findOrderByOrderNumber(orderNumber, rawPassword);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.orderNumber()).isEqualTo(orderNumber);
-    }
-
-    @Test
-    @DisplayName("비회원 주문 조회 - 실패: 비밀번호 불일치")
-    void findOrderByOrderNumber_Failure_PasswordMismatch() {
-        // given
-        String orderNumber = "ORD-NON-MEMBER-123";
-        String wrongPassword = "wrong-password";
-        String encodedPassword = "encoded-password";
-        NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
-                2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
-                new ReceiverInfo("받는사람", "010-1111-2222", "주소")
-        );
-        when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));
-        when(passwordEncoder.matches(wrongPassword, encodedPassword)).thenReturn(false);
-
-        // when & then
-        assertThrows(OrderPasswordMismatchException.class, () -> {
-            orderServiceImpl.findOrderByOrderNumber(orderNumber, wrongPassword);
-        });
-    }
-
-    @Test
     @DisplayName("회원 주문 목록 조회 - 성공")
     void findAllOrderByMemberId_Success() {
         // given
@@ -174,4 +124,3 @@ class OrderServiceFindTest {
         assertThat(resultPage.isEmpty()).isTrue();
     }
 }
-

@@ -274,19 +274,23 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override
     public List<Long> filterCleanMemberIds(Set<Long> memberIds) {
-        if (memberIds.isEmpty()) return Collections.emptyList();
+        if (memberIds == null || memberIds.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        // Object가 아닌 String 리스트로 명확하게 변환
-        List<String> memberIdStrings = memberIds.stream()
+        // Set은 순서가 없으므로, List로 변환하여 순서를 고정시킴
+        List<Long> memberIdList = new ArrayList<>(memberIds);
+
+        // Redis 작업을 위해 String 리스트 준비
+        List<String> memberIdStrings = memberIdList.stream()
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
-        // Pipeline 실행
+        // Pipeline 실행 (순서는 memberIdList 순서와 동일하게 나감)
         List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            // RedisTemplate의 설정을 그대로 가져옴
             RedisSerializer<String> stringSerializer = redisTemplate.getStringSerializer();
 
-            // Key는 루프 밖에서 한 번만 직렬화
+            // Key 직렬화 (루프 밖에서 1회)
             byte[] rawDirtyKey = stringSerializer.serialize(DIRTY_MEMBERS_KEY);
 
             for (String memberId : memberIdStrings) {
@@ -296,13 +300,15 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
             return null;
         });
 
-        // Dirty가 아닌 것만 추출
+        // 결과 매핑
         List<Long> cleanMemberIds = new ArrayList<>();
-        int i = 0;
-        for (Long memberId : memberIds) {
-            Boolean isDirty = (Boolean) results.get(i++);
 
-            // isDirty가 null이거나 false인 경우 == Dirty Set에 없음 == Clean함
+        // 고정된 List(memberIdList)와 인덱스를 사용하여 매핑
+        for (int i = 0; i < results.size(); i++) {
+            Boolean isDirty = (Boolean) results.get(i);
+            Long memberId = memberIdList.get(i); // 순서가 꼬이지 않음
+
+            // isDirty가 false(null 포함)이면 Dirty Set에 없는 것 => Clean Member
             if (Boolean.FALSE.equals(isDirty)) {
                 cleanMemberIds.add(memberId);
             }
