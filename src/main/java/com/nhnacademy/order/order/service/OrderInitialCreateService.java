@@ -4,6 +4,7 @@ import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.orderitem.domain.PackagingInfo;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
 import com.nhnacademy.order.packaging.domain.Packaging;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
@@ -45,12 +46,13 @@ public class OrderInitialCreateService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        Map<Long, Integer> packagingPriceMap = packagingRepository.findAllById(orderPackagingIds).stream()
-                .collect(Collectors.toMap(Packaging::getPackagingId, Packaging::getPackagingPrice));
+        Map<Long, PackagingInfo> packagingInfoMap = packagingRepository.findAllById(orderPackagingIds).stream()
+                .collect(Collectors.toMap(Packaging::getPackagingId,
+                        packaging -> PackagingInfo.create(packaging.getPackagingType(), packaging.getPackagingPrice())));
 
         itemCreateRequests.stream()
                 .map(request ->
-                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingPriceMap.getOrDefault(request.packagingId(), 0)))
+                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingInfoMap.getOrDefault(request.packagingId(), PackagingInfo.create("포장없음", 0))))
                 .forEach(order::addOrderItem);
 
         return orderRepository.save(order);

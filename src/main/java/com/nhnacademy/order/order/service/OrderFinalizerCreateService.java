@@ -54,7 +54,7 @@ public class OrderFinalizerCreateService {
 
         // 2. 원가 계산 (도서 가격 * 수량 + 포장비 * 수량)
         int originPrice = orderItems.stream()
-                .mapToInt(item -> item.getPrice() * item.getQuantity() + item.getPackagingPrice() * item.getQuantity())
+                .mapToInt(item -> (item.getPrice() + item.getPackagingInfo().packagingPrice()) * item.getQuantity())
                 .sum();
         OrderDetails currentOrderDetails = order.getOrderDetails();
 

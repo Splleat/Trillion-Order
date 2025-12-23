@@ -5,6 +5,7 @@ import com.nhnacademy.order.order.domain.OrderDetails;
 import com.nhnacademy.order.order.domain.OrdererInfo;
 import com.nhnacademy.order.order.domain.ReceiverInfo;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.orderitem.domain.PackagingInfo;
 import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,15 +46,15 @@ class OrderItemRepositoryTest {
         entityManager.persist(order2);
 
         // 주문1에 아이템 2개, 주문2에 아이템 1개 추가
-        OrderItem item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, 500);
+        OrderItem item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, PackagingInfo.create("일반포장", 500));
         item1.completeOrderItem("테스트 책 1", null, 15000, 0);
         entityManager.persist(item1);
 
-        OrderItem item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, 0);
+        OrderItem item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, PackagingInfo.create("포장없음", 0));
         item2.completeOrderItem("테스트 책 2", null, 25000, 0);
         entityManager.persist(item2);
 
-        OrderItem item3 = OrderItem.createInitial(order2, 103L, 5, (LocalDateTime) null, 0);
+        OrderItem item3 = OrderItem.createInitial(order2, 103L, 5, (LocalDateTime) null, PackagingInfo.create("포장없음", 0));
         item3.completeOrderItem("테스트 책 3", null, 10000, 0);
         entityManager.persist(item3);
 

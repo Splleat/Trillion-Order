@@ -4,6 +4,7 @@ import com.nhnacademy.order.order.domain.*;
 import com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse;
 import com.nhnacademy.order.order.dto.OrderBaseResponse;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
+import com.nhnacademy.order.orderitem.domain.PackagingInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,11 +53,11 @@ class OrderRepositoryTest {
         entityManager.persist(order3);
 
         // OrderItem 객체들 생성 및 저장 (order1에 연결)
-        order1Item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, 0);
+        order1Item1 = OrderItem.createInitial(order1, 101L, 2, (LocalDateTime) null, PackagingInfo.create("포장없음", 0));
         order1Item1.completeOrderItem("테스트 책 101", null, 15000, 0);
         entityManager.persist(order1Item1);
 
-        OrderItem order1Item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, 0);
+        OrderItem order1Item2 = OrderItem.createInitial(order1, 102L, 1, (LocalDateTime) null, PackagingInfo.create("포장없음", 0));
         order1Item2.completeOrderItem("테스트 책 102", null, 25000, 0);
         entityManager.persist(order1Item2);
 
