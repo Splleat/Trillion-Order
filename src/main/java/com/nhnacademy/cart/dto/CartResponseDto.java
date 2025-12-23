@@ -1,9 +1,7 @@
-package com.nhnacademy.cart.controller;
+package com.nhnacademy.cart.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL) //널값 필드는 JSON에서 제외
-class CartResponseDto {
+public class CartResponseDto {
 
     private Long memberId;   // 회원일 때만 값 있음
     private String guestId;  // 비회원일 때만 값 있음
