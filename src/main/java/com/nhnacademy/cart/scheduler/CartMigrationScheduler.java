@@ -37,9 +37,9 @@ public class CartMigrationScheduler {
     /**
      * [Write-Back 핵심]
      * Redis의 변경 사항(Dirty)을 DB에 반영합니다.
-     * 주기: 3분 (180000ms) - DB 부하를 줄이기 위해 1분 -> 3분으로 조정
+     * 기본 주기: 5분 (300000ms) - DB 부하를 줄이기 위해 1분 -> 5분으로 조정
      */
-    @Scheduled(fixedDelayString = "${cart.scheduler.migration-delay:180000}")
+    @Scheduled(fixedDelayString = "${cart.scheduler.migration-delay:300000}")
     @SchedulerLock(name = "cart_migration_lock", lockAtMostFor = "180s", lockAtLeastFor = "10s")
     public void syncCartDataToDb() {
         int loopCount = 0;
