@@ -21,12 +21,12 @@ public interface CartControllerDocs {
 
     // =================================================================================
     // [공통 설명]
-    // 모든 API는 'X-User-Id'(회원) 헤더 또는 'X-Guest-Id'(비회원) 헤더 중 하나가 필수입니다.
+    // 모든 API는 'X-Member-Id'(회원) 헤더 또는 'X-Guest-Id'(비회원) 헤더 중 하나가 필수입니다.
     // =================================================================================
 
     @Operation(summary = "장바구니 담기", description = "상품을 장바구니에 추가합니다. 이미 존재하면 수량을 합산합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     @ApiResponses(value = {
@@ -42,7 +42,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "수량 변경", description = "장바구니에 담긴 특정 도서의 수량을 변경합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     @ApiResponse(responseCode = "200", description = "수정 성공")
@@ -54,7 +54,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "상품 삭제", description = "장바구니에서 특정 도서를 삭제합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     ResponseEntity<Void> removeCartItem(
@@ -64,7 +64,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "장바구니 비우기", description = "장바구니의 모든 상품을 삭제합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     ResponseEntity<Void> clearCart(
@@ -73,7 +73,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "장바구니 목록 조회", description = "현재 장바구니에 담긴 모든 상품 목록을 최신순으로 반환합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     ResponseEntity<List<CartResponseDto>> getCartItems(
@@ -82,7 +82,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "장바구니 요약정보 조회", description = "헤더 아이콘 배지 표시... 등을 위한 요약정보를 반환합니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원인 경우 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원인 경우 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     ResponseEntity<CartSummaryResponseDto> getCartSummary(
@@ -91,7 +91,7 @@ public interface CartControllerDocs {
 
     @Operation(summary = "장바구니 병합", description = "로그인 시, 비회원 장바구니(Header)의 내용을 회원 장바구니(Header)로 옮깁니다.")
     @Parameters({
-            @Parameter(name = "X-User-Id", description = "회원 식별 ID (회원 입력)", in = ParameterIn.HEADER, example = "1"),
+            @Parameter(name = "X-Member-Id", description = "회원 식별 ID (회원 입력)", in = ParameterIn.HEADER, example = "1"),
             @Parameter(name = "X-Guest-Id", description = "비회원 식별 ID (비회원 입력)", in = ParameterIn.HEADER, example = "guest-1234")
     })
     ResponseEntity<Void> mergeCart(

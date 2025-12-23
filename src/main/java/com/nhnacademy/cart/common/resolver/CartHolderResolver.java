@@ -38,7 +38,7 @@ public class CartHolderResolver implements HandlerMethodArgumentResolver {
         }
 
         // 일반적인 경우: 회원 우선
-        String memberIdHeader = request.getHeader("X-User-Id");
+        String memberIdHeader = request.getHeader("X-Member-Id");
         if (memberIdHeader != null) {
             try {
                 return CartHolder.member(Long.valueOf(memberIdHeader));

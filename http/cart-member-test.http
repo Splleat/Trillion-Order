@@ -10,7 +10,7 @@
 ### 1. 상품 담기 (Book: 201, Qty: 1)
 POST {{host}}/carts
 Content-Type: application/json
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 {
   "bookId": 209,
@@ -21,7 +21,7 @@ X-User-Id: {{memberId}}
 # Write-Through 로직 검증
 POST {{host}}/carts
 Content-Type: application/json
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 {
   "bookId": 201,
@@ -30,13 +30,13 @@ X-User-Id: {{memberId}}
 
 ### 3. 목록 조회
 GET {{host}}/carts
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 ### 4. 수량 변경 (Book: 201 -> 10개)
 # Invalidation 로직 검증 (Redis 삭제 -> DB 조회)
 PUT {{host}}/carts/205
 Content-Type: application/json
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 {
   "cartQuantity": 9
@@ -44,12 +44,12 @@ X-User-Id: {{memberId}}
 
 ### 5. 장바구니 요약 정보 조회
 GET {{host}}/carts/summary
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 ### 6. 상품 삭제
 DELETE {{host}}/carts/206
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
 
 ### 6. 전체 비우기 (초기화)
 DELETE {{host}}/carts
-X-User-Id: {{memberId}}
+X-Member-Id: {{memberId}}
