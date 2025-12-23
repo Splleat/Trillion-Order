@@ -1,15 +1,12 @@
 package com.nhnacademy.cart.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class RedisCart implements Serializable {
@@ -23,8 +20,5 @@ public class RedisCart implements Serializable {
                 .cartQuantity(cartQuantity)
                 .createdAt(createdAt.toString())
                 .build();
-    }
-    public void updateQuantity(int cartQuantity){
-        this.cartQuantity=cartQuantity;
     }
 }

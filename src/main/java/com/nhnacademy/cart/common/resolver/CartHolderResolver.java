@@ -27,17 +27,17 @@ public class CartHolderResolver implements HandlerMethodArgumentResolver {
 
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
 
-        // @GuestOnly가 붙어있으면 -> 무조건 쿠키만 뒤져서 GuestHolder 리턴
+        // @GuestOnly가 붙어있으면 -> 무조건 헤더에서 "X-Guest-Id" 뒤져서 Guest의 CartHolder 리턴
         if (parameter.hasParameterAnnotation(GuestOnly.class)) {
             String guestId = request.getHeader("X-Guest-Id");
-            // 병합 시 쿠키가 없으면 빈 껍데기라도 줘야 에러 안 남 (서비스에서 처리)
+            // 병합 시 guest Id가 없으면 빈 껍데기라도 줘야 에러 안 남 (서비스에서 처리)
             if (guestId == null) {
                 throw new IllegalArgumentException("비회원 정보가 없습니다.");
             }
             return CartHolder.guest(guestId);
         }
 
-        // 일반적인 경우: 헤더(회원) 우선
+        // 일반적인 경우: 회원 우선
         String memberIdHeader = request.getHeader("X-User-Id");
         if (memberIdHeader != null) {
             try {
@@ -47,7 +47,7 @@ public class CartHolderResolver implements HandlerMethodArgumentResolver {
             }
         }
 
-        // -> 없으면 쿠키(비회원)
+        // -> 없으면 비회원
         String guestId = request.getHeader("X-Guest-Id");
         if (guestId != null) {
             return CartHolder.guest(guestId);

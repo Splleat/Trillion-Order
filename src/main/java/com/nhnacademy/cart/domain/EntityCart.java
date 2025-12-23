@@ -1,17 +1,14 @@
 package com.nhnacademy.cart.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor // Builder 패턴을 쓰려면 전체 생성자가 필요
-@Builder // 스케줄러에서 사용하기 위해 추가
+@Builder
 @Entity
 @Table(name = "Cart",
         uniqueConstraints = {
@@ -49,10 +46,5 @@ public class EntityCart {
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
-    }
-
-    // 수량 변경 편의 메소드
-    public void updateQuantity(int cartQuantity){
-        this.cartQuantity = cartQuantity;
     }
 }

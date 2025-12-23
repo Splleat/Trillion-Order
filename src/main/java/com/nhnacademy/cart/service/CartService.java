@@ -41,7 +41,6 @@ public interface CartService {
      */
     CartSummaryDto getCartSummary(CartHolder holder);
 
-    // --------------------------------------------------------
 
     /**
      * [장바구니 비우기]

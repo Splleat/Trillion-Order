@@ -1,8 +1,5 @@
-package com.nhnacademy.cart.controller;
+package com.nhnacademy.cart.dto;
 
-import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
-import com.nhnacademy.cart.dto.CartSummaryDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class CartSummaryResponseDto {
+public class CartSummaryResponseDto {
     private long lineCount;      // 종류 수
     private long totalQuantity;  // 전체 수량
 
