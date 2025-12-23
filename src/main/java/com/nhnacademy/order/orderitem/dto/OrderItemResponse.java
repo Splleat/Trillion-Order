@@ -36,7 +36,7 @@ public record OrderItemResponse(
             totalOriginalPrice,
             itemDiscountAmount,
             totalSalePrice,
-            orderItem.getPackagingPrice(),
+            orderItem.getPackagingInfo().packagingPrice(),
             orderItem.getOrderItemStatus()
         );
     }

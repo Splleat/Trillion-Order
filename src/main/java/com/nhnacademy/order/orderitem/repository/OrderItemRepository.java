@@ -21,10 +21,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookImage,
             oi.quantity,
             oi.price,
-            (oi.price + oi.packagingPrice) * oi.quantity,
+            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
             oi.couponDiscountAmount,
-            ((oi.price + oi.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingPrice,
+            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
+            oi.packagingInfo.packagingPrice,
             oi.orderItemStatus
         )
         FROM OrderItem oi
@@ -41,10 +41,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookImage,
             oi.quantity,
             oi.price,
-            (oi.price + oi.packagingPrice) * oi.quantity,
+            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
             oi.couponDiscountAmount,
-            ((oi.price + oi.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingPrice,
+            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
+            oi.packagingInfo.packagingPrice,
             oi.orderItemStatus
         )
         FROM OrderItem oi
@@ -71,10 +71,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookImage,
             oi.quantity,
             oi.price,
-            (oi.price + oi.packagingPrice) * oi.quantity,
+            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
             oi.couponDiscountAmount,
-            ((oi.price + oi.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingPrice,
+            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
+            oi.packagingInfo.packagingPrice,
             oi.orderItemStatus
         )
         FROM OrderItem oi

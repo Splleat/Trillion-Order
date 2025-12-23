@@ -42,15 +42,15 @@ public class OrderItem extends BaseTimeEntity {
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate; // 출고일
 
-    @Column(name = "packaging_price")
-    private int packagingPrice;
+    @Embedded
+    private PackagingInfo packagingInfo;
 
     @Setter
     @Column(name = "orderitem_status")
     @Enumerated(value = EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 
-    public static OrderItem createInitial(Order order, Long bookId, int quantity, LocalDateTime shippingDate, int packagingPrice) {
+    public static OrderItem createInitial(Order order, Long bookId, int quantity, LocalDateTime shippingDate, PackagingInfo packagingInfo) {
         return new OrderItem(
             order,
             bookId,
@@ -60,11 +60,11 @@ public class OrderItem extends BaseTimeEntity {
             0,
             0,
             shippingDate,
-            packagingPrice
+            packagingInfo
         );
     }
 
-    private OrderItem(Order order, Long bookId, String bookName, String bookImage, int quantity, Integer price, int couponDiscountAmount, LocalDateTime shippingDate, Integer packagingPrice) {
+    private OrderItem(Order order, Long bookId, String bookName, String bookImage, int quantity, Integer price, int couponDiscountAmount, LocalDateTime shippingDate, PackagingInfo packagingInfo) {
         this.orderItemId = null;
         this.order = order;
         this.bookId = bookId;
@@ -74,7 +74,7 @@ public class OrderItem extends BaseTimeEntity {
         this.price = price;
         this.couponDiscountAmount = couponDiscountAmount;
         this.shippingDate = shippingDate;
-        this.packagingPrice = packagingPrice;
+        this.packagingInfo = packagingInfo;
         this.orderItemStatus = OrderItemStatus.PREPARING;
     }
 
