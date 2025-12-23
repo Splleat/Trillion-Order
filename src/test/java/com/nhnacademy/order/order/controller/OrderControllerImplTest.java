@@ -7,6 +7,7 @@ import com.nhnacademy.order.order.domain.ReceiverInfo;
 import com.nhnacademy.order.order.dto.NonMemberOrderGetRequest;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
+import com.nhnacademy.order.order.service.NonMemberOrderService;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.domain.OrderItemStatus;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
@@ -50,6 +51,9 @@ class OrderControllerImplTest {
 
     @MockitoBean
     private OrderService orderService;
+
+    @MockitoBean
+    private NonMemberOrderService nonMemberOrderService;
 
     private OrderResponse orderResponse;
     private Page<OrderResponse> orderResponsePage;
@@ -145,7 +149,7 @@ class OrderControllerImplTest {
     @DisplayName("비회원 주문 단건 조회 - POST /orders/non-members/")
     void getOrderForNonMember_Success() throws Exception {
         NonMemberOrderGetRequest request = new NonMemberOrderGetRequest("ORD-20251202-12345", "password123");
-        given(orderService.findOrderByOrderNumber(eq("ORD-20251202-12345"), eq("password123"))).willReturn(orderResponse);
+        given(nonMemberOrderService.findOrderByOrderNumber(eq("ORD-20251202-12345"), eq("password123"))).willReturn(orderResponse);
 
         mockMvc.perform(post("/orders/non-members/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -176,7 +180,7 @@ class OrderControllerImplTest {
     @DisplayName("비회원 주문 상품 상태 변경 - PATCH /orders/non-members/{orderId}/items/{orderItemId}")
     void patchOrderItemStatusForNonMember_Success() throws Exception {
         NonMemberOrderItemStatusPatchRequest request = new NonMemberOrderItemStatusPatchRequest("password123", OrderItemStatus.CANCELED);
-        given(orderService.patchOrderItemStatusForNonMember(anyLong(), anyLong(), any(NonMemberOrderItemStatusPatchRequest.class))).willReturn(orderResponse);
+        given(nonMemberOrderService.patchOrderItemStatusForNonMember(anyLong(), anyLong(), any(NonMemberOrderItemStatusPatchRequest.class))).willReturn(orderResponse);
 
         mockMvc.perform(patch("/orders/non-members/{orderId}/items/{orderItemId}", 1L, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -184,7 +188,7 @@ class OrderControllerImplTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(orderService).patchOrderItemStatusForNonMember(eq(1L), eq(1L), any(NonMemberOrderItemStatusPatchRequest.class));
+        verify(nonMemberOrderService).patchOrderItemStatusForNonMember(eq(1L), eq(1L), any(NonMemberOrderItemStatusPatchRequest.class));
     }
 
     @Test
@@ -205,7 +209,7 @@ class OrderControllerImplTest {
     @DisplayName("비회원 주문 취소 - DELETE /orders/non-members/{orderId}")
     void cancelOrderForNonMember_Success() throws Exception {
         NonMemberOrderCancelRequest cancelRequest = new NonMemberOrderCancelRequest("password123");
-        doNothing().when(orderService).cancelOrderForNonMember(anyLong(), anyString());
+        doNothing().when(nonMemberOrderService).cancelOrderForNonMember(anyLong(), anyString());
 
         mockMvc.perform(delete("/orders/non-members/{orderId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -213,7 +217,7 @@ class OrderControllerImplTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(orderService).cancelOrderForNonMember(eq(1L), eq("password123"));
+        verify(nonMemberOrderService).cancelOrderForNonMember(eq(1L), eq("password123"));
     }
 
     @Test

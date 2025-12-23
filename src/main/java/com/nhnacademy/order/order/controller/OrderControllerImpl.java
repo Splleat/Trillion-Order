@@ -16,6 +16,7 @@ import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.order.dto.NonMemberOrderGetRequest;
 import com.nhnacademy.order.order.dto.OrderCreateRequest;
 import com.nhnacademy.order.order.dto.OrderResponse;
+import com.nhnacademy.order.order.service.NonMemberOrderService;
 import com.nhnacademy.order.order.service.OrderService;
 import com.nhnacademy.order.orderitem.dto.NonMemberOrderItemStatusPatchRequest;
 import com.nhnacademy.order.orderitem.dto.OrderItemStatusPatchRequest;
@@ -33,8 +34,8 @@ import java.net.URI;
 @RequiredArgsConstructor
 @RestController
 public class OrderControllerImpl implements OrderController {
-
     private final OrderService orderService;
+    private final NonMemberOrderService nonMemberOrderService;
 
     // 주문 전체 조회 (관리자)
     @Override
@@ -94,7 +95,7 @@ public class OrderControllerImpl implements OrderController {
     @Override
     @PostMapping("/orders/non-members/")
     public ResponseEntity<OrderResponse> getOrderForNonMember(@RequestBody @Valid NonMemberOrderGetRequest request) {
-        OrderResponse response = orderService.findOrderByOrderNumber(request.orderNumber(), request.nonMemberPassword());
+        OrderResponse response = nonMemberOrderService.findOrderByOrderNumber(request.orderNumber(), request.nonMemberPassword());
 
         return ResponseEntity.ok(response);
     }
@@ -115,7 +116,7 @@ public class OrderControllerImpl implements OrderController {
     @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
     public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
                                                                           @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request) {
-        orderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
+        nonMemberOrderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
         return ResponseEntity.ok().build();
     }
@@ -134,7 +135,7 @@ public class OrderControllerImpl implements OrderController {
     @DeleteMapping("/orders/non-members/{orderId}")
     public ResponseEntity<OrderResponse> cancelOrderForNonMember(@PathVariable Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
-        orderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
+        nonMemberOrderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
 
         return ResponseEntity.noContent().build();
     }

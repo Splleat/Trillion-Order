@@ -30,6 +30,39 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     private final OrderItemUpdateService orderItemUpdateService;
 
+    private void handleReturned(UserInfo userInfo, Order order, OrderItem orderItem) {
+        try {
+            if (userInfo != null) {
+                orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
+            } else {
+                // 비회원
+                nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
+            }
+        } catch (Exception e) {
+            log.error("주문 상품 환불 처리 실패: {}", e.getMessage(), e);
+            // 예외를 삼켜서 사용자는 모르게 함
+            // '환불 요청' -> '관리자 승인' -> '환불' 순서로 진행되기 때문에 환불 중 오류가 발생해도 '환불 요청' 상태 유지
+            // 스케줄러가 알아서 다시 환불 처리함
+        }
+    }
+
+    private void handleConfirmed(UserInfo userInfo, Order order, OrderItem orderItem) {
+        try {
+            // 회원일 경우
+            if (userInfo != null) {
+                // 포인트 적립
+                orderItemUpdateService.accumulatePoint(order, orderItem);
+            }
+
+            // CONFIRMED로 상태 변경
+            orderItemUpdateService.updateOrderItemStatus(order, orderItem, OrderItemStatusUpdateStrategy.CONFIRMED);
+        } catch (Exception e) {
+            log.error("주문 상품 구매 확정 실패: {}", e.getMessage(), e);
+            // 구매 확정 실패는 사용자에게 알려야 함
+            throw e;
+        }
+    }
+
     // 베스트 셀러 도서 ID N개 반환
     @Override
     public List<Long> getTopNSellingBookIds(int limit) {
@@ -67,33 +100,8 @@ public class OrderItemServiceImpl implements OrderItemService {
         }
 
         switch (strategy) {
-            case RETURNED -> {
-                try {
-                    if (userInfo != null) {
-                        orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
-                    } else {
-                        // 비회원
-                        nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
-                    }
-                } catch (Exception e) {
-                    log.error("주문 상품 환불 처리 실패: {}", e.getMessage(), e);
-                    // 예외를 삼켜서 사용자는 모르게 함
-                    // '환불 요청' -> '관리자 승인' -> '환불' 순서로 진행되기 때문에 환불 중 오류가 발생해도 '환불 요청' 상태 유지
-                    // 스케줄러가 알아서 다시 환불 처리함
-                }
-            }
-            case CONFIRMED -> {
-                try {
-                    orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
-                    if (userInfo != null) {
-                        orderItemUpdateService.accumulatePoint(order, orderItem);
-                    }
-                } catch (Exception e) {
-                    log.error("주문 상품 구매 확정 실패: {}", e.getMessage(), e);
-                    // 구매 확정 실패는 사용자에게 알려야 함
-                    throw e;
-                }
-            }
+            case RETURNED -> handleReturned(userInfo, order, orderItem);
+            case CONFIRMED -> handleConfirmed(userInfo, order, orderItem);
             default -> orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
         }
     }
