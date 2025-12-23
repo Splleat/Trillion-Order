@@ -52,7 +52,7 @@ public class OrderInitialCreateService {
 
         itemCreateRequests.stream()
                 .map(request ->
-                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingInfoMap.get(request.packagingId())))
+                        OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingInfoMap.getOrDefault(request.packagingId(), PackagingInfo.create("포장없음", 0))))
                 .forEach(order::addOrderItem);
 
         return orderRepository.save(order);
