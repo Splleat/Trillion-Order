@@ -108,7 +108,7 @@ public class CartController implements CartControllerDocs {
     /**
      * [장바구니 병합 (로그인 직후)]
      * POST /carts/merge
-     * - memberHolder: 헤더(X-User-Id)에서 파싱된 회원 정보
+     * - memberHolder: 헤더(X-Member-Id)에서 파싱된 회원 정보
      * - guestHolder: 헤더(guestId)에서 강제로 파싱된 비회원 정보 (@GuestOnly)
      */
     @PostMapping("/merge")
