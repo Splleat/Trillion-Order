@@ -1,4 +1,4 @@
-package com.nhnacademy.cart.controller;
+package com.nhnacademy.cart.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-class CartCreateRequestDto {
+public class CartCreateRequestDto {
     @NotNull(message = "도서 ID는 필수입니다.")
     private Long bookId;
 
