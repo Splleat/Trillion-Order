@@ -6,8 +6,6 @@ public enum OrderItemStatus {
     DELIVERED,  // 배송 완료
     RETURNED,   // 반품 완료
 
-    CONFIRMING, // 포인트 적립을 위한 중간 단계
-
     CONFIRMED,  // 구매 확정
     CANCELED,   // 주문 취소
 

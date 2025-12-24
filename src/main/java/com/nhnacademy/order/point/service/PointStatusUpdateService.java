@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PointStatusUpdateService {
-    private final PointAccumulationEventRepository eventRepository;;
+    private final PointAccumulationEventRepository eventRepository;
 
     // 이벤트 처리 성공 기록
     @Transactional(propagation = Propagation.REQUIRES_NEW)
