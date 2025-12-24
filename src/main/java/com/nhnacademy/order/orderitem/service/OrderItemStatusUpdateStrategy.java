@@ -21,7 +21,7 @@ enum Role {
 public enum OrderItemStatusUpdateStrategy {
     SHIPPED(OrderItemStatus.SHIPPED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
 
             // 상품 준비 상태가 아니면 배송 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
@@ -33,7 +33,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     DELIVERED(OrderItemStatus.DELIVERED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.SHIPPED)) {
                 throw new OrderStatusTransitionException("배송 중이 아닌 상품: " + orderItem.getOrderItemId());
             }
@@ -43,7 +43,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     REQUEST_RETURN_CHANGE_OF_MIND(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND, Role.USER) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             // 배송 완료 상태가 아니면 반품 요청 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
                 throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItem.getOrderItemId());
@@ -59,7 +59,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     REQUEST_RETURN_DAMAGED(OrderItemStatus.RETURN_REQUESTED_DAMAGED, Role.USER) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             // 배송 완료 상태가 아니면 반품 요청 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
                 throw new OrderStatusTransitionException("배송 완료 상태가 아닌 상품: " + orderItem.getOrderItemId());
@@ -75,7 +75,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     RETURNED(OrderItemStatus.RETURNED, Role.ADMIN) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             // 이제 반품은 사가에 의해서 이루어짐
 //            OrderItem orderItem = findOrderItem(order, orderItemId);
 //
@@ -94,7 +94,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     CANCELED(OrderItemStatus.CANCELED, Role.DISABLE) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             // 상품 준비 중 상태가 아니면 취소 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.PREPARING)) {
                 throw new OrderStatusTransitionException("주문 취소가 불가능한 상태의 상품: " + orderItem.getOrderItemId());
@@ -106,7 +106,7 @@ public enum OrderItemStatusUpdateStrategy {
     },
     CONFIRMED(OrderItemStatus.CONFIRMED, Role.USER) {
         @Override
-        public void updateStatus(Order order, OrderItem orderItem) {
+        public void updateStatus(OrderItem orderItem) {
             // 배송 완료 상태가 아니면 구매 확정 불가
             if (!orderItem.getOrderItemStatus().equals(OrderItemStatus.DELIVERED)) {
                 throw new OrderStatusTransitionException("구매 확정이 불가능한 상태의 상품: " + orderItem.getOrderItemId());
@@ -119,7 +119,7 @@ public enum OrderItemStatusUpdateStrategy {
     private final OrderItemStatus targetStatus;
     private final Role requiredRole;
 
-    public abstract void updateStatus(Order order, OrderItem orderItem);
+    public abstract void updateStatus(OrderItem orderItem);
 
     public boolean hasPermission(String userRole) {
         // 비활성화된 기능

@@ -27,8 +27,6 @@ public class SagaUpdateService {
     private final OrderItemRefundSagaRepository orderItemRefundSagaRepository;
     private final NonMemberOrderItemRefundSagaRepository nonMemberOrderItemRefundSagaRepository;
 
-    // TODO: 이거 리팩토링 되지 않을까?
-
     // 주문 생성 사가 상태 변경
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateCreateSagaStep(OrderCreateSaga orderCreateSaga, CreateSagaStep step) {

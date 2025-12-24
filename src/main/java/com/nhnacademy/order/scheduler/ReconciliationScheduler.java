@@ -43,9 +43,13 @@ public class ReconciliationScheduler {
         // 2. 완료된 사가와 도메인 연결 (1분 이상 경과)
         bridgeCompletedSagas(sagaCutOffTime);
 
-        // 3. 오랜 기간 PENDING에 머문 주문 정리 (1시간 이상 경과)
+        // 3. 오랜 기간 결제 대기(PENDING)에 머문 주문 정리 (1시간 이상 경과)
         LocalDateTime pendingOrderCutOffTime = LocalDateTime.now().minusHours(1);
         cleanUpOldPendingOrder(pendingOrderCutOffTime);
+
+        // 4. 결제는 취소되었지만, 사가가 시작되지 않은 경우(재고 증가 등)
+
+
     }
 
     // 오랜 기간 PENDING에 머문 주문 정리
@@ -54,7 +58,7 @@ public class ReconciliationScheduler {
                 .forEach(reconciliationService::processAbandonedOrder);
     }
 
-    // 사가를 진행하다 멈춘 경우를 처리하는 로직
+    // 사가를 진행하다 멈췄거나 실패한 경우를 처리하는 로직
     private void reconcileStuckSagas(LocalDateTime cutOffTime) {
         // 주문 생성 사가 -> 보상 처리
         orderCreateSagaRepository.findAllByOverallStatusInAndUpdatedAtBefore(
