@@ -10,6 +10,8 @@ import com.nhnacademy.order.orderitem.dto.OrderItemResponse;
 import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
+import com.nhnacademy.order.point.domain.PointAccumulationEvent;
+import com.nhnacademy.order.point.service.PointAccumulationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,6 +31,8 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderItemRefundOrchestrator orderItemRefundOrchestrator;
     private final NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     private final OrderItemUpdateService orderItemUpdateService;
+    private final OrderItemConfirmService orderItemConfirmService;
+    private final PointAccumulationService pointAccumulationService;
 
     private void handleReturned(UserInfo userInfo, Order order, OrderItem orderItem) {
         try {
@@ -43,20 +47,6 @@ public class OrderItemServiceImpl implements OrderItemService {
             // 예외를 삼켜서 사용자는 모르게 함
             // '환불 요청' -> '관리자 승인' -> '환불' 순서로 진행되기 때문에 환불 중 오류가 발생해도 '환불 요청' 상태 유지
             // 스케줄러가 알아서 다시 환불 처리함
-        }
-    }
-
-    private void handleConfirmed(UserInfo userInfo, Order order, OrderItem orderItem) {
-        try {
-            // 회원일 경우
-            if (userInfo != null) {
-                // 포인트 적립
-                orderItemUpdateService.accumulatePoint(order, orderItem);
-            }
-        } catch (Exception e) {
-            log.error("주문 상품 구매 확정 실패: {}", e.getMessage(), e);
-            // 구매 확정 실패는 사용자에게 알려야 함
-            throw e;
         }
     }
 
@@ -99,11 +89,20 @@ public class OrderItemServiceImpl implements OrderItemService {
         switch (strategy) {
             case RETURNED -> handleReturned(userInfo, order, orderItem);
             case CONFIRMED -> {
-                orderItemUpdateService.updateOrderItemStatus(order, orderItem, OrderItemStatusUpdateStrategy.CONFIRMED);
+                PointAccumulationEvent event =  orderItemConfirmService.confirmOrderItem(orderItem);
 
-                handleConfirmed(userInfo, order, orderItem);
+                if (event != null) {
+                    try {
+                        pointAccumulationService.processEvent(event);
+                    } catch (Exception e) {
+                        // 동기 처리 실패 시, 예외를 삼키고 로그만 남김
+                        // 이미 DB에 PENDING 상태로 저장되어 있으므로, 스케줄러가 나중에 재시도함
+                        log.warn("포인트 적립 동기 처리 실패 (스케줄러가 재처리 예정): {}", e.getMessage());
+                    }
+                }
             }
-            default -> orderItemUpdateService.updateOrderItemStatus(order, orderItem, strategy);
+
+            default -> orderItemUpdateService.updateOrderItemStatus(orderItem, strategy);
         }
     }
 }
