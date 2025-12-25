@@ -3,16 +3,13 @@ package com.nhnacademy.order.orderitem.domain;
 import com.nhnacademy.order.common.entity.BaseTimeEntity;
 import com.nhnacademy.order.order.domain.Order;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class OrderItem extends BaseTimeEntity {
     @Id
