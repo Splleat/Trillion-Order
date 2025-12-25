@@ -2,14 +2,10 @@ package com.nhnacademy.order.ordercoupon.domain;
 
 import com.nhnacademy.order.order.domain.Order;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class OrderCoupon {
     @Id

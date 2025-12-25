@@ -27,7 +27,6 @@ public class PointAccumulationEvent extends BaseTimeEntity {
 
     private int retryCount;
 
-    @Column(columnDefinition = "TEXT")
     private String lastErrorMessage;
 
     private PointAccumulationEvent(Long memberId, Long orderId, Long orderItemId, int purchaseAmount) {
