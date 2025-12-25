@@ -9,5 +9,8 @@ public record OrdererInfo(
     String ordererName,
 
     @Column(name = "orderer_contact")
-    String ordererContact
+    String ordererContact,
+
+    @Column(name = "orderer_email")
+    String ordererEmail
 ) {}

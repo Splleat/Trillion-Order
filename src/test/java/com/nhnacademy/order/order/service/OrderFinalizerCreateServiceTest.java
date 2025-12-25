@@ -51,7 +51,7 @@ class OrderFinalizerCreateServiceTest {
 
     @BeforeEach
     void setUp() {
-        OrdererInfo ordererInfo = new OrdererInfo("주문자", "010-1234-5678");
+        OrdererInfo ordererInfo = new OrdererInfo("주문자", "010-1234-5678", "test@email.com");
         ReceiverInfo receiverInfo = new ReceiverInfo("수령인", "010-9876-5432", "주소");
         OrderDetails orderDetails = OrderDetails.createInitial(null, null, 1000); // 포인트 1000원 사용
 

@@ -15,6 +15,8 @@ public record OrderCreateRequest(
     String ordererName,
     @NotBlank(message = "주문자 연락처는 필수입니다.")
     String ordererContact,
+    @NotBlank(message = "주문자 이메일은 필수입니다.")
+    String ordererEmail,
     @Future(message = "배송일은 미래 날짜여야 합니다.")
     LocalDateTime deliveryDate,
 

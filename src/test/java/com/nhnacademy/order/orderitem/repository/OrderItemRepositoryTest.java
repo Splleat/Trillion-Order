@@ -35,7 +35,7 @@ class OrderItemRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678");
+        OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678", "test@email.com");
         ReceiverInfo receiverInfo = new ReceiverInfo("이순신", "010-9876-5432", "서울");
         OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0);
 

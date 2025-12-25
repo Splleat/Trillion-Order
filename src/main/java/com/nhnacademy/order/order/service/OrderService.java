@@ -59,7 +59,7 @@ public class OrderService {
         String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
                 .map(passwordEncoder::encode)
                 .orElse(null);
-        OrdererInfo ordererInfo = new OrdererInfo(request.ordererName(), request.ordererContact());
+        OrdererInfo ordererInfo = new OrdererInfo(request.ordererName(), request.ordererContact(), request.ordererEmail());
         ReceiverInfo receiverInfo = new ReceiverInfo(request.receiverName(), request.receiverContact(), request.receiverAddress());
         OrderDetails initialOrderDetails = OrderDetails.createInitial(request.receiverPostCode(), request.deliveryDate(), request.pointUsage());
         OrderCoupon initialOrderCoupon = null;

@@ -59,7 +59,7 @@ class OrderServiceCreateTest {
         );
 
         orderCreateRequest = new OrderCreateRequest(
-            "홍길동", "010-1234-5678", LocalDateTime.now().plusDays(1),
+            "홍길동", "010-1234-5678", "test@example.com", LocalDateTime.now().plusDays(1),
             "이순신", "010-9876-5432", "서울시 강남구", "12345",
             null, 1000, 101L, itemRequests
         );
@@ -68,7 +68,7 @@ class OrderServiceCreateTest {
         initialOrder = Order.createInitial(
             userInfo.userId(),
             null,
-            new OrdererInfo(orderCreateRequest.ordererName(), orderCreateRequest.ordererContact()),
+            new OrdererInfo(orderCreateRequest.ordererName(), orderCreateRequest.ordererContact(), orderCreateRequest.ordererEmail()),
             new ReceiverInfo(orderCreateRequest.receiverName(), orderCreateRequest.receiverContact(), orderCreateRequest.receiverAddress()),
             OrderDetails.createInitial(orderCreateRequest.receiverPostCode(), orderCreateRequest.deliveryDate(), orderCreateRequest.pointUsage())
         );
@@ -156,7 +156,7 @@ class OrderServiceCreateTest {
 
         // 비회원용 요청 데이터 (쿠폰 ID와 포인트 사용 없음)
         OrderCreateRequest nonMemberRequest = new OrderCreateRequest(
-            "비회원", "010-0000-0000", LocalDateTime.now().plusDays(1),
+            "비회원", "010-0000-0000", "test@email.com", LocalDateTime.now().plusDays(1),
             "수령인", "010-1111-2222", "서울시 종로구", "54321",
             "password123", 0, null, orderCreateRequest.orderItems() // nonMemberPassword 설정, pointUsage=0, couponId=null
         );
@@ -165,7 +165,7 @@ class OrderServiceCreateTest {
         Order nonMemberInitialOrder = Order.createInitial(
             null, // 비회원이므로 userId는 null
             "encodedPassword", // nonMemberPassword는 인코딩됨
-            new OrdererInfo(nonMemberRequest.ordererName(), nonMemberRequest.ordererContact()),
+            new OrdererInfo(nonMemberRequest.ordererName(), nonMemberRequest.ordererContact(), nonMemberRequest.ordererEmail()),
             new ReceiverInfo(nonMemberRequest.receiverName(), nonMemberRequest.receiverContact(), nonMemberRequest.receiverAddress()),
             OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage())
         );

@@ -2,6 +2,7 @@ package com.nhnacademy.payment.service.impl;
 
 
 import com.nhnacademy.order.order.domain.Order;
+import com.nhnacademy.order.order.service.EmailService;
 import com.nhnacademy.order.order.repository.OrderRepository;
 import com.nhnacademy.payment.config.PaymentUser;
 import com.nhnacademy.payment.dto.response.PaymentApiResponse;
@@ -28,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final EmailService emailService;
 
     //DB에 담는 시점에서만 Transactional 호출하면 됨.
     @Override
@@ -51,6 +53,10 @@ public class PaymentServiceImpl implements PaymentService {
         savePayment.getOrder().setOrderStatus(com.nhnacademy.order.order.domain.OrderStatus.COMPLETED);
         orderRepository.save(order);
 
+        // 비회원/회원 모두 주문 시 이메일이 있다면 주문 번호 발송
+        if (order.getOrdererInfo() != null && order.getOrdererInfo().ordererEmail() != null) {
+            emailService.sendOrderNumber(order.getOrdererInfo().ordererEmail(), order.getOrderNumber());
+        }
 
         return savePayment;
     }
