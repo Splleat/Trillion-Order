@@ -170,6 +170,7 @@ public class OrderService {
         });
     }
 
+    // 자신의 ID로 취소된 주문 목록 찾기
     @CheckAuth(role = AuthRole.MEMBER)
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllCanceledOrderByMemberId(UserInfo userInfo, Pageable pageable) {
