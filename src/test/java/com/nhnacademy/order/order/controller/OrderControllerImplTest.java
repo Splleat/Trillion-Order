@@ -60,7 +60,7 @@ class OrderControllerImplTest {
 
     @BeforeEach
     void setUp() {
-        OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678");
+        OrdererInfo ordererInfo = new OrdererInfo("홍길동", "010-1234-5678", "test@email.com");
         ReceiverInfo receiverInfo = new ReceiverInfo("이순신", "010-9876-5432", "서울시 강남구");
 
         orderResponse = new OrderResponse(
@@ -118,7 +118,7 @@ class OrderControllerImplTest {
     @DisplayName("회원 주문 생성 - POST /orders")
     void createMemberOrder_Success() throws Exception {
         OrderItemCreateRequest orderItem = new OrderItemCreateRequest(1L, 2, null, 1L, null);
-        OrderCreateRequest createRequest = new OrderCreateRequest("홍길동", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(orderItem));
+        OrderCreateRequest createRequest = new OrderCreateRequest("홍길동", "010-1234-5678", "test@email.com", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(orderItem));
         given(orderService.createOrder(any(), any(OrderCreateRequest.class))).willReturn(orderResponse);
 
         mockMvc.perform(post("/orders")
@@ -224,7 +224,7 @@ class OrderControllerImplTest {
     @DisplayName("주문 생성 실패 - 유효하지 않은 입력")
     void createMemberOrder_Fail_InvalidInput() throws Exception {
         // ordererName is blank
-        OrderCreateRequest createRequest = new OrderCreateRequest("", "010-1234-5678", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(new OrderItemCreateRequest(1L, 1, null, null, null)));
+        OrderCreateRequest createRequest = new OrderCreateRequest("", "010-1234-5678", "test@email.com", LocalDateTime.now().plusDays(1), "이순신", "010-9876-5432", "서울시 강남구", "12345", null, 1000, 1L, List.of(new OrderItemCreateRequest(1L, 1, null, null, null)));
 
         mockMvc.perform(post("/orders")
                         .header("X-USER-ID", "1")

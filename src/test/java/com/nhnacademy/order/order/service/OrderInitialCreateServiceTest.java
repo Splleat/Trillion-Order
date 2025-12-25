@@ -42,7 +42,7 @@ class OrderInitialCreateServiceTest {
     void createInitialOrder_Success() {
         // given
         Long memberId = 1L;
-        OrdererInfo ordererInfo = new OrdererInfo("주문자", "010-0000-0000");
+        OrdererInfo ordererInfo = new OrdererInfo("주문자", "010-0000-0000", "test@email.com");
         ReceiverInfo receiverInfo = new ReceiverInfo("수령인", "010-1111-1111", "주소");
         OrderDetails orderDetails = OrderDetails.createInitial("12345", LocalDateTime.now(), 0);
 

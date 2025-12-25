@@ -13,6 +13,18 @@ spring:
     redis:
       host: localhost
       port: 6379
+  # 결제 후 주문 번호를 이메일로 전송
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: splleat@gmail.com
+    password: ${MAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   # JPA, Datasource, H2 설정
   datasource:

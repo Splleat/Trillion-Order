@@ -63,7 +63,7 @@ class NonMemberOrderServiceTest {
         String encodedPassword = "encoded-password";
         NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
+                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000", "test@email.com"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")
         );
         when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));
@@ -90,7 +90,7 @@ class NonMemberOrderServiceTest {
         String encodedPassword = "encoded-password";
         NonMemberOrderBaseResponse dummyResponse = new NonMemberOrderBaseResponse(
                 2L, encodedPassword, null, orderNumber, LocalDateTime.now(),
-                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000"),
+                OrderStatus.PENDING, 27000, 30000, 0, new OrdererInfo("비회원", "010-0000-0000", "test@email.com"),
                 new ReceiverInfo("받는사람", "010-1111-2222", "주소")
         );
         when(orderRepository.findNonMemberOrderByOrderNumber(orderNumber)).thenReturn(Optional.of(dummyResponse));

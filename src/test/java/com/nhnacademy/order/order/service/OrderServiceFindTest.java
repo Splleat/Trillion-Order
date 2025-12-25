@@ -52,7 +52,7 @@ class OrderServiceFindTest {
         OrderBaseResponse dummyBaseResponse = new OrderBaseResponse(
                 orderId, 1L, "ORD-1234", LocalDateTime.now(), OrderStatus.PENDING,
                 40500, 34500, 0, 1000, 0, // totalCouponDiscount 추가
-                new OrdererInfo("홍길동", "010-1234-5678"),
+                new OrdererInfo("홍길동", "010-1234-5678", "test@email.com"),
                 new ReceiverInfo("이순신", "010-9876-5432", "서울")
         );
         List<OrderItemResponse> dummyItems = List.of(
@@ -93,8 +93,8 @@ class OrderServiceFindTest {
         UserInfo userInfo = new UserInfo(1L, null, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
         List<OrderBaseResponse> baseResponses = List.of(
-                new OrderBaseResponse(1L, userInfo.userId(), "ORD-1", LocalDateTime.now(), OrderStatus.COMPLETED, 100, 100, 0, 0, 0, new OrdererInfo("n", "c"), new ReceiverInfo("n", "c", "a")),
-                new OrderBaseResponse(2L, userInfo.userId(), "ORD-2", LocalDateTime.now(), OrderStatus.COMPLETED, 200, 200, 0, 0, 0, new OrdererInfo("n", "c"), new ReceiverInfo("n", "c", "a"))
+                new OrderBaseResponse(1L, userInfo.userId(), "ORD-1", LocalDateTime.now(), OrderStatus.COMPLETED, 100, 100, 0, 0, 0, new OrdererInfo("n", "c", "e"), new ReceiverInfo("n", "c", "a")),
+                new OrderBaseResponse(2L, userInfo.userId(), "ORD-2", LocalDateTime.now(), OrderStatus.COMPLETED, 200, 200, 0, 0, 0, new OrdererInfo("n", "c", "e"), new ReceiverInfo("n", "c", "a"))
         );
         Page<OrderBaseResponse> pagedBaseResponse = new PageImpl<>(baseResponses, pageable, baseResponses.size());
         when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(pagedBaseResponse);
