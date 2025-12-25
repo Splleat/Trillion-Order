@@ -2,3 +2,6 @@
 spring:
   profiles:
     active: dev
+  sql:
+    init:
+      mode: never
