@@ -2,13 +2,12 @@ package com.nhnacademy.order.point.domain;
 
 import com.nhnacademy.order.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class PointAccumulationEvent extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +26,6 @@ public class PointAccumulationEvent extends BaseTimeEntity {
 
     private int retryCount;
 
-    @Column(columnDefinition = "TEXT")
     private String lastErrorMessage;
 
     private PointAccumulationEvent(Long memberId, Long orderId, Long orderItemId, int purchaseAmount) {

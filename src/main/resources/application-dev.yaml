@@ -41,6 +41,7 @@ spring:
         auto_quote_keyword: true
         # Order Setting
         globally_quoted_identifiers: true
+        defer-datasource-initialization: true
 
   # Cloud 설정
   cloud:
