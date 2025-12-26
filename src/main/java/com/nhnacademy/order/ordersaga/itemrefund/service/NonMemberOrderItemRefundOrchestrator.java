@@ -67,6 +67,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
             orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
         } catch (Exception e) {
+            log.error("비회원 주문 상품 환불 사가 처리 실패: {}", sagaId, e);
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.FAILED);
             throw new OrderItemRefundFailureException("주문 상품 환불 실패: " + orderItem.getOrderItemId());
         }
