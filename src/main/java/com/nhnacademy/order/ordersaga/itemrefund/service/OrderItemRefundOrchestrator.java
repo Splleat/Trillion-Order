@@ -77,6 +77,7 @@ public class OrderItemRefundOrchestrator {
             // 5. 도메인과 연결
             orderItemRefundService.completeOrderItem(orderItem, saga);
         } catch (Exception e) {
+            log.error("회원 주문 상품 환불 실패: {}", saga.getSagaId(), e);
             sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.FAILED);
             throw new OrderItemRefundFailureException("주문 상품 환불 실패: " + orderItem.getOrderItemId());
         }
@@ -121,9 +122,9 @@ public class OrderItemRefundOrchestrator {
 
             orderItemRefundService.completeOrderItem(orderItem, saga);
         } catch (Exception e) {
+            log.error("회원 주문 상품 환불 사가 재시도 실패: {}", sagaId, e);
 
             sagaUpdateService.updateItemRefundSagaStatus(saga, SagaStatus.FAILED);
-            log.error("회원 주문 상품 환불 사가 재시도 실패: {}", sagaId, e);
         }
     }
 
