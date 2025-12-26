@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor // Builder 패턴을 쓰려면 전체 생성자가 필요
 @Builder
 @Entity
-@Table(name = "Cart",
+@Table(name = "cart",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "cart_member_book_unique",
