@@ -16,7 +16,7 @@ public interface MemberClient {
     @PatchMapping("/members/points/use")
     void decreasePoint(@RequestHeader("X-Saga-Id") UUID sagaId, @RequestBody PointUsageRequest request);
 
-    @PatchMapping("/members/points/refund")
+    @PatchMapping("/members/points/increase")
     void increasePoint(@RequestHeader("X-Saga-Id") UUID sagaId, @RequestBody PointUsageRequest request);
 
     @PatchMapping("/members/points/rollback")
