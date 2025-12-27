@@ -57,8 +57,13 @@ class OrderFinalizerCreateServiceTest {
 
         order = Order.createInitial(1L, null, ordererInfo, receiverInfo, orderDetails);
 
+        // Item 1: 10000원 * 2개 + 500원 포장
         OrderItem item1 = OrderItem.createInitial(order, 101L, 2, null, PackagingInfo.create("일반포장", 500));
         order.addOrderItem(item1);
+
+        // Item 2: 20000원 * 1개 + 포장없음
+        OrderItem item2 = OrderItem.createInitial(order, 102L, 1, null, PackagingInfo.create("포장없음", 0));
+        order.addOrderItem(item2);
 
         OrderCoupon orderCoupon = OrderCoupon.createInitial(1L);
         order.addOrderCoupon(orderCoupon);
@@ -67,11 +72,12 @@ class OrderFinalizerCreateServiceTest {
     }
 
     @Test
-    @DisplayName("주문 생성 완료 처리 - 성공 (회원, 쿠폰 사용)")
+    @DisplayName("주문 생성 완료 처리 - 성공 (회원, 쿠폰 사용, 포인트 안분)")
     void finalizeOrderCreation_Success_MemberWithCoupon() {
         // given
-        BookResponse bookResponse = new BookResponse(101L, "테스트 책", 10000, true, "url");
-        when(bookService.getBookInfos(anyList())).thenReturn(Map.of(101L, bookResponse));
+        BookResponse bookResponse1 = new BookResponse(101L, "테스트 책1", 10000, true, "url");
+        BookResponse bookResponse2 = new BookResponse(102L, "테스트 책2", 20000, true, "url");
+        when(bookService.getBookInfos(anyList())).thenReturn(Map.of(101L, bookResponse1, 102L, bookResponse2));
 
         CouponCalculationResponse couponResponse = new CouponCalculationResponse(101L, 2000, List.of(new CouponCalculationResponse.ItemDiscount(101L, 2000)));
         when(couponService.calculateDiscount(any(CouponCalculationRequest.class))).thenReturn(couponResponse);
@@ -90,14 +96,36 @@ class OrderFinalizerCreateServiceTest {
         assertThat(savedOrder.getOrderStatus()).isEqualTo(OrderStatus.PENDING);
 
         OrderDetails details = savedOrder.getOrderDetails();
-        // 원가 = (책 가격 10000 + 포장비 500) * 2 = 21000
-        assertThat(details.originPrice()).isEqualTo(21000);
+        // Item1 원가: (10000 + 500) * 2 = 21000
+        // Item2 원가: 20000 * 1 = 20000
+        // 총 원가 = 41000
+        assertThat(details.originPrice()).isEqualTo(41000);
         // 쿠폰 할인 = 2000
         assertThat(details.couponDiscountAmount()).isEqualTo(2000);
-        // 배송비: 21000 - 2000 = 19000 < 20000 이므로 3000원
-        assertThat(details.deliveryFee()).isEqualTo(3000);
-        // 최종가 = 21000 - 2000(쿠폰) - 1000(포인트) + 3000(배송비) = 21000
-        assertThat(details.totalPrice()).isEqualTo(21000);
+        // 배송비: 41000 - 2000(쿠폰) = 39000 >= 20000 이므로 0원
+        assertThat(details.deliveryFee()).isEqualTo(0);
+        // 최종가 = 41000 - 2000(쿠폰) - 1000(포인트) + 0(배송비) = 38000
+        assertThat(details.totalPrice()).isEqualTo(38000);
+
+        // 포인트 안분 검증
+        // Item1 비율: 21000 / 41000
+        // Item1 포인트: (21000 * 1000) / 41000 = 512
+        List<OrderItem> items = savedOrder.getOrderItems().stream().toList();
+        
+        // Set 순서가 보장되지 않으므로 BookId로 찾음
+        OrderItem savedItem101 = items.stream()
+                .filter(i -> i.getBookId().equals(101L))
+                .findFirst()
+                .orElseThrow();
+        
+        OrderItem savedItem102 = items.stream()
+                .filter(i -> i.getBookId().equals(102L))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(savedItem101.getPaymentPoint()).isEqualTo(512);
+        // Item2 포인트: 1000 - 512 = 488
+        assertThat(savedItem102.getPaymentPoint()).isEqualTo(488);
 
         ArgumentCaptor<OrderCreateSaga> sagaCaptor = ArgumentCaptor.forClass(OrderCreateSaga.class);
         verify(orderCreateSagaRepository).save(sagaCaptor.capture());

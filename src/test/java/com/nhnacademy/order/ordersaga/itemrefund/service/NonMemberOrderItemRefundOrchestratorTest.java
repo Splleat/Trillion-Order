@@ -13,6 +13,8 @@ import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberOrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberRefundSagaStep;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
+import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.service.impl.PaymentFlowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -37,6 +40,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
 
     @Mock private SagaUpdateService sagaUpdateService;
     @Mock private BookService bookService;
+    @Mock private PaymentFlowService paymentFlowService;
     @Mock private DeliveryPolicyRepository deliveryPolicyRepository;
     @Mock private OrderItemRefundService orderItemRefundService;
 
@@ -52,33 +56,45 @@ class NonMemberOrderItemRefundOrchestratorTest {
         order = mock(Order.class);
 
         orderItem = mock(OrderItem.class);
-
     }
 
     @Test
-    @DisplayName("processNonMemberItemRefund: 비회원 주문 상품 환불 성공 (단순 변심)")
+    @DisplayName("processNonMemberItemRefund: 비회원 주문 상품 환불 성공 (단순 변심, 배송비 차감)")
     void processNonMemberItemRefund_Success_ChangeOfMindNonMember() {
         DeliveryPolicy deliveryPolicy = mock(DeliveryPolicy.class);
+        when(deliveryPolicy.getDeliveryPolicyFee()).thenReturn(3000);
 
         // given
+        when(order.getOrderNumber()).thenReturn("ORD-NON-MEMBER");
         when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        when(orderItem.getPrice()).thenReturn(10000);
+        when(orderItem.getQuantity()).thenReturn(1);
+        when(orderItem.getCouponDiscountAmount()).thenReturn(0);
+
         when(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).thenReturn(Optional.of(deliveryPolicy));
 
         // when
         nonMemberOrderItemRefundOrchestrator.processNonMemberItemRefund(order, orderItem);
 
         // then
-        // Saga 생성 확인 (sagaUpdateService.updateNonMemberItemRefundSagaStep 호출 시 첫 번째 인자로 캡처)
+        // Saga 생성 확인
         ArgumentCaptor<NonMemberOrderItemRefundSaga> sagaCaptor = ArgumentCaptor.forClass(NonMemberOrderItemRefundSaga.class);
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(sagaCaptor.capture(), eq(NonMemberRefundSagaStep.STARTED));
         NonMemberOrderItemRefundSaga capturedSaga = sagaCaptor.getValue();
 
-        // 결제 환불 스텝 확인 (PaymentService는 TODO이므로 SagaUpdateService 호출만 확인)
+        // 결제 환불 호출 검증 (10000 - 3000 = 7000원 환불)
+        ArgumentCaptor<Integer> amountCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(paymentFlowService).cancelPaymentByMember(eq("ORD-NON-MEMBER"), anyString(), amountCaptor.capture(), any(PaymentUser.class));
+        assertThat(amountCaptor.getValue()).isEqualTo(7000);
+
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(capturedSaga, NonMemberRefundSagaStep.PAYMENT_REFUNDED);
 
         // 재고 증가
         verify(bookService).increaseStocks(eq(capturedSaga.getSagaId()), anyMap());
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(capturedSaga, NonMemberRefundSagaStep.STOCK_INCREASED);
+
+        // 도메인 반영 (환불 금액, 배송비 저장)
+        verify(orderItem).setRefundPrice(7000);
 
         // 사가 완료 및 도메인 연결 확인
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(capturedSaga, SagaStatus.COMPLETED);
@@ -107,9 +123,15 @@ class NonMemberOrderItemRefundOrchestratorTest {
     @DisplayName("processNonMemberItemRefund: 도서 서비스 실패 시 OrderItemRefundFailureException 발생 및 사가 FAILED")
     void processNonMemberItemRefund_ThrowsFailureException_WhenBookServiceFails() {
         DeliveryPolicy deliveryPolicy = mock(DeliveryPolicy.class);
+        when(deliveryPolicy.getDeliveryPolicyFee()).thenReturn(3000);
 
         // given
+        when(order.getOrderNumber()).thenReturn("ORD-NON-MEMBER");
         when(orderItem.getOrderItemStatus()).thenReturn(OrderItemStatus.RETURN_REQUESTED_DAMAGED); // 파손으로 인한 반품
+        when(orderItem.getPrice()).thenReturn(10000);
+        when(orderItem.getQuantity()).thenReturn(1);
+        when(orderItem.getCouponDiscountAmount()).thenReturn(0);
+
         when(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).thenReturn(Optional.of(deliveryPolicy));
         doThrow(new RuntimeException("재고 증가 실패")).when(bookService).increaseStocks(any(), anyMap());
 
@@ -122,6 +144,9 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ArgumentCaptor<NonMemberOrderItemRefundSaga> sagaCaptor = ArgumentCaptor.forClass(NonMemberOrderItemRefundSaga.class);
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(sagaCaptor.capture(), eq(NonMemberRefundSagaStep.STARTED));
         NonMemberOrderItemRefundSaga capturedSaga = sagaCaptor.getValue();
+
+        // 파손일 경우 배송비 차감 안 함 -> 10000원 환불 시도 확인
+        verify(paymentFlowService).cancelPaymentByMember(eq("ORD-NON-MEMBER"), anyString(), eq(10000), any(PaymentUser.class));
 
         verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(capturedSaga, SagaStatus.FAILED); // 사가 실패로 업데이트
         verify(orderItemRefundService, never()).completeNonMemberOrderItem(any(), any()); // 최종 완료 처리 호출 안됨

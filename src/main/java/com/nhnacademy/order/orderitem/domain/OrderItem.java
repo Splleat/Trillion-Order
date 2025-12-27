@@ -47,6 +47,14 @@ public class OrderItem extends BaseTimeEntity {
     @Enumerated(value = EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 
+    @Setter
+    @Column(name = "payment_point")
+    private int paymentPoint;
+
+    @Setter
+    @Column(name = "refund_price")
+    private int refundPrice;
+
     public static OrderItem createInitial(Order order, Long bookId, int quantity, LocalDateTime shippingDate, PackagingInfo packagingInfo) {
         return new OrderItem(
             order,
@@ -73,6 +81,8 @@ public class OrderItem extends BaseTimeEntity {
         this.shippingDate = shippingDate;
         this.packagingInfo = packagingInfo;
         this.orderItemStatus = OrderItemStatus.PREPARING;
+        this.paymentPoint = 0;
+        this.refundPrice = 0;
     }
 
     public void completeOrderItem(String bookName, String bookImage, int price, int couponDiscountAmount) {

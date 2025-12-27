@@ -36,7 +36,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     private void handleReturned(UserInfo userInfo, Order order, OrderItem orderItem) {
         try {
-            if (userInfo != null) {
+            if (order.getMemberId() != null) {
                 orderItemRefundOrchestrator.processItemRefund(userInfo.userId(), order, orderItem);
             } else {
                 // 비회원

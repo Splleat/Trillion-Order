@@ -75,6 +75,7 @@ class OrderItemRefundOrchestratorTest {
         verify(sagaUpdateService).updateItemRefundSagaStep(eq(capturedSaga), eq(ItemRefundSagaStep.STOCK_INCREASED));
         
         verify(sagaUpdateService).updateItemRefundSagaStatus(eq(capturedSaga), eq(SagaStatus.COMPLETED));
+        verify(orderItem).setRefundPrice(12000);
         verify(orderItemRefundService).completeOrderItem(eq(orderItem), eq(capturedSaga));
     }
 

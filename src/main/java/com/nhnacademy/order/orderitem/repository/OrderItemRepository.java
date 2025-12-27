@@ -20,11 +20,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookName,
             oi.bookImage,
             oi.quantity,
-            oi.price,
-            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
-            oi.couponDiscountAmount,
-            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingInfo.packagingPrice,
+            coalesce(oi.price, 0),
+            (coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity,
+            coalesce(oi.couponDiscountAmount, 0),
+            ((coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity - coalesce(oi.couponDiscountAmount, 0)),
+            coalesce(oi.packagingInfo.packagingPrice, 0),
+            coalesce(oi.refundPrice, 0),
             oi.orderItemStatus
         )
         FROM OrderItem oi
@@ -40,11 +41,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookName,
             oi.bookImage,
             oi.quantity,
-            oi.price,
-            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
-            oi.couponDiscountAmount,
-            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingInfo.packagingPrice,
+            coalesce(oi.price, 0),
+            (coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity,
+            coalesce(oi.couponDiscountAmount, 0),
+            ((coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity - coalesce(oi.couponDiscountAmount, 0)),
+            coalesce(oi.packagingInfo.packagingPrice, 0),
+            coalesce(oi.refundPrice, 0),
             oi.orderItemStatus
         )
         FROM OrderItem oi
@@ -70,11 +72,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             oi.bookName,
             oi.bookImage,
             oi.quantity,
-            oi.price,
-            (oi.price + oi.packagingInfo.packagingPrice) * oi.quantity,
-            oi.couponDiscountAmount,
-            ((oi.price + oi.packagingInfo.packagingPrice) * oi.quantity - oi.couponDiscountAmount),
-            oi.packagingInfo.packagingPrice,
+            coalesce(oi.price, 0),
+            (coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity,
+            coalesce(oi.couponDiscountAmount, 0),
+            ((coalesce(oi.price, 0) + coalesce(oi.packagingInfo.packagingPrice, 0)) * oi.quantity - coalesce(oi.couponDiscountAmount, 0)),
+            coalesce(oi.packagingInfo.packagingPrice, 0),
+            coalesce(oi.refundPrice, 0),
             oi.orderItemStatus
         )
         FROM OrderItem oi
