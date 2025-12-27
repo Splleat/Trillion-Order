@@ -13,10 +13,13 @@ import com.nhnacademy.order.ordersaga.cancellation.domain.CancelSagaStep;
 import com.nhnacademy.order.ordersaga.cancellation.domain.OrderCancelSaga;
 import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
+import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.service.impl.PaymentFlowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -41,6 +45,7 @@ class OrderCancelOrchestratorTest {
     @Mock private MemberService memberService;
     @Mock private CouponService couponService;
     @Mock private BookService bookService;
+    @Mock private PaymentFlowService paymentFlowService;
     @Mock private OrderFinalizerCancelService orderFinalizerCancelService;
 
     private Long memberId;
@@ -56,6 +61,7 @@ class OrderCancelOrchestratorTest {
         // Order mock
         order = mock(Order.class);
         when(order.getOrderId()).thenReturn(100L);
+        when(order.getOrderNumber()).thenReturn("ORD-100");
 
         OrderDetails orderDetails = new OrderDetails(
             LocalDateTime.now(), "12345", LocalDateTime.now().plusDays(3),
@@ -95,7 +101,15 @@ class OrderCancelOrchestratorTest {
 
         // then
         verify(orderFinalizerCancelService).cancelStart(order); // 사가 시작
-        verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.PAYMENT_CANCELED); // 결제 취소 (TODO 스텝)
+
+        // 결제 취소 확인 (시스템 권한으로 호출되었는지)
+        ArgumentCaptor<PaymentUser> userCaptor = ArgumentCaptor.forClass(PaymentUser.class);
+        verify(paymentFlowService).cancelPaymentByMember(eq("ORD-100"), anyString(), isNull(), userCaptor.capture());
+        PaymentUser capturedUser = userCaptor.getValue();
+        assertThat(capturedUser.role()).isEqualTo("ROLE_ADMIN");
+        assertThat(capturedUser.memberId()).isEqualTo(memberId);
+
+        verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.PAYMENT_CANCELED);
 
         // 포인트 환불 확인
         verify(memberService).increasePoint(sagaId, memberId, order.getOrderId(), order.getOrderDetails().pointUsage());
@@ -124,7 +138,7 @@ class OrderCancelOrchestratorTest {
         // when & then
         assertThatThrownBy(() -> orderCancelOrchestrator.processCancelOrder(memberId, order))
             .isInstanceOf(OrderCancelFailureException.class)
-            .hasMessageContaining("주문 전체 취소 실패");
+            .hasMessageContaining("지연이 발생했습니다");
 
         verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.FAILED);
         // 실패 시 finalize는 호출되지 않아야 함

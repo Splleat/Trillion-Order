@@ -14,6 +14,8 @@ import com.nhnacademy.order.ordersaga.domain.SagaStatus;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberOrderItemRefundSaga;
 import com.nhnacademy.order.ordersaga.itemrefund.domain.NonMemberRefundSagaStep;
 import com.nhnacademy.order.ordersaga.service.SagaUpdateService;
+import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.service.impl.PaymentFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,7 @@ import java.util.UUID;
 public class NonMemberOrderItemRefundOrchestrator {
     private final SagaUpdateService sagaUpdateService;
     private final BookService bookService;
-    // private final PaymentService paymentService;
+    private final PaymentFlowService paymentFlowService;
 
     private final DeliveryPolicyRepository deliveryPolicyRepository;
     private final OrderItemRefundService orderItemRefundService;
@@ -42,29 +44,51 @@ public class NonMemberOrderItemRefundOrchestrator {
 
         NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(sagaId, order.getOrderId(), orderItem.getOrderItemId());
 
+        // 배송비 정책 조회
         int deliveryFee = getDeliveryFee();
 
+        // 1. 환불 금액 계산 (상품 가격 * 수량 - 쿠폰 할인액)
+        // 비회원은 쿠폰을 못 쓰지만, 혹시 모르니 로직은 유지하거나 0으로 가정
+        int refundAmount = Math.max(0, (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount());
+
+        // 단순 변심인 경우 배송비 차감
+        if (orderItem.getOrderItemStatus() == OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) {
+            refundAmount = Math.max(0, refundAmount - deliveryFee);
+        }
+
         Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
-
-        // TODO: 환불 요청 DTO에서 quantity도 받아서 처리?
-
-        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
-        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
 
         // 1. 사가 시작
         sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STARTED);
 
         try {
-            // 2. 환불
-            // TODO: 환불 로직 수정
-            // paymentService.refundPayment(...)
+            // 2. 환불 (결제 부분 취소)
+            try {
+                PaymentUser systemUser = new PaymentUser(null, "GUEST", "ROLE_ADMIN", false);
+                paymentFlowService.cancelPaymentByMember(
+                    order.getOrderNumber(),
+                    "비회원 반품 요청 (상품 ID: " + orderItem.getOrderItemId() + ")",
+                    refundAmount, // 부분 취소 금액
+                    systemUser
+                );
+            } catch (Exception e) {
+                 if (isAlreadyCanceledException(e)) {
+                    log.info("이미 결제 취소된 주문입니다: {}", order.getOrderNumber());
+                } else {
+                    throw e; 
+                }
+            }
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.PAYMENT_REFUNDED);
 
+            // 3. 재고 증가
             bookService.increaseStocks(saga.getSagaId(), quantityMap);
             sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
 
+            // 4. 완료
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
 
+            // 5. 도메인 반영 (환불 금액 저장 포함)
+            orderItem.setRefundPrice(refundAmount);
             orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
         } catch (Exception e) {
             log.error("비회원 주문 상품 환불 사가 처리 실패: {}", sagaId, e);
@@ -78,20 +102,38 @@ public class NonMemberOrderItemRefundOrchestrator {
             return;
         }
 
+        Order order = orderItem.getOrder();
         UUID sagaId = saga.getSagaId();
 
         Map<Long, Integer> quantityMap = Map.of(orderItem.getBookId(), orderItem.getQuantity());
 
         int deliveryFee = getDeliveryFee();
 
-        // 환불 금액 계산 (주문 상품 금액 * 수량 - 쿠폰 할인 금액 - 환불 배송비)
-        int refundMoney = Math.max((orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount() - deliveryFee, 0);
+        int refundAmount = Math.max(0, (orderItem.getPrice() * orderItem.getQuantity()) - orderItem.getCouponDiscountAmount());
+
+        if (orderItem.getOrderItemStatus() == OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND) {
+            refundAmount = Math.max(0, refundAmount - deliveryFee);
+        }
 
         NonMemberRefundSagaStep currentStep = saga.getLastCompletedStep();
 
         try {
             if (currentStep.ordinal() < NonMemberRefundSagaStep.PAYMENT_REFUNDED.ordinal()) {
-                // TODO: 환불 로직
+                try {
+                    PaymentUser systemUser = new PaymentUser(null, "GUEST", "ROLE_ADMIN", false);
+                    paymentFlowService.cancelPaymentByMember(
+                        order.getOrderNumber(),
+                        "비회원 반품 재시도 (상품 ID: " + orderItem.getOrderItemId() + ")",
+                        refundAmount,
+                        systemUser
+                    );
+                } catch (Exception e) {
+                     if (isAlreadyCanceledException(e)) {
+                        log.info("이미 결제 취소된 주문입니다: {}", order.getOrderNumber());
+                    } else {
+                        throw e; 
+                    }
+                }
                 sagaUpdateService.updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.PAYMENT_REFUNDED);
 
                 currentStep = NonMemberRefundSagaStep.PAYMENT_REFUNDED;
@@ -105,6 +147,7 @@ public class NonMemberOrderItemRefundOrchestrator {
 
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
 
+            orderItem.setRefundPrice(refundAmount);
             orderItemRefundService.completeNonMemberOrderItem(orderItem, saga);
         } catch (Exception e) {
             sagaUpdateService.updateNonMemberItemRefundSagaStatus(saga, SagaStatus.FAILED);
@@ -117,5 +160,13 @@ public class NonMemberOrderItemRefundOrchestrator {
                 .orElseThrow(() -> new PolicyNotConfiguredException("배송 정책이 설정되지 않음"));
 
         return deliveryPolicy.getDeliveryPolicyFee();
+    }
+
+    private boolean isAlreadyCanceledException(Exception e) {
+        String message = e.getMessage();
+        String className = e.getClass().getSimpleName();
+        return className.contains("PaymentAlreadyCanceledException") || 
+               className.contains("PaymentAlreadyApprovedException") ||
+               (message != null && message.contains("이미 전액 취소된 결제"));
     }
 }

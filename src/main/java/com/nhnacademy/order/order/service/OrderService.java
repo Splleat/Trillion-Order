@@ -144,7 +144,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrderByMemberId(UserInfo userInfo, Pageable pageable) {
         // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
-        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED);
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatusIn(pageable, userInfo.userId(), List.of(OrderStatus.COMPLETED));
 
         // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()
@@ -175,7 +175,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllCanceledOrderByMemberId(UserInfo userInfo, Pageable pageable) {
         // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
-        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.CANCELED);
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByMemberIdAndOrderStatusIn(pageable, userInfo.userId(), List.of(OrderStatus.CANCELED, OrderStatus.CANCELING));
 
         // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()

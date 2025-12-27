@@ -97,7 +97,7 @@ class OrderServiceFindTest {
                 new OrderBaseResponse(2L, userInfo.userId(), "ORD-2", LocalDateTime.now(), OrderStatus.COMPLETED, 200, 200, 0, 0, 0, new OrdererInfo("n", "c", "e"), new ReceiverInfo("n", "c", "a"))
         );
         Page<OrderBaseResponse> pagedBaseResponse = new PageImpl<>(baseResponses, pageable, baseResponses.size());
-        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(pagedBaseResponse);
+        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatusIn(pageable, userInfo.userId(), List.of(OrderStatus.COMPLETED))).thenReturn(pagedBaseResponse);
         when(orderItemRepository.findAllByOrderIds(anyList())).thenReturn(Collections.emptyList());
 
         // when
@@ -114,7 +114,7 @@ class OrderServiceFindTest {
         // given
         UserInfo userInfo = new UserInfo(2L, null, "MEMBER");
         Pageable pageable = Pageable.ofSize(10);
-        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatus(pageable, userInfo.userId(), OrderStatus.COMPLETED)).thenReturn(Page.empty(pageable));
+        when(orderRepository.findAllBaseOrderByMemberIdAndOrderStatusIn(pageable, userInfo.userId(), List.of(OrderStatus.COMPLETED))).thenReturn(Page.empty(pageable));
 
         // when
         Page<OrderResponse> resultPage = orderServiceImpl.findAllOrderByMemberId(userInfo, pageable);

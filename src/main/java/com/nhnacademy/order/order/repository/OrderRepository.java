@@ -63,8 +63,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.memberId = :memberId")
     Page<OrderBaseResponse> findAllBaseOrderByMemberId(Pageable pageable, @Param("memberId") Long memberId);
 
-    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.memberId = :memberId AND o.orderStatus = :orderStatus")
-    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatus(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatus") OrderStatus orderStatus);
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.memberId = :memberId AND o.orderStatus IN :orderStatuses")
+    Page<OrderBaseResponse> findAllBaseOrderByMemberIdAndOrderStatusIn(Pageable pageable, @Param("memberId") Long memberId, @Param("orderStatuses") List<OrderStatus> orderStatuses);
 
     @Query("""
         SELECT new com.nhnacademy.order.order.dto.NonMemberOrderBaseResponse(

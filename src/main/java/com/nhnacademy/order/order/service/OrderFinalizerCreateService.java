@@ -101,7 +101,12 @@ public class OrderFinalizerCreateService {
             int processedItemCount = 0;
             int totalItems = orderItems.size();
 
-            for (OrderItem item : orderItems) {
+            // 순서를 보장하기 위해 bookId로 정렬
+            List<OrderItem> sortedOrderItems = orderItems.stream()
+                    .sorted(java.util.Comparator.comparing(OrderItem::getBookId))
+                    .toList();
+
+            for (OrderItem item : sortedOrderItems) {
                 processedItemCount++;
                 // 포장비 포함한 해당 상품 라인의 총 금액
                 int itemTotalPrice = (item.getPrice() + item.getPackagingInfo().packagingPrice()) * item.getQuantity();
