@@ -15,6 +15,7 @@ public record OrderItemResponse(
     int itemDiscountAmount, // 이 상품 라인에 적용된 할인액
     int totalItemSalePrice, // 이 상품 라인의 최종 결제 금액 (totalItemOriginPrice - 아이템 할인액)
     int packagingPrice,
+    int refundPrice,
     OrderItemStatus orderItemStatus
 ) {
     public static OrderItemResponse create(OrderItem orderItem) {
@@ -37,6 +38,7 @@ public record OrderItemResponse(
             itemDiscountAmount,
             totalSalePrice,
             orderItem.getPackagingInfo().packagingPrice(),
+            orderItem.getRefundPrice(),
             orderItem.getOrderItemStatus()
         );
     }

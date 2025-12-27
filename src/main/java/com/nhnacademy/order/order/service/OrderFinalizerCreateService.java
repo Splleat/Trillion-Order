@@ -94,6 +94,30 @@ public class OrderFinalizerCreateService {
 
         // 4. 최종 가격 계산
         int pointUsage = currentOrderDetails.pointUsage();
+
+        // 4-1. 포인트 안분 로직 (상품 가격 + 포장비 비율로 분배)
+        if (pointUsage > 0 && originPrice > 0) {
+            int remainingPoint = pointUsage;
+            int processedItemCount = 0;
+            int totalItems = orderItems.size();
+
+            for (OrderItem item : orderItems) {
+                processedItemCount++;
+                // 포장비 포함한 해당 상품 라인의 총 금액
+                int itemTotalPrice = (item.getPrice() + item.getPackagingInfo().packagingPrice()) * item.getQuantity();
+
+                if (processedItemCount == totalItems) {
+                    // 마지막 상품에 자투리 포인트 몰아주기
+                    item.setPaymentPoint(remainingPoint);
+                } else {
+                    // (개별금액 * 총포인트) / 총금액 -> long 캐스팅으로 오버플로우 방지
+                    int distributedPoint = (int) (((long) itemTotalPrice * pointUsage) / originPrice);
+                    item.setPaymentPoint(distributedPoint);
+                    remainingPoint -= distributedPoint;
+                }
+            }
+        }
+
         int deliveryFee = determineDeliveryFee(originPrice - totalCouponDiscount);
         int totalPrice = originPrice - totalCouponDiscount - pointUsage + deliveryFee;
         totalPrice = Math.max(0, totalPrice);
