@@ -54,8 +54,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     """)
     Optional<Order> findOrderWithItemsByOrderNumber(@Param("orderNumber") String orderNumber);
 
-    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o")
-    Page<OrderBaseResponse> findAllBaseOrder(Pageable pageable);
+    @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.orderStatus IN :orderStatuses")
+    Page<OrderBaseResponse> findAllBaseOrderByOrderStatusIn(Pageable pageable, List<OrderStatus> orderStatuses);
 
     @Query("SELECT " + ORDER_BASE_DTO_CONSTRUCTOR + " FROM Order o WHERE o.orderId = :orderId")
     Optional<OrderBaseResponse> findBaseOrderById(@Param("orderId") Long orderId);
