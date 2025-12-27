@@ -79,7 +79,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponse> findAllOrders(UserInfo userInfo, Pageable pageable) {
         // 1. 주문 기본 정보 조회 (N+1 문제 방지를 위해 2번에 나누어 조회)
-        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrder(pageable);
+        Page<OrderBaseResponse> orderBaseResponses = orderRepository.findAllBaseOrderByOrderStatusIn(pageable, List.of(OrderStatus.PENDING, OrderStatus.COMPLETED, OrderStatus.CANCELED, OrderStatus.CANCELING));
 
         // 2. 주문 ID 목록 추출
         List<Long> orderIds = orderBaseResponses.stream()
