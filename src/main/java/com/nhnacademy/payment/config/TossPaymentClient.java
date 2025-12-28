@@ -1,7 +1,6 @@
 package com.nhnacademy.payment.config;
 
 import com.nhnacademy.payment.dto.response.PaymentApiResponse;
-import com.nhnacademy.payment.dto.response.PaymentResponse;
 import com.nhnacademy.payment.dto.response.TossPaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,15 +10,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime; // [필수] 날짜 생성을 위해 추가
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class TossPaymentClient implements PaymentGateway{
+public class TossPaymentClient implements PaymentGateway {
     private final WebClient tossWebClient;
 
-    public TossPaymentClient(WebClient paymentWebClient){
+    public TossPaymentClient(WebClient paymentWebClient) {
         this.tossWebClient = paymentWebClient.mutate()
                 .baseUrl("https://api.tosspayments.com/v1")
                 .build();
@@ -35,17 +35,32 @@ public class TossPaymentClient implements PaymentGateway{
     }
 
     @Override
-    public PaymentApiResponse confirm(String paymentKey, String orderNumber, Integer amount){
+    public PaymentApiResponse confirm(String paymentKey, String orderNumber, Integer amount) {
+        // [수정] 0원 결제 확인 로직
+        // 금액이 0원이거나 키가 "ZERO_"로 시작하는 경우 (프론트에서 보낸 유니크 키)
+        if (amount == 0 || (paymentKey != null && paymentKey.startsWith("ZERO_"))) {
+            return PaymentApiResponse.builder()
+                    .paymentKey(paymentKey) // 프론트에서 생성한 유니크 키 사용 (DB 중복 방지)
+                    .orderId(orderNumber)
+                    .totalAmount(0)
+                    .status("DONE") // 결제 완료 상태
+                    .requestedAt(OffsetDateTime.now().toString())
+                    .approvedAt(OffsetDateTime.now().toString())
+                    .receiptUrl("0원 결제") // [중요] DB Not Null 에러 방지용 문자열
+                    .provider("TOSS")
+                    .build();
+        }
+
+        // 일반 결제 로직 (토스 호출)
         return tossWebClient.post()
                 .uri("/payments/confirm")
-                .header(HttpHeaders.AUTHORIZATION,getBasicAuthHeader())
+                .header(HttpHeaders.AUTHORIZATION, getBasicAuthHeader())
                 .bodyValue(Map.of(
-                        "paymentKey",paymentKey,
-                        "orderId",orderNumber,
-                        "amount",amount
+                        "paymentKey", paymentKey,
+                        "orderId", orderNumber,
+                        "amount", amount
                 ))
                 .retrieve()
-                //toss 에서 보내준 에러를 String 으로 상태코드가 4xx or 5xx만 잡아냄
                 .onStatus(status ->
                         status.isError(), response -> response.bodyToMono(String.class)
                         .flatMap(error -> Mono.error(new RuntimeException("TossAPI 오류 " + error)))
@@ -60,16 +75,24 @@ public class TossPaymentClient implements PaymentGateway{
                         .receiptUrl(toss.getReceipt().getUrl())
                         .provider("TOSS")
                         .build())
-                .block();//동기
+                .block();
     }
 
-    //toss-api 기준 넘겨주는 금액이 null 이면 결제 전체 취소 처리임, 그러나 금액을 넘겨주먄 부분 취소 처리로 함.
     @Override
-    public PaymentApiResponse cancel(String paymentKey, String cancelReason, Integer cancelAmount){
+    public PaymentApiResponse cancel(String paymentKey, String cancelReason, Integer cancelAmount) {
+        // [수정] 0원 결제 취소 로직 (PG사 호출 생략)
+        if (paymentKey != null && paymentKey.startsWith("ZERO_")) {
+            return PaymentApiResponse.builder()
+                    .paymentKey(paymentKey)
+                    .status("CANCELED")
+                    .totalAmount(0)
+                    .provider("TOSS")
+                    .build();
+        }
+
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("cancelReason", cancelReason);
 
-        // 2. 취소 금액이 null이 아닐 때만 API 요청에 포함 (null이면 전액 취소로 동작)
         if (cancelAmount != null) {
             requestBody.put("cancelAmount", cancelAmount);
         }
@@ -84,9 +107,9 @@ public class TossPaymentClient implements PaymentGateway{
                                 .flatMap(error -> Mono.error(new RuntimeException("Toss 결제 취소 오류 " + error)))
                 )
                 .bodyToMono(TossPaymentResponseDto.class)
-                .map(toss ->{
+                .map(toss -> {
                     int actualCancelAmount = 0;
-                    if(toss.getCancels() != null && !toss.getCancels().isEmpty()){
+                    if (toss.getCancels() != null && !toss.getCancels().isEmpty()) {
                         actualCancelAmount = toss.getCancels()
                                 .get(toss.getCancels().size() - 1)
                                 .getCancelAmount();
@@ -106,8 +129,8 @@ public class TossPaymentClient implements PaymentGateway{
                 .block();
     }
 
-    private String getBasicAuthHeader(){
+    private String getBasicAuthHeader() {
         return "Basic " + Base64.getEncoder()
-                .encodeToString((tossSecretKey+":").getBytes(StandardCharsets.UTF_8));
+                .encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
     }
 }
