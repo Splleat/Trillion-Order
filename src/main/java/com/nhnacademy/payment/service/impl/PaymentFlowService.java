@@ -44,6 +44,7 @@ public class PaymentFlowService {
         if(order.getOrderStatus().equals(OrderStatus.COMPLETED)){
             throw new PaymentAlreadyApprovedException(request.orderNumber());
         }
+
         validateOrderOwner(order,user);
 
         //front->confirm 요청을 보내면 -> 맞는 처리가 가능한 PG사 호출.
