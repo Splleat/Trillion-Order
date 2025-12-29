@@ -46,8 +46,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
             type=sha,format=short
+            type=raw,value=latest
 
       - name: 도커 이미지 빌드 & 푸시
         uses: docker/build-push-action@v6
