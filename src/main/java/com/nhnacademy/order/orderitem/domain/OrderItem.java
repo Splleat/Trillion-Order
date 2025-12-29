@@ -34,7 +34,7 @@ public class OrderItem extends BaseTimeEntity {
     private int price;
 
     @Setter
-    private int couponDiscountAmount;
+    private Integer couponDiscountAmount;
 
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate; // 출고일
@@ -49,11 +49,11 @@ public class OrderItem extends BaseTimeEntity {
 
     @Setter
     @Column(name = "payment_point")
-    private int paymentPoint;
+    private Integer paymentPoint;
 
     @Setter
     @Column(name = "refund_price")
-    private int refundPrice;
+    private Integer refundPrice;
 
     public static OrderItem createInitial(Order order, Long bookId, int quantity, LocalDateTime shippingDate, PackagingInfo packagingInfo) {
         return new OrderItem(

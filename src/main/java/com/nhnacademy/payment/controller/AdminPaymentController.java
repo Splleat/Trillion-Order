@@ -42,8 +42,8 @@ public class AdminPaymentController {
     }
 
     //관리자 결제 내역 단건 조회
-    @GetMapping({"/{paymentId}"})
-    public ResponseEntity<?> getPayment(PaymentUser user, @PathVariable Long paymentId) {
+    @GetMapping({"/{payment-id}"})
+    public ResponseEntity<?> getPayment(PaymentUser user, @PathVariable("payment-id") Long paymentId) {
 
         validateAdminRole(user);
         Payment payment = paymentService.getPaymentById(paymentId);

@@ -66,9 +66,9 @@ public class PaymentController {
     }
 
     //사용자 결제 내역 단건 조회(회원) by orderNumber
-    @GetMapping("/{orderNumber}")
+    @GetMapping("/{order-number}")
     public ResponseEntity<?> getPayment(PaymentUser user,
-                                            @PathVariable String orderNumber){
+                                            @PathVariable("order-number") String orderNumber){
         Payment payment = paymentService.getMemberPaymentByOrderNumber(user,orderNumber);
         return ResponseEntity.ok(PaymentResponse.from(payment));
     }

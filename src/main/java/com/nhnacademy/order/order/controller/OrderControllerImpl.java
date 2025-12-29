@@ -83,8 +83,8 @@ public class OrderControllerImpl implements OrderController {
 
     // 주문 단건 조회 (회원)
     @Override
-    @GetMapping("/orders/{orderId}")
-    public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable Long orderId,
+    @GetMapping("/orders/{order-id}")
+    public ResponseEntity<OrderResponse> getOrderByCustomer(@PathVariable("order-id") Long orderId,
                                                             UserInfo userInfo) {
         OrderResponse response = orderService.findOrderByOrderId(userInfo, orderId);
 
@@ -102,8 +102,8 @@ public class OrderControllerImpl implements OrderController {
 
     // 주문 상품 상태 변경 (회원, 관리자)
     @Override
-    @PatchMapping("/orders/{orderId}/items/{orderItemId}")
-    public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable Long orderId, @PathVariable Long orderItemId,
+    @PatchMapping("/orders/{order-id}/items/{order-item-id}")
+    public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
                                                                         @RequestBody @Valid OrderItemStatusPatchRequest request,
                                                                         UserInfo userInfo) {
         orderService.patchOrderItemStatus(userInfo, orderId, orderItemId, request);
@@ -113,8 +113,8 @@ public class OrderControllerImpl implements OrderController {
 
     // 주문 상품 상태 변경 (비회원)
     @Override
-    @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
-    public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable Long orderId, @PathVariable Long orderItemId,
+    @PatchMapping("/orders/non-members/{order-id}/items/{order-item-id}")
+    public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
                                                                           @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request) {
         nonMemberOrderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
@@ -123,8 +123,8 @@ public class OrderControllerImpl implements OrderController {
 
     // 주문 취소 (회원)
     @Override
-    @DeleteMapping("/orders/{orderId}")
-    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long orderId, UserInfo userInfo) {
+    @DeleteMapping("/orders/{order-id}")
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable("order-id") Long orderId, UserInfo userInfo) {
         orderService.cancelOrder(userInfo, orderId);
 
         return ResponseEntity.noContent().build();
@@ -132,8 +132,8 @@ public class OrderControllerImpl implements OrderController {
 
     // 주문 취소 (비회원)
     @Override
-    @DeleteMapping("/orders/non-members/{orderId}")
-    public ResponseEntity<OrderResponse> cancelOrderForNonMember(@PathVariable Long orderId,
+    @DeleteMapping("/orders/non-members/{order-id}")
+    public ResponseEntity<OrderResponse> cancelOrderForNonMember(@PathVariable("order-id") Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
         nonMemberOrderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
 

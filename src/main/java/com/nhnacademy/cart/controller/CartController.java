@@ -47,10 +47,10 @@ public class CartController implements CartControllerDocs {
      * [수량 변경]
      * PUT /carts/{bookId}
      */
-    @PutMapping("/{bookId}")
+    @PutMapping("/{book-id}")
     public ResponseEntity<Void> updateCartItem(
             CartHolder holder,
-            @PathVariable Long bookId,
+            @PathVariable("book-id") Long bookId,
             @Valid @RequestBody CartUpdateRequestDto request
     ) {
         cartService.updateCartItem(holder, bookId, request.getCartQuantity());
@@ -61,8 +61,8 @@ public class CartController implements CartControllerDocs {
      * [상품 삭제]
      * DELETE /carts/{bookId}
      */
-    @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> removeCartItem(CartHolder holder, @PathVariable Long bookId) {
+    @DeleteMapping("/{book-id}")
+    public ResponseEntity<Void> removeCartItem(CartHolder holder, @PathVariable("book-id") Long bookId) {
         cartService.removeCartItem(holder, bookId);
         return ResponseEntity.noContent().build();
     }
