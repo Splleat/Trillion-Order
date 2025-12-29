@@ -47,8 +47,8 @@ public class PackagingControllerImpl implements PackagingController {
     }
 
     @Override
-    @PutMapping("/{packagingId}")
-    public ResponseEntity<Void> updatePackaging(@PathVariable Long packagingId,
+    @PutMapping("/{packaging-id}")
+    public ResponseEntity<Void> updatePackaging(@PathVariable("packaging-id") Long packagingId,
                                                 @RequestBody @Valid PackagingUpdateRequest request,
                                                 UserInfo userInfo) {
 
@@ -58,8 +58,8 @@ public class PackagingControllerImpl implements PackagingController {
     }
 
     @Override
-    @DeleteMapping("/{packagingId}")
-    public ResponseEntity<Void> removePackaging(@PathVariable Long packagingId,
+    @DeleteMapping("/{packaging-id}")
+    public ResponseEntity<Void> removePackaging(@PathVariable("packaging-id") Long packagingId,
                                                 UserInfo userInfo) {
 
         packagingService.deletePackaging(userInfo, packagingId);
