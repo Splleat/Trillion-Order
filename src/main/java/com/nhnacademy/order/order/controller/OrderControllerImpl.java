@@ -74,7 +74,7 @@ public class OrderControllerImpl implements OrderController {
 
         URI locationUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/{orderId}")
+                .path("/{order-id}")
                 .buildAndExpand(createdOrderResponse.orderId())
                 .toUri();
 

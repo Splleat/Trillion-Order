@@ -80,7 +80,7 @@ public class OrderCancelOrchestrator {
             // 4. 쿠폰 API에 사용한 쿠폰 반환 요청
             if (memberId != null && !usedCoupons.isEmpty()) {
                 usedCoupons.forEach(orderCoupon ->
-                    couponService.withdrawCoupon(saga.getSagaId(), memberId, orderCoupon.getCouponId())
+                    couponService.withdrawCoupon(orderCoupon.getCouponId(), memberId)
                 );
                 sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
             }
@@ -149,7 +149,7 @@ public class OrderCancelOrchestrator {
             // Step 3. 쿠폰 복구 재시도
             if (memberId != null && !usedCoupons.isEmpty() && currentStep.ordinal() < CancelSagaStep.COUPON_RESTORED.ordinal()) {
                 usedCoupons.forEach(orderCoupon ->
-                    couponService.withdrawCoupon(sagaId, memberId, orderCoupon.getCouponId())
+                    couponService.withdrawCoupon(orderCoupon.getCouponId(), memberId)
                 );
                 sagaUpdateService.updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
                 currentStep = CancelSagaStep.COUPON_RESTORED;

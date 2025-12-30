@@ -2,8 +2,8 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.client.book.dto.BookResponse;
 import com.nhnacademy.order.client.book.service.BookService;
-import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
+import com.nhnacademy.order.client.coupon.dto.DiscountBookResponse;
 import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.repository.DeliveryPolicyRepository;
@@ -23,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +31,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,8 +79,8 @@ class OrderFinalizerCreateServiceTest {
         BookResponse bookResponse2 = new BookResponse(102L, "테스트 책2", 20000, true, "url");
         when(bookService.getBookInfos(anyList())).thenReturn(Map.of(101L, bookResponse1, 102L, bookResponse2));
 
-        CouponCalculationResponse couponResponse = new CouponCalculationResponse(101L, 2000, List.of(new CouponCalculationResponse.ItemDiscount(101L, 2000)));
-        when(couponService.calculateDiscount(any(CouponCalculationRequest.class))).thenReturn(couponResponse);
+        CouponCalculationResponse couponResponse = new CouponCalculationResponse(101L, 2000, List.of(new DiscountBookResponse(101L, 2000L)));
+        when(couponService.calculateDiscount(anyLong(), any(), anyList(), anyList())).thenReturn(couponResponse);
 
         DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 20000); // 2만원 미만 배송비 3000원
         when(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).thenReturn(Optional.of(deliveryPolicy));

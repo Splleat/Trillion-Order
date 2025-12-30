@@ -1,6 +1,8 @@
 package com.nhnacademy.order.client.coupon.dto;
 
+import java.util.List;
+
 public record CouponApplyRequest(
-    Long memberId,
-    Long couponId
+    List<Long> bookIds,
+    List<Long> quantities
 ) {}
