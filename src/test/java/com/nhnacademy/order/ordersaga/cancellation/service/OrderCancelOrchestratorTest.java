@@ -116,7 +116,7 @@ class OrderCancelOrchestratorTest {
         verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
 
         // 쿠폰 반환 확인
-        verify(couponService).withdrawCoupon(sagaId, memberId, order.getOrderCoupons().iterator().next().getCouponId());
+        verify(couponService).withdrawCoupon(order.getOrderCoupons().iterator().next().getCouponId(), memberId);
         verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
 
         // 재고 증가 확인

@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,7 +103,7 @@ class OrderCreateOrchestratorTest {
         inOrder.verify(bookService).decreaseStocks(any(UUID.class), eq(quantityMap));
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLYING);
-        inOrder.verify(couponService).applyCoupon(any(UUID.class), eq(order.getMemberId()), eq(mockCouponId));
+        inOrder.verify(couponService).applyCoupon(eq(mockCouponId), eq(order.getMemberId()), anyList(), anyList());
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
         inOrder.verify(sagaUpdateService).updateCreateSagaStep(saga, CreateSagaStep.POINT_USING);
         inOrder.verify(memberService).decreasePoint(any(UUID.class), eq(order.getMemberId()), eq(order.getOrderId()), eq(pointUsage));
@@ -114,7 +115,7 @@ class OrderCreateOrchestratorTest {
         // 3. Verify compensation was NOT triggered
         verify(orderFinalizerCompensateService, never()).compensateOrder(any(), any());
         verify(bookService, never()).increaseStocks(any(UUID.class), any());
-        verify(couponService, never()).withdrawCoupon(any(UUID.class), anyLong(), anyLong());
+        verify(couponService, never()).withdrawCoupon(anyLong(), anyLong());
         verify(memberService, never()).increasePoint(any(UUID.class), anyLong(), anyLong(), anyInt());
     }
 }

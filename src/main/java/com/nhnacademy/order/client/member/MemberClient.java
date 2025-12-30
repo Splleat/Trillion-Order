@@ -3,14 +3,12 @@ package com.nhnacademy.order.client.member;
 import com.nhnacademy.order.client.member.dto.PointAccumulationRequest;
 import com.nhnacademy.order.client.member.dto.PointUsageRequest;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.UUID;
 
-@Profile("!local")
 @FeignClient(name = "member-service")
 public interface MemberClient {
     @PatchMapping("/members/points/use")

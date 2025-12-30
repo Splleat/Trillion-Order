@@ -57,12 +57,15 @@ public class OrderCreateOrchestrator {
             // 4. 사가 상태 업데이트 (재고 감소 성공)
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 
+            List<Long> bookIds = order.getOrderItems().stream().map(OrderItem::getBookId).toList();
+            List<Long> quantities = order.getOrderItems().stream().map(item -> (long) item.getQuantity()).toList();
+
             couponIds.forEach(couponId -> {
                 // 5. 쿠폰 사용 중
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLYING);
 
                 // 6. 쿠폰 ID가 존재하면 쿠폰 API에 쿠폰 적용 요청
-                couponService.applyCoupon(saga.getSagaId(), memberId, couponId);
+                couponService.applyCoupon(couponId, memberId, bookIds, quantities);
 
                 // 7. 사가 상태 업데이트 (쿠폰 적용)
                 sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.COUPON_APPLIED);
@@ -128,7 +131,7 @@ public class OrderCreateOrchestrator {
         }
 
         if (currentStep == CreateSagaStep.COUPON_APPLYING || currentStep == CreateSagaStep.COUPON_APPLIED) {
-            couponIds.forEach(couponId -> couponService.withdrawCoupon(saga.getSagaId(), memberId, couponId));
+            couponIds.forEach(couponId -> couponService.withdrawCoupon(couponId, memberId));
 
             sagaUpdateService.updateCreateSagaStep(saga, CreateSagaStep.STOCK_DECREASED);
 

@@ -2,8 +2,8 @@ package com.nhnacademy.order.order.service;
 
 import com.nhnacademy.order.client.book.dto.BookResponse;
 import com.nhnacademy.order.client.book.service.BookService;
-import com.nhnacademy.order.client.coupon.dto.CouponCalculationRequest;
 import com.nhnacademy.order.client.coupon.dto.CouponCalculationResponse;
+import com.nhnacademy.order.client.coupon.dto.DiscountBookResponse;
 import com.nhnacademy.order.client.coupon.service.CouponService;
 import com.nhnacademy.order.delivery.domain.DeliveryPolicy;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
@@ -64,23 +64,20 @@ public class OrderFinalizerCreateService {
         if (memberId != null) {
             orderCoupons.forEach(orderCoupon -> {
                 // 3-1. 쿠폰 할인 계산 요청
-                List<CouponCalculationRequest.CouponCalculationOrderItem> couponItems = orderItems.stream()
-                        .map(item -> new CouponCalculationRequest.CouponCalculationOrderItem(
-                                item.getBookId(),
-                                item.getQuantity()))
-                        .toList();
-                CouponCalculationRequest couponRequest = new CouponCalculationRequest(memberId, orderCoupon.getCouponId(), couponItems);
-                // 3-2. 쿠폰 할인 계산 응답
-                CouponCalculationResponse couponResponse = couponService.calculateDiscount(couponRequest);
+                List<Long> bookIdsForCoupon = orderItems.stream().map(OrderItem::getBookId).toList();
+                List<Long> quantitiesForCoupon = orderItems.stream().map(item -> (long) item.getQuantity()).toList();
 
-                int couponDiscount = couponResponse.totalDiscountAmount();
+                // 3-2. 쿠폰 할인 계산 응답
+                CouponCalculationResponse couponResponse = couponService.calculateDiscount(orderCoupon.getCouponId(), memberId, bookIdsForCoupon, quantitiesForCoupon);
+
+                int couponDiscount = couponResponse.totalDiscountPrice();
 
                 // 3-3. OrderCoupon 완성
                 orderCoupon.completeOrderCoupon(couponDiscount, couponResponse.targetId());
 
                 // 3-4. 각 OrderItem에 쿠폰 할인 금액 반영
-                Map<Long, Integer> itemDiscountMap = couponResponse.itemDiscounts().stream()
-                        .collect(Collectors.toMap(CouponCalculationResponse.ItemDiscount::bookId, CouponCalculationResponse.ItemDiscount::discountAmount));
+                Map<Long, Integer> itemDiscountMap = couponResponse.discountBooks().stream()
+                        .collect(Collectors.toMap(DiscountBookResponse::bookId, response -> response.discountValue().intValue()));
                 orderItems.forEach(item -> {
                     int discount = itemDiscountMap.getOrDefault(item.getBookId(), 0);
                     item.setCouponDiscountAmount(discount);
