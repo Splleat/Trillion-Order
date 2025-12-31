@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -49,7 +50,7 @@ public class EmailService {
             javaMailSender.send(message);
             log.info("주문 번호 이메일 발송 완료: {}", toEmail);
 
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             log.error("이메일 발송 중 오류 발생: {}", toEmail, e);
         }
     }

@@ -1,6 +1,7 @@
 package com.nhnacademy.order.packaging.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
@@ -8,8 +9,7 @@ import com.nhnacademy.order.packaging.service.PackagingService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,8 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(properties = "toss.secret-key=test-key")
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = PackagingControllerImpl.class, properties = "toss.secret-key=test-key")
 class PackagingControllerImplTest {
 
     @Autowired
@@ -126,5 +125,40 @@ class PackagingControllerImplTest {
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN"))
                 .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("포장지 생성 성공")
+    @Test
+    void createPackaging_Success() throws Exception {
+        // given
+        PackagingCreateRequest request = new PackagingCreateRequest("고급포장", 2000);
+        PackagingResponse response = new PackagingResponse(1L, "고급포장", 2000);
+
+        given(packagingService.createPackaging(any(), any(PackagingCreateRequest.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/orders/packaging")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.packagingType").value("고급포장"))
+                .andExpect(jsonPath("$.packagingPrice").value(2000));
+    }
+
+    @DisplayName("포장지 생성 실패 - 유효하지 않은 입력")
+    @Test
+    void createPackaging_Fail_InvalidInput() throws Exception {
+        // given
+        PackagingCreateRequest request = new PackagingCreateRequest("", -100);
+
+        // when & then
+        mockMvc.perform(post("/orders/packaging")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest()); // ArgumentResolver에서 바인딩 에러 등으로 처리될 것으로 예상
     }
 }
