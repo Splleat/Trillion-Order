@@ -5,7 +5,7 @@ import com.nhnacademy.cart.common.exception.CartCapacityExceededException;
 import com.nhnacademy.cart.common.exception.CartNotFoundException;
 import com.nhnacademy.cart.common.exception.InvalidCartQuantityException;
 import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.repository.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

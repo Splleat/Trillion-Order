@@ -2,7 +2,7 @@ package com.nhnacademy.cart.scheduler;
 
 import com.nhnacademy.cart.domain.EntityCart;
 import com.nhnacademy.cart.domain.RedisCart;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.repository.CartJpaRepository;
 import com.nhnacademy.cart.repository.CartRedisRepository;
 import lombok.RequiredArgsConstructor;

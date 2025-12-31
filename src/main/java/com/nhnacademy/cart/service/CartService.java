@@ -1,7 +1,7 @@
 package com.nhnacademy.cart.service;
 
 import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.dto.CartSummaryDto;
 
 import java.util.List;

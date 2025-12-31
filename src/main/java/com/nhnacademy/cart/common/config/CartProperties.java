@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "cart")
 public class CartProperties {
+    // redis 키 prefix명... 기본값은 cart (운영용)
+    private String keyPrefix = "cart";
+
     // 장바구니에 담을 수 있는 '상품 종류' 최대 개수
     private int maxItems = 100;
 
