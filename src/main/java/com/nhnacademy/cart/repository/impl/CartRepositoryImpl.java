@@ -3,7 +3,7 @@ package com.nhnacademy.cart.repository.impl;
 import com.nhnacademy.cart.domain.EntityCart;
 import com.nhnacademy.cart.domain.RedisCart;
 import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.dto.CartSummaryDto;
 import com.nhnacademy.cart.repository.CartJpaRepository;
 import com.nhnacademy.cart.repository.CartRedisRepository;

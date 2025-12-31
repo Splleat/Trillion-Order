@@ -90,6 +90,18 @@ public class CartExceptionHandler {
         return new ResponseEntity<>(cartErrorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    // 잘못된 URL 요청(404)
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<CartErrorResponse> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException e, HttpServletRequest request) {
+        CartErrorResponse response = new CartErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                "해당 리소스를 찾을 수 없습니다: " + e.getResourcePath(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
     // 500 Internal Server Error (그 외 잡히지 않은 모든 에러)
     // basePackages 설정 덕분에 'Cart 기능 수행 중' 발생한 알 수 없는 에러만 여기서 잡습니다.
     @ExceptionHandler(Exception.class)

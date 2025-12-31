@@ -1,6 +1,7 @@
 package com.nhnacademy.cart.controller;
 
 import com.nhnacademy.cart.common.annotation.GuestOnly;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.dto.*;
 import com.nhnacademy.cart.service.CartService;
 import jakarta.validation.Valid;
@@ -45,7 +46,7 @@ public class CartController implements CartControllerDocs {
 
     /**
      * [수량 변경]
-     * PUT /carts/{bookId}
+     * PUT /carts/{book-id}
      */
     @PutMapping("/{book-id}")
     public ResponseEntity<Void> updateCartItem(
@@ -59,10 +60,10 @@ public class CartController implements CartControllerDocs {
 
     /**
      * [상품 삭제]
-     * DELETE /carts/{bookId}
+     * DELETE /carts/{book-id}
      */
     @DeleteMapping("/{book-id}")
-    public ResponseEntity<Void> removeCartItem(CartHolder holder, @PathVariable("book-id") Long bookId) {
+    public ResponseEntity<Void> removeCartItem(CartHolder holder, @PathVariable("book-id")  Long bookId) {
         cartService.removeCartItem(holder, bookId);
         return ResponseEntity.noContent().build();
     }

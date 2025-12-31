@@ -5,7 +5,7 @@ import com.nhnacademy.cart.common.exception.CartCapacityExceededException;
 import com.nhnacademy.cart.common.exception.CartNotFoundException;
 import com.nhnacademy.cart.common.exception.InvalidCartQuantityException;
 import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.dto.CartSummaryDto;
 import com.nhnacademy.cart.repository.CartRepository;
 import com.nhnacademy.cart.service.CartService;
@@ -111,7 +111,7 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public void mergeCart(CartHolder memberHolder, CartHolder guestHolder) {
-        // 방어 로직
+      // 방어 로직
         if (!memberHolder.isMember() || guestHolder.isMember()) {
             throw new IllegalArgumentException("Merge 요청 파라미터가 뒤바뀌었습니다. (Member <-> Guest)");
         }

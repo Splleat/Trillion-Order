@@ -1,7 +1,7 @@
 package com.nhnacademy.cart.repository;
 
 import com.nhnacademy.cart.domain.RedisCart;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -72,4 +72,6 @@ public interface CartRedisRepository {
      * @return 삭제된 개수
      */
     long removeOldEmptyMarks(double maxScore);
+
+    void markAsEmpty(CartHolder memberHolder);
 }
