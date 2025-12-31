@@ -1,425 +1,324 @@
 package com.nhnacademy.cart.repository.impl;
 
+import com.nhnacademy.cart.common.config.CartProperties;
 import com.nhnacademy.cart.domain.EntityCart;
 import com.nhnacademy.cart.domain.RedisCart;
 import com.nhnacademy.cart.dto.CartDto;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.dto.CartSummaryDto;
 import com.nhnacademy.cart.repository.CartJpaRepository;
 import com.nhnacademy.cart.repository.CartRedisRepository;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@Transactional
+@EnableConfigurationProperties(CartProperties.class)
+@TestPropertySource(properties = {
+        "cart.key-prefix=test:cart",
+        "cart.member-ttl-minutes=5",
+        "cart.guest-ttl-days=1"
+})
 class CartRepositoryImplTest {
 
-    @InjectMocks
+    @Autowired
     private CartRepositoryImpl cartRepository;
 
-    @Mock
-    private CartJpaRepository jpaRepo;
+    @Autowired
+    private CartJpaRepository jpaRepository;
 
-    @Mock
-    private CartRedisRepository redisRepo;
+    @Autowired
+    private CartRedisRepository redisRepository;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private EntityManager em; // JPA 동작 검증용
 
     private CartHolder memberHolder;
     private CartHolder guestHolder;
-    private CartDto cartDto;
-    private LocalDateTime now;
+    private CartDto cartDto1;
+    private CartDto cartDto2;
 
     @BeforeEach
     void setUp() {
-        memberHolder = CartHolder.member(1L);
-        guestHolder = CartHolder.guest("guest-123");
-        now = LocalDateTime.now();
-        cartDto = CartDto.builder()
-                .bookId(100L)
-                .cartQuantity(2)
-                .createdAt(now)
-                .build();
+        memberHolder = CartHolder.member(100L);
+        guestHolder = CartHolder.guest("guest-abc-123");
+        cartDto1 = new CartDto(1L, 2, LocalDateTime.now());
+        cartDto2 = new CartDto(2L, 5, LocalDateTime.now());
+        cleanUpRedis();
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanUpRedis();
+    }
+
+    private void cleanUpRedis() {
+        Set<String> keys = redisTemplate.keys("test:cart:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
     // ======================================================================
-    //  WRITE Operations Tests
+    //  [Write] Validation & Branch Tests
     // ======================================================================
 
     @Test
-    @DisplayName("save: 정상 저장 (Redis put 호출 확인)")
-    void save_Success() {
-        // when
-        cartRepository.save(memberHolder, cartDto);
-
-        // then
-        verify(redisRepo).put(eq(memberHolder), any(RedisCart.class));
-    }
-
-    @Test
-    @DisplayName("save: DTO가 null이면 아무것도 하지 않음")
+    @DisplayName("Write: save - dto가 null이면 아무 동작 안 함")
     void save_NullDto() {
-        // when
         cartRepository.save(memberHolder, null);
-
-        // then
-        verify(redisRepo, never()).put(any(), any());
+        assertThat(redisRepository.count(memberHolder)).isZero();
     }
 
     @Test
-    @DisplayName("saveAll: 정상 일괄 저장 (Redis putAll 호출 확인)")
-    void saveAll_Success() {
-        // given
-        List<CartDto> dtos = List.of(cartDto);
-
-        // when
-        cartRepository.saveAll(memberHolder, dtos);
-
-        // then
-        verify(redisRepo).putAll(eq(memberHolder), anyList());
-    }
-
-    @Test
-    @DisplayName("saveAll: 리스트가 비어있으면 무시")
-    void saveAll_Empty() {
-        // when
+    @DisplayName("Write: saveAll - 빈 리스트면 아무 동작 안 함")
+    void saveAll_EmptyList() {
         cartRepository.saveAll(memberHolder, Collections.emptyList());
-
-        // then
-        verify(redisRepo, never()).putAll(any(), any());
+        assertThat(redisRepository.count(memberHolder)).isZero();
     }
 
     @Test
-    @DisplayName("delete: Redis delete 호출 확인")
-    void delete() {
-        // when
-        cartRepository.delete(memberHolder, 100L);
+    @DisplayName("Write: 정상 저장 (Redis O, DB X)")
+    void save_Success() {
+        cartRepository.save(memberHolder, cartDto1);
 
-        // then
-        verify(redisRepo).delete(memberHolder, 100L);
-    }
-
-    @Test
-    @DisplayName("deleteAll: Redis deleteAll 호출 확인")
-    void deleteAll() {
-        // when
-        cartRepository.deleteAll(memberHolder);
-
-        // then
-        verify(redisRepo).deleteAll(memberHolder);
+        assertThat(redisRepository.existsByBookId(memberHolder, 1L)).isTrue();
+        assertThat(jpaRepository.count()).isZero();
     }
 
     // ======================================================================
-    //  READ Operations: tryWarmUpAndGet Logic & findAll
+    //  [Read] Cache Miss & WarmUp Logic
     // ======================================================================
 
     @Test
-    @DisplayName("findAll(WarmUp Skip): 비회원은 워밍업 안 함 -> Redis 조회")
-    void findAll_Guest_SkipsWarmUp() {
-        // given
-        RedisCart redisCart = RedisCart.create(100L, 1, now);
-        given(redisRepo.findAll(guestHolder)).willReturn(List.of(redisCart));
-
-        // when
-        List<CartDto> result = cartRepository.findAll(guestHolder);
-
-        // then
-        assertThat(result).hasSize(1);
-        verify(jpaRepo, never()).findAllByMemberId(any()); // DB 조회 없음
-        verify(redisRepo).findAll(guestHolder);
-    }
-
-    @Test
-    @DisplayName("findAll(WarmUp Skip): 이미 Redis 키가 존재함 -> Redis 조회")
-    void findAll_HasKey_SkipsWarmUp() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(true);
-        RedisCart redisCart = RedisCart.create(100L, 1, now);
-        given(redisRepo.findAll(memberHolder)).willReturn(List.of(redisCart));
+    @DisplayName("Read: Cache Miss -> DB 조회 -> Redis WarmUp -> 데이터 반환")
+    void findAll_WarmUp() {
+        // given: DB에만 데이터 존재
+        saveToDb(memberHolder, cartDto1);
 
         // when
         List<CartDto> result = cartRepository.findAll(memberHolder);
 
         // then
         assertThat(result).hasSize(1);
-        verify(jpaRepo, never()).findAllByMemberId(any());
-        verify(redisRepo).findAll(memberHolder);
+        assertThat(redisRepository.hasKey(memberHolder)).isTrue(); // Redis에 생김
     }
 
     @Test
-    @DisplayName("findAll(WarmUp Skip): 의도적 삭제(Empty Mark) 상태 -> Redis 조회(빈 리스트 예상)")
-    void findAll_MarkedEmpty_SkipsWarmUp() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(memberHolder.getMemberId())).willReturn(true);
-        given(redisRepo.findAll(memberHolder)).willReturn(Collections.emptyList());
+    @DisplayName("Read: DB에도 데이터가 없으면 빈 리스트 반환 & Empty Marking")
+    void findAll_NoData() {
+        // given: DB, Redis 모두 비어있음
 
         // when
         List<CartDto> result = cartRepository.findAll(memberHolder);
 
         // then
         assertThat(result).isEmpty();
-        verify(jpaRepo, never()).findAllByMemberId(any());
+        assertThat(redisRepository.isMarkedAsEmpty(memberHolder.getMemberId())).isTrue();
     }
 
     @Test
-    @DisplayName("findAll(WarmUp Run): DB 데이터 존재 -> Redis Restore 후 즉시 반환 (Double Trip 방지)")
-    void findAll_WarmUp_ReturnsDbData() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(memberHolder.getMemberId())).willReturn(false);
-
-        EntityCart entityCart = EntityCart.builder().bookId(100L).cartQuantity(2).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(memberHolder.getMemberId())).willReturn(List.of(entityCart));
+    @DisplayName("Read: Cache Hit (Redis에 있으면 DB 조회 안 함)")
+    void findAll_CacheHit() {
+        // given: Redis에만 데이터 존재
+        redisRepository.put(memberHolder, RedisCart.create(1L, 10, LocalDateTime.now()));
 
         // when
         List<CartDto> result = cartRepository.findAll(memberHolder);
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getBookId()).isEqualTo(100L);
-        verify(redisRepo).restore(eq(memberHolder), anyList());
-        verify(redisRepo, never()).findAll(memberHolder); // Redis 재조회 없어야 함
-    }
-
-    @Test
-    @DisplayName("findAll(WarmUp Run): DB도 비어있음 -> Redis Restore(Empty) 후 빈 리스트 반환")
-    void findAll_WarmUp_DbEmpty() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(Collections.emptyList());
-
-        // when
-        List<CartDto> result = cartRepository.findAll(memberHolder);
-
-        // then
-        assertThat(result).isEmpty();
-        verify(redisRepo).restore(eq(memberHolder), eq(Collections.emptyList()));
-        verify(redisRepo, never()).findAll(memberHolder);
+        assertThat(result.get(0).getCartQuantity()).isEqualTo(10);
+        // DB는 비어있음 확인
+        assertThat(jpaRepository.count()).isZero();
     }
 
     // ======================================================================
-    //  Other READ Operations Tests
+    //  [Read] findByBookId, existsByBookId Branch Tests
     // ======================================================================
 
     @Test
-    @DisplayName("findByBookId: 워밍업 된 데이터(메모리)에서 찾기")
-    void findByBookId_Optimized() {
-        // given: DB에 데이터 2개 존재 가정
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
+    @DisplayName("Read: findByBookId - 워밍 후 메모리에서 찾음")
+    void findByBookId_Warmed() {
+        saveToDb(memberHolder, cartDto1);
 
-        EntityCart target = EntityCart.builder().bookId(100L).cartQuantity(1).createdAt(now).build();
-        EntityCart other = EntityCart.builder().bookId(200L).cartQuantity(1).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(List.of(target, other));
+        Optional<CartDto> result = cartRepository.findByBookId(memberHolder, 1L);
 
-        // when
-        Optional<CartDto> result = cartRepository.findByBookId(memberHolder, 100L);
-
-        // then
         assertThat(result).isPresent();
-        assertThat(result.get().getBookId()).isEqualTo(100L);
-        verify(redisRepo, never()).findByBookId(any(), any());
     }
 
     @Test
-    @DisplayName("findByBookId: 기존 캐시(Redis) 이용")
+    @DisplayName("Read: findByBookId - 이미 캐시가 있으면 Redis에서 찾음")
     void findByBookId_Cached() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(true);
-        RedisCart redisCart = RedisCart.create(100L, 1, now);
-        given(redisRepo.findByBookId(memberHolder, 100L)).willReturn(Optional.of(redisCart));
+        redisRepository.put(memberHolder, RedisCart.create(1L, 5, LocalDateTime.now()));
 
-        // when
-        Optional<CartDto> result = cartRepository.findByBookId(memberHolder, 100L);
+        Optional<CartDto> result = cartRepository.findByBookId(memberHolder, 1L);
 
-        // then
         assertThat(result).isPresent();
-        verify(redisRepo).findByBookId(memberHolder, 100L);
+        assertThat(result.get().getCartQuantity()).isEqualTo(5);
     }
 
     @Test
-    @DisplayName("existsByBookId: 워밍업 된 데이터(메모리)에서 확인")
-    void existsByBookId_Optimized() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-        EntityCart entity = EntityCart.builder().bookId(100L).cartQuantity(1).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(List.of(entity));
+    @DisplayName("Read: existsByBookId - 워밍 후 메모리에서 확인")
+    void existsByBookId_Warmed() {
+        saveToDb(memberHolder, cartDto1);
 
-        // when
-        boolean exists = cartRepository.existsByBookId(memberHolder, 100L);
+        boolean exists = cartRepository.existsByBookId(memberHolder, 1L);
 
-        // then
         assertThat(exists).isTrue();
-        verify(redisRepo, never()).existsByBookId(any(), any());
     }
 
     @Test
-    @DisplayName("existsByBookId: 캐시도 없고 DB 워밍업도 안 된 상태 (return false)")
-    void existsByBookId_Nothing() {
-        // given: Empty Marked
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(true);
+    @DisplayName("Read: existsByBookId - 캐시가 있지만 해당 아이템은 없는 경우")
+    void existsByBookId_Cached_But_Not_Found() {
+        redisRepository.put(memberHolder, RedisCart.create(2L, 5, LocalDateTime.now())); // 2번만 있음
 
-        // when
-        boolean exists = cartRepository.existsByBookId(memberHolder, 100L);
+        boolean exists = cartRepository.existsByBookId(memberHolder, 1L); // 1번 찾음
 
-        // then
         assertThat(exists).isFalse();
     }
 
     @Test
-    @DisplayName("count: 워밍업 된 데이터 사이즈 반환")
-    void count_Optimized() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-        EntityCart entity = EntityCart.builder().bookId(100L).cartQuantity(1).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(List.of(entity));
+    @DisplayName("Read: existsByBookId - 캐시도 없고 DB도 없음")
+    void existsByBookId_NoData() {
+        boolean exists = cartRepository.existsByBookId(memberHolder, 1L);
+        assertThat(exists).isFalse();
+    }
 
-        // when
+    // ======================================================================
+    //  [Count & Summary] Branch Tests
+    // ======================================================================
+
+    @Test
+    @DisplayName("Count: 워밍 후 메모리 리스트 사이즈 반환")
+    void count_Warmed() {
+        saveToDb(memberHolder, cartDto1);
+        saveToDb(memberHolder, cartDto2);
+
         long count = cartRepository.countDistinctCartItem(memberHolder);
 
-        // then
-        assertThat(count).isEqualTo(1);
-        verify(redisRepo, never()).count(any());
+        assertThat(count).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("count: 기존 캐시 이용")
+    @DisplayName("Count: 캐시가 있으면 Redis count 반환")
     void count_Cached() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(true);
-        given(redisRepo.count(memberHolder)).willReturn(5L);
+        redisRepository.put(memberHolder, RedisCart.create(1L, 1, LocalDateTime.now()));
 
-        // when
         long count = cartRepository.countDistinctCartItem(memberHolder);
 
-        // then
-        assertThat(count).isEqualTo(5);
+        assertThat(count).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("count: 캐시 없음 & 워밍업 불가 -> 0")
+    @DisplayName("Count: 데이터 없으면 0")
     void count_Zero() {
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(true);
-
         long count = cartRepository.countDistinctCartItem(memberHolder);
+        assertThat(count).isZero();
+    }
 
-        assertThat(count).isEqualTo(0);
+    @Test
+    @DisplayName("Summary: 워밍 후 요약 정보 반환")
+    void summary_Warmed() {
+        saveToDb(memberHolder, cartDto1); // qty 2
+        saveToDb(memberHolder, cartDto2); // qty 5
+
+        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
+
+        assertThat(summary.getLineCount()).isEqualTo(2); // 종류 2개
+        assertThat(summary.getTotalQuantity()).isEqualTo(7); // 합계 7
+    }
+
+    @Test
+    @DisplayName("Summary: 캐시가 있으면 Redis 기반 요약")
+    void summary_Cached() {
+        redisRepository.put(memberHolder, RedisCart.create(1L, 10, LocalDateTime.now()));
+
+        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
+
+        assertThat(summary.getLineCount()).isEqualTo(1);
+        assertThat(summary.getTotalQuantity()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("Summary: 데이터 없으면 (0, 0)")
+    void summary_Empty() {
+        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
+
+        assertThat(summary.getLineCount()).isZero();
+        assertThat(summary.getTotalQuantity()).isZero();
     }
 
     // ======================================================================
-    //  getSummary Tests (NEW)
+    //  [Logic] Special Cases (Empty Marking, Guest)
     // ======================================================================
 
     @Test
-    @DisplayName("getSummary: 워밍업 된 데이터로 요약정보 계산 (Optimized)")
-    void getSummary_Optimized() {
-        // given: DB에 2권짜리, 3권짜리 책이 있음
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-
-        EntityCart item1 = EntityCart.builder().bookId(1L).cartQuantity(2).createdAt(now).build();
-        EntityCart item2 = EntityCart.builder().bookId(2L).cartQuantity(3).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(List.of(item1, item2));
+    @DisplayName("Logic: Empty 마킹된 유저는 DB에 데이터가 있어도 조회 안 함 (Skip DB)")
+    void skipDbIfMarkedEmpty() {
+        // given: DB에는 데이터가 있지만, Redis에는 Empty Mark가 있음
+        saveToDb(memberHolder, cartDto1);
+        redisRepository.markAsEmpty(memberHolder);
 
         // when
-        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
+        List<CartDto> result = cartRepository.findAll(memberHolder);
 
-        // then
-        // Line Count: 2개 (item1, item2)
-        // Total Quantity: 5개 (2 + 3)
-        assertThat(summary).isNotNull();
-        assertThat(summary.getLineCount()).isEqualTo(2);
-        assertThat(summary.getTotalQuantity()).isEqualTo(5);
-        verify(redisRepo, never()).findAll(any()); // Redis 조회 안 함
+        // then: DB 조회 없이 빈 리스트 반환
+        assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("getSummary: 기존 캐시 데이터로 요약정보 계산 (Cached)")
-    void getSummary_Cached() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(true); // 워밍업 스킵
-
-        RedisCart redisItem1 = RedisCart.create(1L, 2, now);
-        RedisCart redisItem2 = RedisCart.create(2L, 5, now);
-        given(redisRepo.findAll(memberHolder)).willReturn(List.of(redisItem1, redisItem2));
-
-        // when
-        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
-
-        // then
-        assertThat(summary.getLineCount()).isEqualTo(2);
-        assertThat(summary.getTotalQuantity()).isEqualTo(7);
+    @DisplayName("Safety: 비회원은 워밍업 시도 안 함")
+    void guest_NoWarmUp() {
+        // 비회원은 DB 조회를 안 하므로 항상 빈 리스트 (Redis에 없으면)
+        List<CartDto> result = cartRepository.findAll(guestHolder);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("getSummary: 캐시도 없고 데이터도 없음 (Zero)")
-    void getSummary_Nothing() {
-        // given: Empty Marked -> tryWarmUp returns null
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(true);
-        // redisRepo.hasKey()가 위에서 false였으므로, 아래 if문도 통과 못함
+    @DisplayName("WarmUp: warmUp 메서드 직접 호출 테스트")
+    void warmUp_DirectCall() {
+        saveToDb(memberHolder, cartDto1);
 
-        // when
-        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
-
-        // then
-        assertThat(summary.getLineCount()).isEqualTo(0);
-        assertThat(summary.getTotalQuantity()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("getSummary: (Edge Case) 워밍업 했으나 DB가 비어있는 경우")
-    void getSummary_Optimized_EmptyDB() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(Collections.emptyList());
-
-        // when
-        CartSummaryDto summary = cartRepository.getSummary(memberHolder);
-
-        // then: createSummaryFromList 내부 로직 검증
-        assertThat(summary.getLineCount()).isEqualTo(0);
-        assertThat(summary.getTotalQuantity()).isEqualTo(0);
-    }
-
-    // ======================================================================
-    //  warmUp Public Method Test
-    // ======================================================================
-
-    @Test
-    @DisplayName("warmUp: public 메소드 호출 확인")
-    void warmUp_PublicMethod() {
-        // given
-        given(redisRepo.hasKey(memberHolder)).willReturn(false);
-        given(redisRepo.isMarkedAsEmpty(1L)).willReturn(false);
-        EntityCart entity = EntityCart.builder().bookId(100L).cartQuantity(1).createdAt(now).build();
-        given(jpaRepo.findAllByMemberId(1L)).willReturn(List.of(entity));
-
-        // when
         cartRepository.warmUp(memberHolder);
 
-        // then
-        verify(jpaRepo).findAllByMemberId(1L);
-        verify(redisRepo).restore(eq(memberHolder), anyList());
+        assertThat(redisRepository.hasKey(memberHolder)).isTrue();
+    }
+
+    // ======================================================================
+    //  Helper
+    // ======================================================================
+    private void saveToDb(CartHolder holder, CartDto dto) {
+        EntityCart entity = EntityCart.builder()
+                .memberId(holder.getMemberId())
+                .bookId(dto.getBookId())
+                .cartQuantity(dto.getCartQuantity())
+                .createdAt(dto.getCreatedAt())
+                .build();
+        jpaRepository.save(entity);
+
+        // 영속성 컨텍스트 초기화 (DB 조회를 강제하기 위함)
+        em.flush();
+        em.clear();
     }
 }

@@ -2,8 +2,9 @@ package com.nhnacademy.cart.repository.impl;
 
 import com.nhnacademy.cart.common.config.CartProperties;
 import com.nhnacademy.cart.domain.RedisCart;
-import com.nhnacademy.cart.dto.CartHolder;
+import com.nhnacademy.cart.common.resolver.CartHolder;
 import com.nhnacademy.cart.repository.CartRedisRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,20 +23,31 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     private final CartProperties cartProperties;
 
     // 변경 감지를 위한 세트
-    private static final String DIRTY_MEMBERS_KEY = "cart:dirty:members";
+    private String dirtyMembersKey;
 
     // 의도적으로 비웠는지, 기타 사유로 비워졌는지 확인하기 위한 세트
-    private static final String EMPTY_MEMBERS_KEY = "cart:empty:members";
+    private String emptyMembersKey;
 
     // ========================================================
     //  키 생성과 TTL 지정을 위한 헬퍼 메소드
     // ========================================================
 
-    private String generateKey(CartHolder holder) {
+    @PostConstruct // 빈 생성 후 실행
+    public void init() {
+        String prefix = cartProperties.getKeyPrefix();
+        this.dirtyMembersKey = prefix + ":dirty:members";
+        this.emptyMembersKey = prefix + ":empty:members";
+    }
+
+    private String validateAndGenerateKey(CartHolder holder) {
+        if(holder == null)
+            throw new IllegalArgumentException("CartHolder는 null 일 수 없습니다.");
+
+        String prefix = cartProperties.getKeyPrefix();
         if (holder.isMember()) {
-            return "cart:member:" + holder.getMemberId().toString();
+            return prefix + ":member:" + holder.getMemberId();
         } else {
-            return "cart:guest:" + holder.getGuestId();
+            return prefix + ":guest:" + holder.getGuestId();
         }
     }
 
@@ -54,9 +66,9 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     /**
      * Dirty Marking: 회원의 장바구니에 변경이 생겼음을 기록
      */
-    private void markAsDirty(CartHolder holder) {
+    public void markAsDirty(CartHolder holder) {
         if (holder.isMember()) {
-            redisTemplate.opsForSet().add(DIRTY_MEMBERS_KEY, holder.getMemberId().toString());
+            redisTemplate.opsForSet().add(dirtyMembersKey, holder.getMemberId().toString());
         }
     }
 
@@ -65,10 +77,10 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      * 현재 시간도 저장하여, 나중에 오래된 마킹을 지울 수 있게 함.
      */
 
-    private void markAsEmpty(CartHolder holder) {
+    public void markAsEmpty(CartHolder holder) {
         if (holder.isMember()) {
             redisTemplate.opsForZSet().add(
-                    EMPTY_MEMBERS_KEY,
+                    emptyMembersKey,
                     holder.getMemberId().toString(),
                     System.currentTimeMillis() // Score = 현재 시간
             );
@@ -84,7 +96,7 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     private void removeFromDirtySet(CartHolder holder) {
         if (holder.isMember()) {
-            redisTemplate.opsForSet().remove(DIRTY_MEMBERS_KEY, holder.getMemberId().toString());
+            redisTemplate.opsForSet().remove(dirtyMembersKey, holder.getMemberId().toString());
         }
     }
 
@@ -93,7 +105,7 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     private void removeFromEmptySet(CartHolder holder) {
         if (holder.isMember()) {
-            redisTemplate.opsForZSet().remove(EMPTY_MEMBERS_KEY, holder.getMemberId().toString());}
+            redisTemplate.opsForZSet().remove(emptyMembersKey, holder.getMemberId().toString());}
     }
 
     // ========================================================
@@ -102,11 +114,12 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override//ok
     public void put(CartHolder holder, RedisCart cart) {
-        // 데이터 유효성 체크
+        String key = validateAndGenerateKey(holder);
+
         if (cart == null) {
             return;
         }
-        String key = generateKey(holder);
+
         long ttl = getTtlInMinutes(holder);
 
         redisTemplate.opsForHash().put(key, cart.getBookId().toString(), cart);
@@ -120,12 +133,12 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override//ok
     public void putAll(CartHolder holder, List<RedisCart> carts) {
-        // 데이터 유효성 체크
+        String key = validateAndGenerateKey(holder);
+
         if (carts == null || carts.isEmpty()) {
             return;
         }
 
-        String key = generateKey(holder);
         long ttl = getTtlInMinutes(holder);
 
         Map<String, RedisCart> map = carts.stream()
@@ -148,6 +161,8 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     @Override
     public void restore(CartHolder holder, List<RedisCart> carts) {
+        String key = validateAndGenerateKey(holder);
+
         // [Critical Check] 현재 의도적 삭제 상태인지 확인
         if (holder.isMember() && isMarkedAsEmpty(holder.getMemberId())) {
             return;
@@ -162,7 +177,6 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
             return;
         }
 
-        String key = generateKey(holder);
         long ttl = getTtlInMinutes(holder);
 
         Map<String, RedisCart> map = carts.stream()
@@ -180,7 +194,12 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override
     public void delete(CartHolder holder, Long bookId) {
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
+
+        if(bookId == null)
+            throw new IllegalArgumentException("bookId는 null 일 수 없습니다.");
+
+
 
         // Redis에서 개별 항목 삭제
         redisTemplate.opsForHash().delete(key, bookId.toString());
@@ -194,7 +213,7 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     @Override
     public void deleteAll(CartHolder holder) {
         // Redis에서 전체 항목 삭제
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
         redisTemplate.delete(key);
 
         // 변경사항 기록
@@ -208,7 +227,10 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override
     public Optional<RedisCart> findByBookId(CartHolder holder, Long bookId) {
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
+        if(bookId == null)
+            throw new IllegalArgumentException("bookId는 null 일 수 없습니다.");
+
         Object value = redisTemplate.opsForHash().get(key, bookId.toString());
 
         return Optional.ofNullable((RedisCart) value);
@@ -216,7 +238,7 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override
     public List<RedisCart> findAll(CartHolder holder) {
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
 
         return redisTemplate.opsForHash().values(key).stream()
                 .map(obj -> (RedisCart) obj)
@@ -225,20 +247,22 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
 
     @Override
     public boolean existsByBookId(CartHolder holder, Long bookId) {
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
+        if(bookId == null)
+            throw new IllegalArgumentException("bookId는 null 일 수 없습니다.");
         return redisTemplate.opsForHash().hasKey(key, bookId.toString());
     }
 
     @Override
     public long count(CartHolder holder) {
-        String key = generateKey(holder);
+        String key = validateAndGenerateKey(holder);
         return redisTemplate.opsForHash().size(key);
     }
 
     @Override
     public boolean hasKey(CartHolder holder) {
-        String key = generateKey(holder);
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        String key = validateAndGenerateKey(holder);
+        return redisTemplate.hasKey(key);
     }
 
     // ========================================================
@@ -250,7 +274,8 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     @Override
     public List<Object> popDirtyMemberIds(long count) {
-        return redisTemplate.opsForSet().pop(DIRTY_MEMBERS_KEY, count);
+        if(count<=0) return Collections.emptyList();
+        return redisTemplate.opsForSet().pop(dirtyMembersKey, count);
     }
 
     /**
@@ -258,8 +283,10 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     @Override
     public boolean isMarkedAsEmpty(Long memberId) {
+        if(memberId == null) return false;
+
         // ZSCORE 명령어로 점수가 조회되면 존재하는 것
-        Double score = redisTemplate.opsForZSet().score(EMPTY_MEMBERS_KEY, memberId.toString());
+        Double score = redisTemplate.opsForZSet().score(emptyMembersKey, memberId.toString());
         return score != null;
     }
 
@@ -268,9 +295,10 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
      */
     @Override
     public void removeEmptyMark(Long memberId) {
-        redisTemplate.opsForZSet().remove(EMPTY_MEMBERS_KEY, memberId.toString());
-    }
+        if(memberId == null) return;
 
+        redisTemplate.opsForZSet().remove(emptyMembersKey, memberId.toString());
+    }
 
     @Override
     public List<Long> filterCleanMemberIds(Set<Long> memberIds) {
@@ -278,23 +306,25 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
             return Collections.emptyList();
         }
 
-        // Set은 순서가 없으므로, List로 변환하여 순서를 고정시킴
+        // Set은 순서가 없으므로, List로 변환하여 미리 순서를 고정시킴
         List<Long> memberIdList = new ArrayList<>(memberIds);
 
-        // Redis 작업을 위해 String 리스트 준비
         List<String> memberIdStrings = memberIdList.stream()
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
-        // Pipeline 실행 (순서는 memberIdList 순서와 동일하게 나감)
+        // Pipeline 실행
         List<Object> results = redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            RedisSerializer<String> stringSerializer = redisTemplate.getStringSerializer();
+            // Key용과 Value용 Serializer 분리
+            RedisSerializer<String> keySerializer = redisTemplate.getStringSerializer();
+            RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
 
-            // Key 직렬화 (루프 밖에서 1회)
-            byte[] rawDirtyKey = stringSerializer.serialize(DIRTY_MEMBERS_KEY);
+            // Key 직렬화 (Key는 문자열이 맞음)
+            byte[] rawDirtyKey = keySerializer.serialize(dirtyMembersKey);
 
             for (String memberId : memberIdStrings) {
-                byte[] rawMemberId = stringSerializer.serialize(memberId);
+                // 직렬화 문제 조심...
+                byte[] rawMemberId = valueSerializer.serialize(memberId);
                 connection.sIsMember(rawDirtyKey, rawMemberId);
             }
             return null;
@@ -303,12 +333,11 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
         // 결과 매핑
         List<Long> cleanMemberIds = new ArrayList<>();
 
-        // 고정된 List(memberIdList)와 인덱스를 사용하여 매핑
         for (int i = 0; i < results.size(); i++) {
             Boolean isDirty = (Boolean) results.get(i);
-            Long memberId = memberIdList.get(i); // 순서가 꼬이지 않음
+            Long memberId = memberIdList.get(i);
 
-            // isDirty가 false(null 포함)이면 Dirty Set에 없는 것 => Clean Member
+            // isDirty가 false면 Clean Member
             if (Boolean.FALSE.equals(isDirty)) {
                 cleanMemberIds.add(memberId);
             }
@@ -321,9 +350,11 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     public void deleteMembersBatch(Set<Long> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) return;
 
+        String prefix = cartProperties.getKeyPrefix();
+
         // Redis Key 목록 생성
         List<String> keys = memberIds.stream()
-                .map(id -> "cart:member:" + id)
+                .map(id -> prefix + ":member:" + id)
                 .collect(Collectors.toList());
 
         // Member ID String 목록 생성
@@ -331,28 +362,28 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
-        // Pipeline 실행 (성능 최적화 & 메타데이터 정리)
+        // Pipeline 실행
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            RedisSerializer<String> stringSerializer = redisTemplate.getStringSerializer();
+            RedisSerializer<String> keySerializer = redisTemplate.getStringSerializer();
+            RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
 
             // 실제 데이터(Hash Key) 삭제
             for (String key : keys) {
-                connection.del(stringSerializer.serialize(key));
+                connection.del(keySerializer.serialize(key));
             }
 
-            // Set 정리 (Dirty Set & Empty ZSet)
-            byte[] rawDirtyKey = stringSerializer.serialize(DIRTY_MEMBERS_KEY);
-            byte[] rawEmptyKey = stringSerializer.serialize(EMPTY_MEMBERS_KEY);
+            // Set 정리
+            byte[] rawDirtyKey = keySerializer.serialize(dirtyMembersKey);
+            byte[] rawEmptyKey = keySerializer.serialize(emptyMembersKey);
 
-            // 한 번에 제거하기 위해 2차원 바이트 배열로 변환
             byte[][] rawMemberIds = memberIdStrings.stream()
-                    .map(stringSerializer::serialize)
+                    .map(id -> valueSerializer.serialize(id))
                     .toArray(byte[][]::new);
 
             if (rawMemberIds.length > 0) {
                 // Dirty Set(Set)에서 제거
                 connection.sRem(rawDirtyKey, rawMemberIds);
-                // Empty Set(ZSet)에서 제거 (데이터가 삭제되므로 마킹도 삭제)
+                // Empty Set(ZSet)에서 제거
                 connection.zRem(rawEmptyKey, rawMemberIds);
             }
             return null;
@@ -362,13 +393,15 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     // 스케줄러 재시도 지원용
     @Override
     public void addDirtyMember(Long memberId) {
-        redisTemplate.opsForSet().add(DIRTY_MEMBERS_KEY, memberId.toString());
+        if(memberId == null) return;
+        redisTemplate.opsForSet().add(dirtyMembersKey, memberId.toString());
     }
 
     @Override
     public long removeOldEmptyMarks(double maxScore) {
+        if(maxScore<=0.0) return 0;
         // ZSet에서 Score(시간)이 0 ~ maxScore 사이인 멤버들을 일괄 삭제
-        Long count = redisTemplate.opsForZSet().removeRangeByScore(EMPTY_MEMBERS_KEY, 0, maxScore);
+        Long count = redisTemplate.opsForZSet().removeRangeByScore(emptyMembersKey, 0, maxScore);
         return count != null ? count : 0;
     }
 }

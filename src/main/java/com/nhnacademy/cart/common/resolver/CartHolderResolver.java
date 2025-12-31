@@ -1,8 +1,6 @@
 package com.nhnacademy.cart.common.resolver;
 
 import com.nhnacademy.cart.common.annotation.GuestOnly;
-import com.nhnacademy.cart.dto.CartHolder;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -10,8 +8,6 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import java.util.Arrays;
 
 @Component
 public class CartHolderResolver implements HandlerMethodArgumentResolver {

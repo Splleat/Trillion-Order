@@ -1,4 +1,4 @@
-package com.nhnacademy.cart.dto;
+package com.nhnacademy.cart.common.resolver;
 
 import lombok.Getter;
 
