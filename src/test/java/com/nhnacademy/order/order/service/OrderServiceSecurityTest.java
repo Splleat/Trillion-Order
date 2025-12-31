@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
@@ -72,7 +73,6 @@ class OrderServiceSecurityTest {
     private NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     @MockitoBean
     private SecurityService securityService;
-
 
     @Test
     @DisplayName("권한 실패: 일반 회원이 관리자 기능(전체 주문 조회) 호출")

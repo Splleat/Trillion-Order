@@ -12,7 +12,6 @@ import org.springframework.test.context.jdbc.Sql;
 })
 @Sql("/schema.sql")
 class OrderApplicationTests {
-
     @Test
     void contextLoads() {
     }

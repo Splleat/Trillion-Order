@@ -18,8 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -39,8 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = "toss.secret-key=test-key")
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = OrderControllerImpl.class, properties = "toss.secret-key=test-key")
 class OrderControllerImplTest {
 
     @Autowired
@@ -54,6 +52,12 @@ class OrderControllerImplTest {
 
     @MockitoBean
     private NonMemberOrderService nonMemberOrderService;
+
+    @MockitoBean
+    private com.nhnacademy.order.order.service.EmailService emailService;
+
+    @MockitoBean
+    private org.springframework.mail.javamail.JavaMailSender javaMailSender;
 
     private OrderResponse orderResponse;
     private Page<OrderResponse> orderResponsePage;
