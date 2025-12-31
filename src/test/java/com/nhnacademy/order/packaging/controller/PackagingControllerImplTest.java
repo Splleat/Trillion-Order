@@ -1,6 +1,7 @@
 package com.nhnacademy.order.packaging.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.order.packaging.dto.PackagingCreateRequest;
 import com.nhnacademy.order.packaging.dto.PackagingResponse;
 import com.nhnacademy.order.packaging.dto.PackagingUpdateRequest;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
@@ -124,5 +125,40 @@ class PackagingControllerImplTest {
                         .header("X-USER-ID", "1")
                         .header("X-USER-ROLE", "ADMIN"))
                 .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("포장지 생성 성공")
+    @Test
+    void createPackaging_Success() throws Exception {
+        // given
+        PackagingCreateRequest request = new PackagingCreateRequest("고급포장", 2000);
+        PackagingResponse response = new PackagingResponse(1L, "고급포장", 2000);
+
+        given(packagingService.createPackaging(any(), any(PackagingCreateRequest.class))).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/orders/packaging")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.packagingType").value("고급포장"))
+                .andExpect(jsonPath("$.packagingPrice").value(2000));
+    }
+
+    @DisplayName("포장지 생성 실패 - 유효하지 않은 입력")
+    @Test
+    void createPackaging_Fail_InvalidInput() throws Exception {
+        // given
+        PackagingCreateRequest request = new PackagingCreateRequest("", -100);
+
+        // when & then
+        mockMvc.perform(post("/orders/packaging")
+                        .header("X-USER-ID", "1")
+                        .header("X-USER-ROLE", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest()); // ArgumentResolver에서 바인딩 에러 등으로 처리될 것으로 예상
     }
 }

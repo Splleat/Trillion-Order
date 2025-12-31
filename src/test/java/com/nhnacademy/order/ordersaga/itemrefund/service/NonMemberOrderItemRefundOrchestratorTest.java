@@ -27,7 +27,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NonMemberOrderItemRefundOrchestratorTest {
@@ -59,7 +59,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0)); // 명시적 Integer 박싱
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0)); 
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -95,5 +95,78 @@ class NonMemberOrderItemRefundOrchestratorTest {
         // when & then
         assertThatThrownBy(() -> orchestrator.processNonMemberItemRefund(order, orderItem))
                 .isInstanceOf(OrderStatusTransitionException.class);
+    }
+
+    @DisplayName("재시도 - 결제 취소 후 실패한 경우 재고 증가부터 재시도")
+    @Test
+    void retry_Success_SkipPaymentRefund() {
+        // given
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "orderNumber", "ORD-1234");
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+
+        OrderItem orderItem = new OrderItem();
+        ReflectionTestUtils.setField(orderItem, "orderItemId", 1L);
+        ReflectionTestUtils.setField(orderItem, "bookId", 10L);
+        ReflectionTestUtils.setField(orderItem, "quantity", 1);
+        ReflectionTestUtils.setField(orderItem, "price", 10000);
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        ReflectionTestUtils.setField(orderItem, "order", order);
+
+        // Saga 생성 및 상태 설정 (PAYMENT_REFUNDED까지 완료)
+        NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(UUID.randomUUID(), 1L, 1L);
+        saga.setLastCompletedStep(NonMemberRefundSagaStep.PAYMENT_REFUNDED);
+
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
+        given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.of(deliveryPolicy));
+
+        // when
+        orchestrator.retry(saga, orderItem);
+
+        // then
+        // 결제 취소는 호출되지 않아야 함
+        verify(paymentFlowService, never()).cancelPaymentByMember(any(), any(), anyInt(), any());
+
+        // 재고 증가는 호출되어야 함
+        verify(bookService).increaseStocks(any(), anyMap());
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(saga, NonMemberRefundSagaStep.STOCK_INCREASED);
+
+        // 완료 처리
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(saga, SagaStatus.COMPLETED);
+        verify(orderItemRefundService).completeNonMemberOrderItem(orderItem, saga);
+    }
+
+    @DisplayName("재시도 - 실패 시 사가 상태 FAILED 처리")
+    @Test
+    void retry_Fail_Exception() {
+        // given
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "orderNumber", "ORD-1234");
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+
+        OrderItem orderItem = new OrderItem();
+        ReflectionTestUtils.setField(orderItem, "orderItemId", 1L);
+        ReflectionTestUtils.setField(orderItem, "bookId", 10L);
+        ReflectionTestUtils.setField(orderItem, "quantity", 1);
+        ReflectionTestUtils.setField(orderItem, "price", 10000);
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        ReflectionTestUtils.setField(orderItem, "order", order);
+
+        NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(UUID.randomUUID(), 1L, 1L);
+        // 초기 상태
+
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
+        given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.of(deliveryPolicy));
+
+        // 결제 취소 중 에러 발생 유도
+        doThrow(new RuntimeException("Payment Error")).when(paymentFlowService).cancelPaymentByMember(any(), any(), anyInt(), any());
+
+        // when
+        orchestrator.retry(saga, orderItem);
+
+        // then
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(saga, SagaStatus.FAILED);
     }
 }

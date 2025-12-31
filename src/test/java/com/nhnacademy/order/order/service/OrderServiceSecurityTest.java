@@ -16,6 +16,7 @@ import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.NonMemberOrderItemRefundOrchestrator;
 import com.nhnacademy.order.ordersaga.itemrefund.service.OrderItemRefundOrchestrator;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,15 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -73,6 +76,13 @@ class OrderServiceSecurityTest {
     private NonMemberOrderItemRefundOrchestrator nonMemberOrderItemRefundOrchestrator;
     @MockitoBean
     private SecurityService securityService;
+
+    @BeforeEach
+    void setUp() {
+        // 스케줄러에 의해 호출될 수 있는 메서드에 대해 List 반환하도록 설정
+        lenient().when(orderRepository.findAllOrderStatusAndUpdatedAtBefore(any(), any()))
+                .thenReturn(Collections.emptyList());
+    }
 
     @Test
     @DisplayName("권한 실패: 일반 회원이 관리자 기능(전체 주문 조회) 호출")
