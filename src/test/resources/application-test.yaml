@@ -29,3 +29,6 @@ spring:
   cloud:
     config:
       enabled: false
+
+toss:
+  secret-key: test_secret_key_1234

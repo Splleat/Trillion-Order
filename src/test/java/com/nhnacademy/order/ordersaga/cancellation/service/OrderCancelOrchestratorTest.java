@@ -156,6 +156,80 @@ class OrderCancelOrchestratorTest {
         verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
     }
 
+    @DisplayName("이미 결제 취소된 주문 - 예외 무시하고 진행")
+    @Test
+    void processCancelOrder_AlreadyPaymentCanceled_Proceeds() {
+        // given
+        Long memberId = 1L;
+        Order order = createOrder(OrderStatus.COMPLETED);
+        OrderCancelSaga saga = OrderCancelSaga.create(UUID.randomUUID(), order.getOrderId());
+
+        given(orderFinalizerCancelService.cancelStart(order)).willReturn(saga);
+        
+        // 결제 취소 시 "이미 전액 취소된 결제" 메시지를 가진 예외 발생
+        doThrow(new RuntimeException("이미 전액 취소된 결제")).when(paymentFlowService).cancelPaymentByMember(any(), any(), any(), any());
+
+        // when
+        orderCancelOrchestrator.processCancelOrder(memberId, order);
+
+        // then
+        // 예외가 발생했어도 다음 단계(포인트, 쿠폰, 재고)가 진행되어야 함
+        verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.PAYMENT_CANCELED);
+        verify(bookService).increaseStocks(any(), anyMap());
+        verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
+    }
+
+    @DisplayName("포인트/쿠폰 미사용 주문 - 해당 단계 건너뜀")
+    @Test
+    void processCancelOrder_NoPointNoCoupon_SkipsSteps() {
+        // given
+        Long memberId = 1L;
+        // 포인트 사용 0인 주문 생성
+        OrderDetails details = OrderDetails.createInitial("12345", LocalDateTime.now(), 0);
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+        ReflectionTestUtils.setField(order, "orderNumber", "ORD-1234");
+        ReflectionTestUtils.setField(order, "memberId", memberId);
+        ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.COMPLETED);
+        ReflectionTestUtils.setField(order, "orderDetails", details);
+        ReflectionTestUtils.setField(order, "orderItems", new HashSet<>()); // 아이템 없음 (재고 증가는 호출되지만 맵이 비어있음)
+        ReflectionTestUtils.setField(order, "orderCoupons", new HashSet<>());
+
+        OrderCancelSaga saga = OrderCancelSaga.create(UUID.randomUUID(), order.getOrderId());
+        given(orderFinalizerCancelService.cancelStart(order)).willReturn(saga);
+
+        // when
+        orderCancelOrchestrator.processCancelOrder(memberId, order);
+
+        // then
+        verify(memberService, never()).increasePoint(any(), anyLong(), anyLong(), anyInt());
+        verify(couponService, never()).withdrawCoupon(anyLong(), anyLong());
+        
+        // 재고 증가는 항상 호출됨 (빈 맵이라도)
+        verify(bookService).increaseStocks(any(), anyMap());
+        verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
+    }
+
+    @DisplayName("비회원 주문 - 회원 관련 단계 건너뜀")
+    @Test
+    void processCancelOrder_GuestOrder_SkipsMemberSteps() {
+        // given
+        Long memberId = null;
+        Order order = createOrder(OrderStatus.COMPLETED); // 포인트 사용 1000이지만 비회원이면 무시되어야 함
+        
+        OrderCancelSaga saga = OrderCancelSaga.create(UUID.randomUUID(), order.getOrderId());
+        given(orderFinalizerCancelService.cancelStart(order)).willReturn(saga);
+
+        // when
+        orderCancelOrchestrator.processCancelOrder(memberId, order);
+
+        // then
+        verify(memberService, never()).increasePoint(any(), any(), any(), anyInt());
+        verify(couponService, never()).withdrawCoupon(anyLong(), any());
+        
+        verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
+    }
+
     // --- Helper Methods ---
     private Order createOrder(OrderStatus status) {
         OrderDetails details = OrderDetails.createInitial("12345", LocalDateTime.now(), 1000); // pointUsage=1000
