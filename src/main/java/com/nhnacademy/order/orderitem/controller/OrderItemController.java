@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public interface OrderItemController {
             @ApiResponse(responseCode = "200", description = "성공적으로 상위 N개 판매 도서 ID를 조회했습니다."),
             @ApiResponse(responseCode = "400", description = "잘못된 요청입니다.")
     })
-    ResponseEntity<List<Long>> getTopNSellingBookIds(@RequestParam int limit);
+    ResponseEntity<List<Long>> getTopNSellingBookIds(@RequestParam @Min(1) int limit);
 
     @Operation(summary = "환불/반품 요청된 주문 상품 목록 조회 (회원용)", description = "로그인한 회원의 주문 상품 중 환불되었거나 환불/반품 요청 상태인 상품 목록을 페이지별로 조회합니다.")
     @ApiResponses(value = {
