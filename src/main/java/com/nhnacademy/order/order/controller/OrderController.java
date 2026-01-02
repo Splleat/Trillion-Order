@@ -70,9 +70,9 @@ public interface OrderController {
             @ApiResponse(responseCode = "403", description = "해당 주문에 접근할 권한이 없습니다."),
             @ApiResponse(responseCode = "404", description = "해당 주문을 찾을 수 없습니다.")
     })
-    @GetMapping("/orders/{orderId}")
+    @GetMapping("/orders/{order-id}")
     ResponseEntity<OrderResponse> getOrderByCustomer(
-            @Parameter(description = "조회할 주문의 ID", required = true) @PathVariable Long orderId,
+            @Parameter(description = "조회할 주문의 ID", required = true) @PathVariable("order-id") Long orderId,
             UserInfo userInfo);
 
     @Operation(summary = "주문 상세 조회 (비회원용)", description = "주문 번호와 비밀번호를 사용하여 비회원 주문의 상세 내역을 조회합니다.")
@@ -92,10 +92,10 @@ public interface OrderController {
             @ApiResponse(responseCode = "403", description = "해당 주문에 접근할 권한이 없습니다."),
             @ApiResponse(responseCode = "404", description = "해당 주문 또는 상품을 찾을 수 없습니다.")
     })
-    @PatchMapping("/orders/{orderId}/items/{orderItemId}")
+    @PatchMapping("/orders/{order-id}/items/{order-item-id}")
     ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(
-            @Parameter(description = "주문의 ID", required = true) @PathVariable Long orderId,
-            @Parameter(description = "주문 상품의 ID", required = true) @PathVariable Long orderItemId,
+            @Parameter(description = "주문의 ID", required = true) @PathVariable("order-id") Long orderId,
+            @Parameter(description = "주문 상품의 ID", required = true) @PathVariable("order-item-id") Long orderItemId,
             @Parameter(description = "변경할 상태 정보", required = true) @RequestBody @Valid OrderItemStatusPatchRequest request,
             UserInfo userInfo);
 
@@ -105,10 +105,10 @@ public interface OrderController {
             @ApiResponse(responseCode = "400", description = "요청 데이터가 유효하지 않습니다."),
             @ApiResponse(responseCode = "404", description = "주문 번호 또는 비밀번호가 일치하는 주문을 찾을 수 없거나, 해당 상품을 찾을 수 없습니다.")
     })
-    @PatchMapping("/orders/non-members/{orderId}/items/{orderItemId}")
+    @PatchMapping("/orders/non-members/{order-id}/items/{order-item-id}")
     ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(
-            @Parameter(description = "주문의 ID", required = true) @PathVariable Long orderId,
-            @Parameter(description = "주문 상품의 ID", required = true) @PathVariable Long orderItemId,
+            @Parameter(description = "주문의 ID", required = true) @PathVariable("order-id") Long orderId,
+            @Parameter(description = "주문 상품의 ID", required = true) @PathVariable("order-item-id") Long orderItemId,
             @Parameter(description = "변경할 상태 정보 및 비밀번호", required = true) @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request);
 
     @Operation(summary = "주문 취소 (회원/관리자)", description = "특정 주문을 취소합니다. 결제 이전의 주문만 취소할 수 있습니다.")
@@ -118,9 +118,9 @@ public interface OrderController {
             @ApiResponse(responseCode = "404", description = "해당 주문을 찾을 수 없습니다."),
             @ApiResponse(responseCode = "409", description = "이미 처리되어 취소할 수 없는 상태의 주문입니다.")
     })
-    @DeleteMapping("/orders/{orderId}")
-    ResponseEntity<OrderResponse> cancelOrder(
-            @Parameter(description = "취소할 주문의 ID", required = true) @PathVariable Long orderId,
+    @DeleteMapping("/orders/{order-id}")
+    ResponseEntity<Void> cancelOrder(
+            @Parameter(description = "취소할 주문의 ID", required = true) @PathVariable("order-id") Long orderId,
             UserInfo userInfo);
 
     @Operation(summary = "주문 취소 (비회원)", description = "비회원 주문을 비밀번호를 통해 취소합니다.")
@@ -130,9 +130,9 @@ public interface OrderController {
             @ApiResponse(responseCode = "404", description = "주문 번호 또는 비밀번호가 일치하는 주문을 찾을 수 없습니다."),
             @ApiResponse(responseCode = "409", description = "이미 처리되어 취소할 수 없는 상태의 주문입니다.")
     })
-    @DeleteMapping("/orders/non-members/{orderId}")
-    ResponseEntity<OrderResponse> cancelOrderForNonMember(
-            @Parameter(description = "취소할 주문의 ID", required = true) @PathVariable Long orderId,
+    @DeleteMapping("/orders/non-members/{order-id}")
+    ResponseEntity<Void> cancelOrderForNonMember(
+            @Parameter(description = "취소할 주문의 ID", required = true) @PathVariable("order-id") Long orderId,
             @Parameter(description = "주문 취소를 위한 비밀번호", required = true) @RequestBody @Valid NonMemberOrderCancelRequest request);
 
 

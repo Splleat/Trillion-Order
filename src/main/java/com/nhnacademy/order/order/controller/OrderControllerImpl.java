@@ -124,7 +124,7 @@ public class OrderControllerImpl implements OrderController {
     // 주문 취소 (회원)
     @Override
     @DeleteMapping("/orders/{order-id}")
-    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable("order-id") Long orderId, UserInfo userInfo) {
+    public ResponseEntity<Void> cancelOrder(@PathVariable("order-id") Long orderId, UserInfo userInfo) {
         orderService.cancelOrder(userInfo, orderId);
 
         return ResponseEntity.noContent().build();
@@ -133,7 +133,7 @@ public class OrderControllerImpl implements OrderController {
     // 주문 취소 (비회원)
     @Override
     @DeleteMapping("/orders/non-members/{order-id}")
-    public ResponseEntity<OrderResponse> cancelOrderForNonMember(@PathVariable("order-id") Long orderId,
+    public ResponseEntity<Void> cancelOrderForNonMember(@PathVariable("order-id") Long orderId,
                                                         @RequestBody @Valid NonMemberOrderCancelRequest request) {
         nonMemberOrderService.cancelOrderForNonMember(orderId, request.nonMemberPassword());
 

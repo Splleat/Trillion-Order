@@ -9,6 +9,7 @@ import com.nhnacademy.order.order.exception.OrderPasswordMismatchException;
 import com.nhnacademy.order.order.exception.OrderStatusTransitionException;
 import com.nhnacademy.order.orderitem.exception.OrderItemNotFoundException;
 import com.nhnacademy.order.packaging.exception.PackagingNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,11 +30,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(errorResponse);
     }
 
+    // @Valid 실패 시 발생하는 예외 (@RequestBody)
     @ExceptionHandler({
-        MethodArgumentNotValidException.class
+        MethodArgumentNotValidException.class,
     })
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
+        ErrorResponse errorResponse = ErrorResponse.create(errorMessage, "VALIDATION_FAILED");
+
+        return ResponseEntity.status(400).body(errorResponse);
+    }
+
+    // @Validated 실패 시 발생하는 예외 (@PathVariable, @RequestParam)
+    @ExceptionHandler({
+        ConstraintViolationException.class
+    })
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        String errorMessage = ex.getConstraintViolations().iterator().next().getMessage();
         ErrorResponse errorResponse = ErrorResponse.create(errorMessage, "VALIDATION_FAILED");
 
         return ResponseEntity.status(400).body(errorResponse);
