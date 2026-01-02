@@ -70,7 +70,7 @@ class OrderCancelOrchestratorTest {
         Order order = createOrder(OrderStatus.COMPLETED);
         
         // OrderItem 추가 (재고 복구 테스트용)
-        OrderItem orderItem = createOrderItem(order, 10L, 2);
+        OrderItem orderItem = createOrderItem(order);
         order.addOrderItem(orderItem);
 
         // OrderCoupon 추가 (쿠폰 복구 테스트용)
@@ -95,7 +95,7 @@ class OrderCancelOrchestratorTest {
         verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.POINT_REFUNDED);
 
         // 3. 쿠폰 반환 호출 검증
-        verify(couponService).withdrawCoupon(eq(100L), eq(memberId));
+        verify(couponService).withdrawCoupon(100L, memberId);
         verify(sagaUpdateService).updateCancelSagaStep(saga, CancelSagaStep.COUPON_RESTORED);
 
         // 4. 재고 증가 호출 검증
@@ -150,7 +150,7 @@ class OrderCancelOrchestratorTest {
         verify(memberService, never()).increasePoint(any(), anyLong(), anyLong(), anyInt());
 
         // 남은 단계 실행 검증 (쿠폰, 재고)
-        verify(couponService).withdrawCoupon(eq(100L), eq(memberId));
+        verify(couponService).withdrawCoupon(100L, memberId);
         verify(bookService).increaseStocks(any(), anyMap());
         
         verify(sagaUpdateService).updateCancelSagaStatus(saga, SagaStatus.COMPLETED);
@@ -246,15 +246,15 @@ class OrderCancelOrchestratorTest {
         return order;
     }
     
-    private OrderItem createOrderItem(Order order, Long bookId, int quantity) {
+    private OrderItem createOrderItem(Order order) {
         // OrderItem 생성자가 private이므로 Reflection 사용하거나 빌더가 있다면 빌더 사용
         // 여기서는 빌더가 없으므로 Reflection으로 설정하거나, 테스트용 팩토리 메서드 활용
         // 도메인 코드에 @AllArgsConstructor가 있으므로 빌더 패턴이 있을 가능성이 높음 (Lombok @Builder 확인 못했으나 보통 같이 씀)
         // 하지만 코드에 @Builder가 안 보였으므로 리플렉션 사용
         
         OrderItem item = new OrderItem();
-        ReflectionTestUtils.setField(item, "bookId", bookId);
-        ReflectionTestUtils.setField(item, "quantity", quantity);
+        ReflectionTestUtils.setField(item, "bookId", 10L);
+        ReflectionTestUtils.setField(item, "quantity", 2);
         ReflectionTestUtils.setField(item, "order", order);
         return item;
     }

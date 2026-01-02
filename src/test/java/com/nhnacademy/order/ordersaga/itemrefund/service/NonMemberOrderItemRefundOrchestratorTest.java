@@ -59,7 +59,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0)); 
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -110,7 +110,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -150,7 +150,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_DAMAGED); // 파손
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -182,7 +182,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -229,7 +229,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 

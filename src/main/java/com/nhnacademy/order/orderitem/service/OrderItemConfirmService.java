@@ -2,10 +2,8 @@ package com.nhnacademy.order.orderitem.service;
 
 import com.nhnacademy.order.order.domain.Order;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
-import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.point.domain.PointAccumulationEvent;
 import com.nhnacademy.order.point.repository.PointAccumulationEventRepository;
-import com.nhnacademy.order.point.service.PointAccumulationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
