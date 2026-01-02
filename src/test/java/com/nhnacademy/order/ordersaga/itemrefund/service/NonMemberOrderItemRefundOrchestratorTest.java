@@ -59,7 +59,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0)); 
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -110,7 +110,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
@@ -137,7 +137,86 @@ class NonMemberOrderItemRefundOrchestratorTest {
         verify(orderItemRefundService).completeNonMemberOrderItem(orderItem, saga);
     }
 
-    @DisplayName("재시도 - 실패 시 사가 상태 FAILED 처리")
+    @DisplayName("비회원 반품 처리 성공 (파손 - 배송비 차감 없음)")
+    @Test
+    void processNonMemberItemRefund_Success_Damaged() {
+        // given
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "orderNumber", "ORD-1234");
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+
+        OrderItem orderItem = new OrderItem();
+        ReflectionTestUtils.setField(orderItem, "orderItemId", 1L);
+        ReflectionTestUtils.setField(orderItem, "bookId", 10L);
+        ReflectionTestUtils.setField(orderItem, "quantity", 1);
+        ReflectionTestUtils.setField(orderItem, "price", 10000);
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
+        ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_DAMAGED); // 파손
+        ReflectionTestUtils.setField(orderItem, "order", order);
+
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
+        given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.of(deliveryPolicy));
+
+        // when
+        orchestrator.processNonMemberItemRefund(order, orderItem);
+
+        // then
+        // 배송비 차감 없이 전액 환불 (10000원)
+        verify(paymentFlowService).cancelPaymentByMember(eq("ORD-1234"), anyString(), eq(10000), any());
+        
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(any(), eq(NonMemberRefundSagaStep.PAYMENT_REFUNDED));
+        verify(bookService).increaseStocks(any(), anyMap());
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(any(), eq(SagaStatus.COMPLETED));
+    }
+
+    @DisplayName("이미 결제 취소된 경우 예외 무시하고 진행")
+    @Test
+    void processNonMemberItemRefund_AlreadyPaymentCanceled_Proceeds() {
+        // given
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "orderNumber", "ORD-1234");
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+
+        OrderItem orderItem = new OrderItem();
+        ReflectionTestUtils.setField(orderItem, "orderItemId", 1L);
+        ReflectionTestUtils.setField(orderItem, "bookId", 10L);
+        ReflectionTestUtils.setField(orderItem, "quantity", 1);
+        ReflectionTestUtils.setField(orderItem, "price", 10000);
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
+        ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
+        ReflectionTestUtils.setField(orderItem, "order", order);
+
+        DeliveryPolicy deliveryPolicy = DeliveryPolicy.create(3000, 50000);
+        given(deliveryPolicyRepository.findFirstByOrderByDeliveryPolicyIdAsc()).willReturn(Optional.of(deliveryPolicy));
+
+        // 결제 취소 시 "이미 전액 취소된 결제" 예외 발생
+        doThrow(new RuntimeException("이미 전액 취소된 결제")).when(paymentFlowService).cancelPaymentByMember(any(), any(), anyInt(), any());
+
+        // when
+        orchestrator.processNonMemberItemRefund(order, orderItem);
+
+        // then
+        // 예외가 무시되고 다음 단계 진행
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStep(any(), eq(NonMemberRefundSagaStep.PAYMENT_REFUNDED));
+        verify(bookService).increaseStocks(any(), anyMap());
+        verify(sagaUpdateService).updateNonMemberItemRefundSagaStatus(any(), eq(SagaStatus.COMPLETED));
+    }
+
+    @DisplayName("retry: 이미 완료된 사가는 아무 작업도 하지 않음")
+    @Test
+    void retry_AlreadyCompleted() {
+        // given
+        NonMemberOrderItemRefundSaga saga = NonMemberOrderItemRefundSaga.create(UUID.randomUUID(), 1L, 1L);
+        ReflectionTestUtils.setField(saga, "overallStatus", SagaStatus.COMPLETED);
+
+        // when
+        orchestrator.retry(saga, null);
+
+        // then
+        verifyNoInteractions(paymentFlowService);
+        verifyNoInteractions(bookService);
+        verifyNoInteractions(sagaUpdateService);
+    }
     @Test
     void retry_Fail_Exception() {
         // given
@@ -150,7 +229,7 @@ class NonMemberOrderItemRefundOrchestratorTest {
         ReflectionTestUtils.setField(orderItem, "bookId", 10L);
         ReflectionTestUtils.setField(orderItem, "quantity", 1);
         ReflectionTestUtils.setField(orderItem, "price", 10000);
-        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", Integer.valueOf(0));
+        ReflectionTestUtils.setField(orderItem, "couponDiscountAmount", 0);
         ReflectionTestUtils.setField(orderItem, "orderItemStatus", OrderItemStatus.RETURN_REQUESTED_CHANGE_OF_MIND);
         ReflectionTestUtils.setField(orderItem, "order", order);
 
