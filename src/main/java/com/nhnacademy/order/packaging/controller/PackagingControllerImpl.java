@@ -40,7 +40,7 @@ public class PackagingControllerImpl implements PackagingController {
 
     @Override
     @PostMapping
-    public ResponseEntity<PackagingResponse> createPackaging(PackagingCreateRequest request, UserInfo userInfo) {
+    public ResponseEntity<PackagingResponse> createPackaging(@RequestBody @Valid PackagingCreateRequest request, UserInfo userInfo) {
         PackagingResponse response = packagingService.createPackaging(userInfo, request);
 
         return ResponseEntity.ok(response);

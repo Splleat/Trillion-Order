@@ -16,6 +16,7 @@ import com.nhnacademy.order.common.dto.UserInfo;
 import com.nhnacademy.order.delivery.dto.DeliveryPolicyResponse;
 import com.nhnacademy.order.delivery.dto.DeliveryPolicyUpdateRequest;
 import com.nhnacademy.order.delivery.service.DeliveryPolicyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class DeliveryControllerImpl implements DeliveryController {
 
     @Override
     @PutMapping
-    public ResponseEntity<Void> updateDeliveryPolicy(@RequestBody DeliveryPolicyUpdateRequest request,
+    public ResponseEntity<Void> updateDeliveryPolicy(@RequestBody @Valid DeliveryPolicyUpdateRequest request,
                                                      UserInfo userInfo) {
         deliveryPolicyService.updateDeliveryPolicy(userInfo, request);
 
