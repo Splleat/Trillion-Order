@@ -50,12 +50,6 @@ public interface CartRepository {
     void warmUp(CartHolder holder);
 
     /**
-     * [레디스 캐시 무효화]
-     * 장바구니 병합 등의 사유로 캐시 초기화가 필요할 때 사용
-     */
-    void invalidateCache(CartHolder holder);
-
-    /**
      * [단건 조회]
      * - Strategy: Look Aside
      */

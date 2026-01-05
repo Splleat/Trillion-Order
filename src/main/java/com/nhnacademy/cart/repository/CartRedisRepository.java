@@ -17,9 +17,6 @@ public interface CartRedisRepository {
     // [Cache Warming] DB 데이터를 Redis로 복구
     void restore(CartHolder holder, List<RedisCart> carts);
 
-    // [Cache Reset] 레디스에 캐시된 데이터를 무효화
-    void invalidate(CartHolder holder);
-
     // [단건 조회]
     Optional<RedisCart> findByBookId(CartHolder holder, Long bookId);
 
