@@ -136,6 +136,10 @@ public class CartController implements CartControllerDocs {
         for(CartDto cart: mitems){
             builder.append("책번호: ").append(cart.getBookId()).append("\n");
         }
+        builder.append("장바구니 병합 이후, 비회원 장바구니\n");
+        for(CartDto cart: gitems){
+            builder.append("책번호: ").append(cart.getBookId()).append("\n");
+        }
         log.warn(builder.toString());
         return ResponseEntity.noContent().build();
     }
