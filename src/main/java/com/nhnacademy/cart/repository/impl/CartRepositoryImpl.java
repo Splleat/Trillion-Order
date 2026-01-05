@@ -75,8 +75,14 @@ public class CartRepositoryImpl implements CartRepository {
     //  - 효율성: WarmUp 직후 다시 Redis를 조회하는 Double Network Trip 방지
     // ======================================================================
 
+    @Override
     public void warmUp(CartHolder holder){
         tryWarmUpAndGet(holder);
+    }
+
+    @Override
+    public void invalidateCache(CartHolder holder) {
+        redisRepo.invalidate(holder);
     }
 
     @Override
