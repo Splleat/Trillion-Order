@@ -6,6 +6,7 @@ import com.nhnacademy.cart.dto.*;
 import com.nhnacademy.cart.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/carts")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController implements CartControllerDocs {
 
     private final CartService cartService;
@@ -110,14 +112,31 @@ public class CartController implements CartControllerDocs {
      * [장바구니 병합 (로그인 직후)]
      * POST /carts/merge
      * - memberHolder: 헤더(X-Member-Id)에서 파싱된 회원 정보
-     * - guestHolder: 헤더(guestId)에서 강제로 파싱된 비회원 정보 (@GuestOnly)
+     * - guestHolder: 헤더(X-Guest-Id)에서 강제로 파싱된 비회원 정보 (@GuestOnly)
      */
     @PostMapping("/merge")
     public ResponseEntity<Void> mergeCart(
             CartHolder memberHolder,           // Resolver가 헤더 보고 주입
             @GuestOnly CartHolder guestHolder  // Resolver가 쿠키만 보고 주입
     ) {
+        List<CartDto> mitems = cartService.getCartItems(memberHolder);
+        List<CartDto> gitems = cartService.getCartItems(guestHolder);
+
+        log.warn("장바구니 병합, 멤버 장바구니");
+        for(CartDto cart: mitems){
+            log.warn("책번호: {}",cart.getBookId());
+        }
+
+        log.warn("장바구니 병합, 비회원 장바구니");
+        for(CartDto cart: gitems){
+            log.warn("책번호: {}",cart.getBookId());
+        }
         cartService.mergeCart(memberHolder, guestHolder);
+
+        log.warn("장바구니 병합, 결과... 회원 장바구니");
+        for(CartDto cart: mitems){
+            log.warn("책번호: {}",cart.getBookId());
+        }
         return ResponseEntity.noContent().build();
     }
 }
