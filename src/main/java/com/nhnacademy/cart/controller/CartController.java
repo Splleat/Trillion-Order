@@ -122,21 +122,21 @@ public class CartController implements CartControllerDocs {
         List<CartDto> mitems = cartService.getCartItems(memberHolder);
         List<CartDto> gitems = cartService.getCartItems(guestHolder);
 
-        log.warn("장바구니 병합, 멤버 장바구니");
+        StringBuilder builder= new StringBuilder();
+        builder.append("장바구니 병합 이전, 멤버 장바구니\n");
         for(CartDto cart: mitems){
-            log.warn("책번호: {}",cart.getBookId());
+            builder.append("책번호: ").append(cart.getBookId()).append("\n");
         }
-
-        log.warn("장바구니 병합, 비회원 장바구니");
+        builder.append("장바구니 병합 이전, 비회원 장바구니\n");
         for(CartDto cart: gitems){
-            log.warn("책번호: {}",cart.getBookId());
+            builder.append("책번호: ").append(cart.getBookId()).append("\n");
         }
         cartService.mergeCart(memberHolder, guestHolder);
-
-        log.warn("장바구니 병합, 결과... 회원 장바구니");
+        builder.append("장바구니 병합 이후.. 회원 장바구니\n");
         for(CartDto cart: mitems){
-            log.warn("책번호: {}",cart.getBookId());
+            builder.append("책번호: ").append(cart.getBookId()).append("\n");
         }
+        log.warn(builder.toString());
         return ResponseEntity.noContent().build();
     }
 }
