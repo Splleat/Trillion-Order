@@ -81,11 +81,6 @@ public class CartRepositoryImpl implements CartRepository {
     }
 
     @Override
-    public void invalidateCache(CartHolder holder) {
-        redisRepo.invalidate(holder);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public List<CartDto> findAll(CartHolder holder) {
         // 워밍 시도 & 데이터 획득

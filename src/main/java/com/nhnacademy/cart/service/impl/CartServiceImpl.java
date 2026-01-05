@@ -167,7 +167,7 @@ public class CartServiceImpl implements CartService {
         // 저장 (Reset Strategy)
         // 기존 회원 장바구니를 비우고(deleteAll) 병합된 리스트를 저장(saveAll)해야
         // 잘려나간 상품이 Redis에 남지 않음
-        cartRepository.invalidateCache(memberHolder);
+        cartRepository.deleteAll(memberHolder);
         cartRepository.saveAll(memberHolder, mergedList);
 
         // 비회원 장바구니 정리
