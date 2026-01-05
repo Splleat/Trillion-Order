@@ -131,7 +131,10 @@ public class CartController implements CartControllerDocs {
         for(CartDto cart: gitems){
             builder.append("책번호: ").append(cart.getBookId()).append("\n");
         }
+
         cartService.mergeCart(memberHolder, guestHolder);
+        mitems=cartService.getCartItems(memberHolder);
+        gitems = cartService.getCartItems(guestHolder);
         builder.append("장바구니 병합 이후.. 회원 장바구니\n");
         for(CartDto cart: mitems){
             builder.append("책번호: ").append(cart.getBookId()).append("\n");
