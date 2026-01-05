@@ -193,13 +193,18 @@ public class CartRedisRepositoryImpl implements CartRedisRepository {
     }
 
     @Override
+    public void invalidate(CartHolder holder) {
+        // Redis에서 전체 항목 삭제
+        String key = validateAndGenerateKey(holder);
+        redisTemplate.delete(key);
+    }
+
+    @Override
     public void delete(CartHolder holder, Long bookId) {
         String key = validateAndGenerateKey(holder);
 
         if(bookId == null)
             throw new IllegalArgumentException("bookId는 null 일 수 없습니다.");
-
-
 
         // Redis에서 개별 항목 삭제
         redisTemplate.opsForHash().delete(key, bookId.toString());
