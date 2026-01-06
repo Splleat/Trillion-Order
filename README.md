@@ -29,57 +29,57 @@
 
     ```mermaid
     sequenceDiagram
-        autonumber
-        participant Order as 주문 서비스
-        box 외부 서비스 #f9f9f9
-            participant Book as 도서 서비스
-            participant Coupon as 쿠폰 서비스
-            participant Member as 회원 서비스
+    autonumber
+    participant Order as 주문 서비스
+    box 외부 서비스
+        participant Book as 도서 서비스
+        participant Coupon as 쿠폰 서비스
+        participant Member as 회원 서비스
+    end
+
+    Note over Order, Member: [Step 1] 재고 처리
+    rect rgba(0, 255, 0, 0.1)
+        Order->>Book: 재고 차감 요청
+    end
+
+    alt 재고 차감 실패
+        rect rgba(255, 0, 0, 0.1)
+            Book-->>Order: 에러 응답 (4xx/5xx)
+            Order->>Book: 재고 복구
+            Note over Order: 주문 실패
         end
-    
-        Note over Order, Member: [Step 1] 재고 처리
-        rect rgb(240, 255, 240)
-            Order->>Book: 재고 차감 요청
+    else
+        Note over Order, Member: [Step 2] 쿠폰 처리
+        rect rgba(0, 255, 0, 0.1)
+            Order->>Coupon: 쿠폰 적용 요청
         end
-        
-        alt
-            rect rgb(255, 240, 240)
-                Book-->>Order: 에러 응답 (4xx, 5xx)
-                Order->>Book: [보상] 재고 복구 (멱등성)
+
+        alt 쿠폰 적용 실패
+            rect rgba(255, 0, 0, 0.1)
+                Coupon-->>Order: 에러 응답 (4xx/5xx)
+                Order->>Coupon: 쿠폰 취소
+                Order->>Book: 재고 복구
                 Note over Order: 주문 실패
             end
         else
-            Note over Order, Member: [Step 2] 쿠폰 처리
-            rect rgb(240, 255, 240)
-                Order->>Coupon: 쿠폰 적용 요청
+            Note over Order, Member: [Step 3] 포인트 처리
+            rect rgba(0, 255, 0, 0.1)
+                Order->>Member: 포인트 사용 요청
             end
-            
-            alt
-                rect rgb(255, 240, 240)
-                    Coupon-->>Order: 에러 응답 (4xx, 5xx)
-                    Order->>Coupon: [보상] 쿠폰 취소 (멱등성)
-                    Order->>Book: [보상] 재고 복구
+
+            alt 포인트 사용 실패
+                rect rgba(255, 0, 0, 0.1)
+                    Member-->>Order: 에러 응답 (4xx/5xx)
+                    Order->>Member: 포인트 환불
+                    Order->>Coupon: 쿠폰 취소
+                    Order->>Book: 재고 복구
                     Note over Order: 주문 실패
                 end
             else
-                Note over Order, Member: [Step 3] 포인트 처리
-                rect rgb(240, 255, 240)
-                    Order->>Member: 포인트 사용 요청
-                end
-                
-                alt
-                    rect rgb(255, 240, 240)
-                        Member-->>Order: 에러 응답 (4xx, 5xx)
-                        Order->>Member: [보상] 포인트 환불 (멱등성)
-                        Order->>Coupon: [보상] 쿠폰 취소
-                        Order->>Book: [보상] 재고 복구
-                        Note over Order: 주문 실패
-                    end
-                else
-                    Note over Order: 주문 생성 완료
-                end
+                Note over Order: 주문 생성 완료
             end
         end
+    end
     ```
 
 #### 2. 데이터 정합성 보장 - 동시성 제어 및 자동 복구(Concurrency & Scheduling)
