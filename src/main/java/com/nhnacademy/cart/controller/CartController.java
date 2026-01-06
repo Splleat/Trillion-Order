@@ -120,7 +120,6 @@ public class CartController implements CartControllerDocs {
             @GuestOnly CartHolder guestHolder  // Resolver가 쿠키만 보고 주입
     ) {
         cartService.mergeCart(memberHolder, guestHolder);
-
         return ResponseEntity.noContent().build();
     }
 }
