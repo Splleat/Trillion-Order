@@ -5,6 +5,24 @@
 
 ## 주문 도메인
 
+### 도메인 구조
+
+```text
+com.nhnacademy.order
+├── order       # 주문 생성, 조회, 상태 관리 핵심 로직
+├── orderitem   # 주문 상세 상품 정보 및 개별 상태 관리
+├── ordercoupon # 주문 시 사용된 쿠폰 매핑 및 이력 관리
+├── ordersaga   # 사가 패턴 기반 분산 트랜잭션 오케스트레이터 (Creation, Cancellation, Refund)
+├── packaging   # 포장지 종류 및 가격 정책 관리
+├── delivery    # 배송 정책(배송비 산정) 관리
+├── point       # 주문 프로세스 내 포인트 적립 로직
+├── scheduler   # 중단된 Saga 트랜잭션 복구(보상/재시도)를 통한 데이터 정합성 관리
+├── client      # 타 마이크로서비스(Book, Member, Coupon)와의 통신 모듈
+└── common      # 공통 예외 처리, AOP(권한 체크), Argument Resolver 등 공통 모듈
+```
+
+---
+
 ### 기술적 도전 과제 및 해결 방안
 
 #### 주요 도전 과제
@@ -105,24 +123,6 @@
 | **Scheduling** | Spring Scheduler | | 주기적 데이터 정합성 검사 |
 | **Locking** | ShedLock | 7.2.1 | 스케줄러 분산 락 |
 | **Build** | Maven | | |
-
----
-
-### 도메인 구조
-
-```text
-com.nhnacademy.order
-├── order       # 주문 생성, 조회, 상태 관리 핵심 로직
-├── orderitem   # 주문 상세 상품 정보 및 개별 상태 관리
-├── ordercoupon # 주문 시 사용된 쿠폰 매핑 및 이력 관리
-├── ordersaga   # 사가 패턴 기반 분산 트랜잭션 오케스트레이터 (Creation, Cancellation, Refund)
-├── packaging   # 포장지 종류 및 가격 정책 관리
-├── delivery    # 배송 정책(배송비 산정) 관리
-├── point       # 주문 프로세스 내 포인트 적립 로직
-├── scheduler   # 중단된 Saga 트랜잭션 복구(보상/재시도)를 통한 데이터 정합성 관리
-├── client      # 타 마이크로서비스(Book, Member, Coupon)와의 통신 모듈
-└── common      # 공통 예외 처리, AOP(권한 체크), Argument Resolver 등 공통 모듈
-```
 
 ---
 
