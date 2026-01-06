@@ -37,6 +37,9 @@ public class CartRepositoryImpl implements CartRepository {
     public void save(CartHolder holder, CartDto cartDto) {
         if (cartDto == null) return;
 
+        // 캐시 유효성 체크하고, 문제시 DB에서 데이터 복원
+        warmUp(holder);
+
         // DTO -> Redis Entity 변환
         RedisCart redisCart = RedisCart.create(cartDto.getBookId(), cartDto.getCartQuantity(), cartDto.getCreatedAt());
 
@@ -46,7 +49,10 @@ public class CartRepositoryImpl implements CartRepository {
 
     @Override //ok
     public void saveAll(CartHolder holder, List<CartDto> cartDtos) {
-        if (cartDtos.isEmpty()) return;
+        if (cartDtos ==null || cartDtos.isEmpty()) return;
+
+        // 캐시 유효성 체크하고, 문제시 DB에서 데이터 복원
+        warmUp(holder);
 
         List<RedisCart> redisCarts = cartDtos.stream()
                 .map(dto -> RedisCart.create(dto.getBookId(), dto.getCartQuantity(), dto.getCreatedAt()))
