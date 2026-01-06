@@ -78,6 +78,7 @@ class OrderServiceTest {
         );
         Order order = mock(Order.class);
         OrderDetails orderDetails = mock(OrderDetails.class);
+        OrderCreateSaga saga = mock(OrderCreateSaga.class);
         
         when(order.getOrderId()).thenReturn(1L);
         when(order.getOrderDetails()).thenReturn(orderDetails);
@@ -85,8 +86,8 @@ class OrderServiceTest {
         when(order.getOrderItems()).thenReturn(Collections.emptySet());
         when(order.getOrderStatus()).thenReturn(OrderStatus.PENDING);
         
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(order);
+        when(orderInitialCreateService.createInitialOrderWithSaga(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new OrderInitialCreateService.OrderInitCreateResult(order, saga));
 
         // when
         OrderResponse response = orderService.createOrder(userInfo, request);
@@ -110,10 +111,11 @@ class OrderServiceTest {
                 Collections.emptyList()
         );
         Order order = mock(Order.class);
-        when(order.getOrderId()).thenReturn(1L);
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(order);
-        doThrow(new OrderCreateFailureException("Fail")).when(orderCreateOrchestrator).processCreateOrder(any(), any());
+                OrderCreateSaga saga = mock(OrderCreateSaga.class);
+                when(order.getOrderId()).thenReturn(1L);
+                when(orderInitialCreateService.createInitialOrderWithSaga(any(), any(), any(), any(), any(), any(), any(), any()))
+                        .thenReturn(new OrderInitialCreateService.OrderInitCreateResult(order, saga));
+                doThrow(new OrderCreateFailureException("Fail")).when(orderCreateOrchestrator).processCreateOrder(any(), any());
 
         // when & then
         assertThatThrownBy(() -> orderService.createOrder(userInfo, request))
