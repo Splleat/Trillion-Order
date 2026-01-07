@@ -8,7 +8,7 @@
 1. [배경 및 문제 정의](#1-배경-및-문제-정의)
 2. [아키텍처 결정: DB 조회 방식](#2-아키텍처-결정-db-조회-방식)
 3. [복구(Reconciliation) 전략](#3-복구reconciliation-전략)
-4. [안정성 확보 및 방어 설계](#4-안정성-확보-및-방어-설계-defensive-design)
+4. [안정성 확보 및 방어 설계](#4-안정성-확보-및-방어-설계)
 5. [운영적 한계 및 고도화 방향](#5-운영적-한계-및-고도화-방향)
 
 ---
@@ -115,22 +115,19 @@ flowchart TD
     subgraph Scheduler["Reconciliation Scheduler (5분 주기)"]
         direction TB
 
-        %% Loop 1: 멈춘 사가 처리
-        subgraph Loop1 ["1. 멈춘 사가 처리 (Stuck Sagas)"]
+        subgraph Loop1 ["1. 멈춘 사가 처리"]
             Start1("사가 조회<br/>(Status: PROGRESS / FAILED)") --> IsCreate1{"주문 생성인가?"}
             IsCreate1 -- Yes --> ActionRollback1["보상 (Rollback)"]:::rollback
             IsCreate1 -- "No (취소/반품)" --> ActionRetry["재시도 (Retry)"]:::retry
         end
 
-        %% Loop 2: 미반영 사가 처리
-        subgraph Loop2 ["2. 미반영 사가 처리 (Unbridged Sagas)"]
+        subgraph Loop2 ["2. 도메인 미반영 사가 처리"]
             Start2("사가 조회<br/>(Status: COMPLETED + Unbridged)") --> IsCreate2{"주문 생성인가?"}
             IsCreate2 -- Yes --> ActionRollback2["보상 (Rollback)"]:::rollback
             IsCreate2 -- "No (취소/반품)" --> ActionBridge["동기화 (Bridge)"]:::bridge
         end
 
-        %% Loop 3: 미결제 장기 대기 주문 처리
-        subgraph Loop3 ["3. 미결제 장기 대기 주문 처리 (Stale Pending Orders)"]
+        subgraph Loop3 ["3. 미결제 장기 대기 주문 처리"]
             Start3("주문 조회<br/>(Status: PENDING + 1시간 경과)") --> FindSaga{"사가 존재 여부"}
             FindSaga -- "있음" --> ActionRollback3["보상 (Rollback)"]:::rollback
             FindSaga -- "없음 (유실)" --> ActionLog["처리 불가 -> 에러 로깅<br/>(Manual Check)"]:::alert

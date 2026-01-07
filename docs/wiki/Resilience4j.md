@@ -8,7 +8,7 @@
 1. [배경 및 문제 정의](#1-배경-및-문제-정의)
 2. [기술 선정: Resilience4j](#2-기술-선정-resilience4j)
 3. [Circuit Breaker 설정 전략](#3-circuit-breaker-설정-전략)
-4. [Retry와 Circuit Breaker의 공존](#4-retry와-circuit-breaker의-공존)
+4. [Retry + Circuit Breaker](#4-retry--circuit-breaker)
 5. [운영적 한계 및 고도화 방향](#5-운영적-한계-및-고도화-방향)
 
 ---
