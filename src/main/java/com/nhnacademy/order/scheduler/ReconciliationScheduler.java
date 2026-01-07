@@ -46,10 +46,6 @@ public class ReconciliationScheduler {
         // 3. 오랜 기간 결제 대기(PENDING)에 머문 주문 정리 (1시간 이상 경과)
         LocalDateTime pendingOrderCutOffTime = LocalDateTime.now().minusHours(1);
         cleanUpOldPendingOrder(pendingOrderCutOffTime);
-
-        // 4. 결제는 취소되었지만, 사가가 시작되지 않은 경우(재고 증가 등)
-
-
     }
 
     // 오랜 기간 PENDING에 머문 주문 정리

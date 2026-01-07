@@ -1,5 +1,6 @@
 package com.nhnacademy.order.common.handler;
 
+import com.nhnacademy.order.client.common.exception.ExternalServiceException;
 import com.nhnacademy.order.common.dto.ErrorResponse;
 import com.nhnacademy.order.common.exception.AccessDeniedException;
 import com.nhnacademy.order.delivery.exception.PolicyNotConfiguredException;
@@ -78,7 +79,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            OrderCreateFailureException.class
+        OrderCreateFailureException.class
     })
     public ResponseEntity<ErrorResponse> handleOrderCreateFailureException(OrderCreateFailureException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex.getMessage(), "SERVICE_UNAVAILABLE");

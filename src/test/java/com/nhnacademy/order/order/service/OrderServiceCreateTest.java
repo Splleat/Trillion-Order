@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -80,8 +81,12 @@ class OrderServiceCreateTest {
     @DisplayName("주문 생성 - 성공")
     void createOrder_Success() {
         // given
+        OrderCreateSaga saga = mock(OrderCreateSaga.class);
+        
         // 초기 주문 생성 Mock
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrderWithSaga(any(), any(), any(), any(), any(), any(), any(), any(UUID.class)))
+                .thenReturn(new OrderInitialCreateService.OrderInitCreateResult(initialOrder, saga));
+        
         // 사가 프로세스 성공 Mock
         doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
         // 최종 처리 성공 Mock
@@ -92,21 +97,22 @@ class OrderServiceCreateTest {
 
         // then
         // 1. 초기 주문이 생성되었는가? (OrderCoupon 포함)
-        verify(orderInitialCreateService, times(1)).createInitialOrder(
+        verify(orderInitialCreateService, times(1)).createInitialOrderWithSaga(
             eq(userInfo.userId()),
             isNull(),
             any(OrdererInfo.class),
             any(ReceiverInfo.class),
             any(OrderDetails.class),
             any(OrderCoupon.class), // OrderCoupon is now an argument
-            eq(orderCreateRequest.orderItems())
+            eq(orderCreateRequest.orderItems()),
+            any(UUID.class)
         );
 
         // 2. 사가 프로세스가 올바르게 호출되었는가?
-        verify(orderCreateOrchestrator, times(1)).processCreateOrder(any(OrderCreateSaga.class), eq(initialOrder));
+        verify(orderCreateOrchestrator, times(1)).processCreateOrder(eq(saga), eq(initialOrder));
 
         // 3. 최종 처리 서비스가 올바르게 호출되었는가?
-        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(initialOrder), any(OrderCreateSaga.class));
+        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(initialOrder), eq(saga));
 
         // 4. 응답이 정상적으로 생성되었는가?
         assertThat(orderResponse).isNotNull();
@@ -117,8 +123,11 @@ class OrderServiceCreateTest {
     @DisplayName("주문 생성 - 실패: 사가 프로세스 실패 시 보상 로직 호출")
     void createOrder_Failure_SagaFails() {
         // given
+        OrderCreateSaga saga = mock(OrderCreateSaga.class);
+
         // 초기 주문 생성 Mock
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(initialOrder);
+        when(orderInitialCreateService.createInitialOrderWithSaga(any(), any(), any(), any(), any(), any(), any(), any(UUID.class)))
+                .thenReturn(new OrderInitialCreateService.OrderInitCreateResult(initialOrder, saga));
 
         // 사가 프로세스가 실패하도록 설정
         RuntimeException sagaException = new OrderCreateFailureException("외부 서비스 호출 실패");
@@ -135,7 +144,7 @@ class OrderServiceCreateTest {
         assertThat(thrown).isSameAs(sagaException);
 
         // 2. 보상(compensate) 오케스트레이터가 호출되었는지 검증
-        verify(orderCreateOrchestrator, times(1)).compensate(any(OrderCreateSaga.class), eq(initialOrder));
+        verify(orderCreateOrchestrator, times(1)).compensate(eq(saga), eq(initialOrder));
 
         // 3. 주문 상태가 'CREATION_FAILED'로 변경되고 저장되었는지 검증
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -169,10 +178,13 @@ class OrderServiceCreateTest {
             new ReceiverInfo(nonMemberRequest.receiverName(), nonMemberRequest.receiverContact(), nonMemberRequest.receiverAddress()),
             OrderDetails.createInitial(nonMemberRequest.receiverPostCode(), nonMemberRequest.deliveryDate(), nonMemberRequest.pointUsage())
         );
+        OrderCreateSaga saga = mock(OrderCreateSaga.class);
 
         // Mock 설정
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(orderInitialCreateService.createInitialOrder(any(), any(), any(), any(), any(), any(), any())).thenReturn(nonMemberInitialOrder);
+        when(orderInitialCreateService.createInitialOrderWithSaga(any(), any(), any(), any(), any(), any(), any(), any(UUID.class)))
+                .thenReturn(new OrderInitialCreateService.OrderInitCreateResult(nonMemberInitialOrder, saga));
+        
         doNothing().when(orderCreateOrchestrator).processCreateOrder(any(OrderCreateSaga.class), any(Order.class));
         doNothing().when(orderFinalizerCreateService).finalizeOrderCreation(any(Order.class), any(OrderCreateSaga.class));
 
@@ -181,26 +193,25 @@ class OrderServiceCreateTest {
 
         // then
         // 1. 초기 주문 생성 시 userId가 null로, nonMemberPassword가 인코딩된 값으로 전달되었는지 검증
-        verify(orderInitialCreateService, times(1)).createInitialOrder(
+        verify(orderInitialCreateService, times(1)).createInitialOrderWithSaga(
             isNull(),
             eq("encodedPassword"),
             any(OrdererInfo.class),
             any(ReceiverInfo.class),
             any(OrderDetails.class),
             isNull(), // No coupon used for non-member
-            eq(nonMemberRequest.orderItems())
+            eq(nonMemberRequest.orderItems()),
+            any(UUID.class)
         );
 
         // 2. 사가 프로세스가 올바르게 호출되었는가?
-        verify(orderCreateOrchestrator, times(1)).processCreateOrder(any(OrderCreateSaga.class), eq(nonMemberInitialOrder));
+        verify(orderCreateOrchestrator, times(1)).processCreateOrder(eq(saga), eq(nonMemberInitialOrder));
 
         // 3. 최종 처리 서비스가 올바르게 호출되었는가?
-        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(nonMemberInitialOrder), any(OrderCreateSaga.class));
+        verify(orderFinalizerCreateService, times(1)).finalizeOrderCreation(eq(nonMemberInitialOrder), eq(saga));
 
         // 4. 응답이 정상적으로 생성되었는가?
         assertThat(orderResponse).isNotNull();
         assertThat(orderResponse.ordererInfo().ordererName()).isEqualTo("비회원");
     }
 }
-        
-        

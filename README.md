@@ -3,7 +3,37 @@
 
 ---
 
+## 목차
+1. [주문 도메인](#주문-도메인)
+    *   [도메인 구조](#도메인-구조)
+    *   [기술적 도전 과제 및 해결 방안](#기술적-도전-과제-및-해결-방안)
+        *   [1. Saga Pattern을 이용한 분산 트랜잭션](#1-saga-pattern을-이용한-분산-트랜잭션-orchestration)
+        *   [2. 데이터 정합성 보장 (Scheduling)](#2-데이터-정합성-보장---동시성-제어-및-자동-복구concurrency--scheduling)
+        *   [3. 장애 격리 (Circuit Breaker)](#3-장애-격리-fault-tolerance)
+2. [사용 기술](#사용-기술)
+3. [문서 (Wiki)](#문서)
+
+---
+
 ## 주문 도메인
+
+### 도메인 구조
+
+```text
+com.nhnacademy.order
+├── order       # 주문 생성, 조회, 상태 관리 핵심 로직
+├── orderitem   # 주문 상세 상품 정보 및 개별 상태 관리
+├── ordercoupon # 주문 시 사용된 쿠폰 매핑 및 이력 관리
+├── ordersaga   # 사가 패턴 기반 분산 트랜잭션 오케스트레이터 (Creation, Cancellation, Refund)
+├── packaging   # 포장지 종류 및 가격 정책 관리
+├── delivery    # 배송 정책(배송비 산정) 관리
+├── point       # 주문 프로세스 내 포인트 적립 로직
+├── scheduler   # 중단된 Saga 트랜잭션 복구(보상/재시도)를 통한 데이터 정합성 관리
+├── client      # 타 마이크로서비스(Book, Member, Coupon)와의 통신 모듈
+└── common      # 공통 예외 처리, AOP(권한 체크), Argument Resolver 등 공통 모듈
+```
+
+---
 
 ### 기술적 도전 과제 및 해결 방안
 
@@ -29,57 +59,57 @@
 
     ```mermaid
     sequenceDiagram
-        autonumber
-        participant Order as 주문 서비스
-        box 외부 서비스 #f9f9f9
-            participant Book as 도서 서비스
-            participant Coupon as 쿠폰 서비스
-            participant Member as 회원 서비스
+    autonumber
+    participant Order as 주문 서비스
+    box 외부 서비스
+        participant Book as 도서 서비스
+        participant Coupon as 쿠폰 서비스
+        participant Member as 회원 서비스
+    end
+
+    Note over Order, Member: [Step 1] 재고 처리
+    rect rgba(0, 255, 0, 0.1)
+        Order->>Book: 재고 차감 요청
+    end
+
+    alt 재고 차감 실패
+        rect rgba(255, 0, 0, 0.1)
+            Book-->>Order: 에러 응답 (4xx/5xx)
+            Order->>Book: 재고 복구
+            Note over Order: 주문 실패
         end
-    
-        Note over Order, Member: [Step 1] 재고 처리
-        rect rgb(240, 255, 240)
-            Order->>Book: 재고 차감 요청
+    else
+        Note over Order, Member: [Step 2] 쿠폰 처리
+        rect rgba(0, 255, 0, 0.1)
+            Order->>Coupon: 쿠폰 적용 요청
         end
-        
-        alt
-            rect rgb(255, 240, 240)
-                Book-->>Order: 에러 응답 (4xx, 5xx)
-                Order->>Book: [보상] 재고 복구 (멱등성)
+
+        alt 쿠폰 적용 실패
+            rect rgba(255, 0, 0, 0.1)
+                Coupon-->>Order: 에러 응답 (4xx/5xx)
+                Order->>Coupon: 쿠폰 취소
+                Order->>Book: 재고 복구
                 Note over Order: 주문 실패
             end
         else
-            Note over Order, Member: [Step 2] 쿠폰 처리
-            rect rgb(240, 255, 240)
-                Order->>Coupon: 쿠폰 적용 요청
+            Note over Order, Member: [Step 3] 포인트 처리
+            rect rgba(0, 255, 0, 0.1)
+                Order->>Member: 포인트 사용 요청
             end
-            
-            alt
-                rect rgb(255, 240, 240)
-                    Coupon-->>Order: 에러 응답 (4xx, 5xx)
-                    Order->>Coupon: [보상] 쿠폰 취소 (멱등성)
-                    Order->>Book: [보상] 재고 복구
+
+            alt 포인트 사용 실패
+                rect rgba(255, 0, 0, 0.1)
+                    Member-->>Order: 에러 응답 (4xx/5xx)
+                    Order->>Member: 포인트 환불
+                    Order->>Coupon: 쿠폰 취소
+                    Order->>Book: 재고 복구
                     Note over Order: 주문 실패
                 end
             else
-                Note over Order, Member: [Step 3] 포인트 처리
-                rect rgb(240, 255, 240)
-                    Order->>Member: 포인트 사용 요청
-                end
-                
-                alt
-                    rect rgb(255, 240, 240)
-                        Member-->>Order: 에러 응답 (4xx, 5xx)
-                        Order->>Member: [보상] 포인트 환불 (멱등성)
-                        Order->>Coupon: [보상] 쿠폰 취소
-                        Order->>Book: [보상] 재고 복구
-                        Note over Order: 주문 실패
-                    end
-                else
-                    Note over Order: 주문 생성 완료
-                end
+                Note over Order: 주문 생성 완료
             end
         end
+    end
     ```
 
 #### 2. 데이터 정합성 보장 - 동시성 제어 및 자동 복구(Concurrency & Scheduling)
@@ -108,32 +138,14 @@
 
 ---
 
-### 도메인 구조
-
-```text
-com.nhnacademy.order
-├── order       # 주문 생성, 조회, 상태 관리 핵심 로직
-├── orderitem   # 주문 상세 상품 정보 및 개별 상태 관리
-├── ordercoupon # 주문 시 사용된 쿠폰 매핑 및 이력 관리
-├── ordersaga   # 사가 패턴 기반 분산 트랜잭션 오케스트레이터 (Creation, Cancellation, Refund)
-├── packaging   # 포장지 종류 및 가격 정책 관리
-├── delivery    # 배송 정책(배송비 산정) 관리
-├── point       # 주문 프로세스 내 포인트 적립 로직
-├── scheduler   # 중단된 Saga 트랜잭션 복구(보상/재시도)를 통한 데이터 정합성 관리
-├── client      # 타 마이크로서비스(Book, Member, Coupon)와의 통신 모듈
-└── common      # 공통 예외 처리, AOP(권한 체크), Argument Resolver 등 공통 모듈
-```
-
----
-
 ### 문서
-더 자세한 기술적 의사결정 과정과 구현 상세는 **Github Wiki**에서 확인 가능함.
+더 자세한 기술적 의사결정 과정과 구현 상세는 **docs/wiki** 디렉토리에서 확인 가능함.
 
-*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](https://github.com/nhnacademy/order-api/wiki/Saga-Pattern)**
+*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](./docs/wiki/Saga-Pattern.md)**
     *   오케스트레이션을 통한 서비스 간 정합성 보장 및 불확실한 상태에서의 멱등성 복구 로직 상세 설명.
-*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](https://github.com/nhnacademy/order-api/wiki/Reliability-Scheduling)**
+*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](./docs/wiki/Scheduling.md)**
     *   Reconciliation Scheduler를 이용한 미완료 트랜잭션 탐지 및 ShedLock을 이용한 분산 락 적용 사례.
-*   **[Resilience] [장애 격리와 시스템 회복 탄력성 확보](https://github.com/nhnacademy/order-api/wiki/Resilience-Strategy)**
+*   **[Circuit Breaker] [장애 전파 차단과 회복력 확보 전략](./docs/wiki/CircuitBreaker.md)**
     *   Resilience4j Circuit Breaker 설정 기준 및 동기 통신 환경에서의 장애 전파 방지 전략.
 
 ---

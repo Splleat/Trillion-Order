@@ -25,6 +25,7 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
         // 회원인 경우 -> X-Member-Id, X-Member-Role 헤더
         // 비회원인 경우 -> X-Guest-Id 헤더
+
         String guestIdStr = webRequest.getHeader(HEADER_GUEST_ID);
         String userIdStr = webRequest.getHeader(HEADER_USER_ID);
         String userRole = webRequest.getHeader(HEADER_USER_ROLE);

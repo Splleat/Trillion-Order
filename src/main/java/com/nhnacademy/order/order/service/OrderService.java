@@ -20,6 +20,7 @@ import com.nhnacademy.order.orderitem.repository.OrderItemRepository;
 import com.nhnacademy.order.orderitem.service.OrderItemService;
 import com.nhnacademy.order.ordersaga.cancellation.service.OrderCancelOrchestrator;
 import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
+import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.ordersaga.creation.service.OrderCreateOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,7 @@ public class OrderService {
     private static final String ORDER_NOT_FOUND_MESSAGE = "존재하지 않는 주문 ID: ";
 
     // 초기 주문 생성
-    private Order createInitialOrder(UserInfo userInfo, OrderCreateRequest request) {
+    private OrderInitialCreateService.OrderInitCreateResult createInitialOrder(UserInfo userInfo, OrderCreateRequest request, UUID sagaId) {
         String nonMemberPassword = Optional.ofNullable(request.nonMemberPassword())
                 .map(passwordEncoder::encode)
                 .orElse(null);
@@ -71,7 +72,7 @@ public class OrderService {
         // 비회원인 경우 userId가 null
         Long userId = (userInfo != null) ? userInfo.userId() : null;
 
-        return orderInitialCreateService.createInitialOrder(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems());
+        return orderInitialCreateService.createInitialOrderWithSaga(userId, nonMemberPassword, ordererInfo, receiverInfo, initialOrderDetails, initialOrderCoupon, request.orderItems(), sagaId);
     }
 
     // 전체 주문 조회
@@ -101,10 +102,13 @@ public class OrderService {
     // 주문 생성
     public OrderResponse createOrder(UserInfo userInfo, OrderCreateRequest request) {
         // 1. 불완전한 초기 Order 생성 (OrderStatus: CREATING)
-        Order order = createInitialOrder(userInfo, request);
-
         UUID sagaId = UUID.randomUUID();
-        OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());
+
+        var initCreateResult = createInitialOrder(userInfo, request, sagaId);
+
+        Order order = initCreateResult.order();
+
+        OrderCreateSaga saga = initCreateResult.saga();
 
         try {
             // 2. 오케스트레이션 사가 시작 (재고 감소 -> 쿠폰 사용 -> 포인트 사용)

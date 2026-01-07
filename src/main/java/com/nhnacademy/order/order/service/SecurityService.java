@@ -6,6 +6,8 @@ import com.nhnacademy.order.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @RequiredArgsConstructor
 @Service
 public class SecurityService {
@@ -13,7 +15,7 @@ public class SecurityService {
 
     // 관리자 권한 검사
     public boolean isAdmin(UserInfo userInfo) {
-        return (userInfo != null && userInfo.role().equals("ADMIN"));
+        return (userInfo != null && Objects.equals(userInfo.role(), "ADMIN"));
     }
 
     // 해당 주문의 소유자인지 검사
@@ -21,10 +23,11 @@ public class SecurityService {
         if (userInfo == null || userInfo.userId() == null) {
             return false;
         }
+
         Long ownerMemberId = orderRepository.findMemberIdByOrderId(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("존재하지 않는 주문 ID: " + orderId));
 
-        return userInfo.userId().equals(ownerMemberId);
+        return Objects.equals(userInfo.userId(), ownerMemberId);
     }
 
     // 로그인 사용자인지 검사

@@ -6,6 +6,8 @@ import com.nhnacademy.order.ordercoupon.domain.OrderCoupon;
 import com.nhnacademy.order.orderitem.domain.OrderItem;
 import com.nhnacademy.order.orderitem.domain.PackagingInfo;
 import com.nhnacademy.order.orderitem.dto.OrderItemCreateRequest;
+import com.nhnacademy.order.ordersaga.creation.domain.OrderCreateSaga;
+import com.nhnacademy.order.ordersaga.creation.repository.OrderCreateSagaRepository;
 import com.nhnacademy.order.packaging.domain.Packaging;
 import com.nhnacademy.order.packaging.repository.PackagingRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -22,11 +25,14 @@ import java.util.stream.Collectors;
 public class OrderInitialCreateService {
     // Repository
     private final OrderRepository orderRepository;
+    private final OrderCreateSagaRepository orderCreateSagaRepository;
     private final PackagingRepository packagingRepository;
+
+    public record OrderInitCreateResult(Order order, OrderCreateSaga saga) {}
 
     // 초기 주문 생성 - 보상 트랜잭션 도중 서버 종료 시 필요함
     @Transactional
-    public Order createInitialOrder(Long memberId, String nonMemberPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails initialOrderDetails, OrderCoupon initialOrderCoupon, List<OrderItemCreateRequest> itemCreateRequests) {
+    public OrderInitCreateResult createInitialOrderWithSaga(Long memberId, String nonMemberPassword, OrdererInfo ordererInfo, ReceiverInfo receiverInfo, OrderDetails initialOrderDetails, OrderCoupon initialOrderCoupon, List<OrderItemCreateRequest> itemCreateRequests, UUID sagaId) {
         Order order = Order.createInitial(
                 memberId,
                 nonMemberPassword,
@@ -55,6 +61,12 @@ public class OrderInitialCreateService {
                         OrderItem.createInitial(order, request.bookId(), request.quantity(), request.shippingDate(), packagingInfoMap.getOrDefault(request.packagingId(), PackagingInfo.create("포장없음", 0))))
                 .forEach(order::addOrderItem);
 
-        return orderRepository.save(order);
+        orderRepository.save(order);
+
+        OrderCreateSaga saga = OrderCreateSaga.create(sagaId, order.getOrderId());
+
+        orderCreateSagaRepository.save(saga);
+
+        return new OrderInitCreateResult(order, saga);
     }
 }
