@@ -145,7 +145,7 @@ com.nhnacademy.order
     *   오케스트레이션을 통한 서비스 간 정합성 보장 및 불확실한 상태에서의 멱등성 복구 로직 상세 설명.
 *   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](./docs/wiki/Scheduling.md)**
     *   Reconciliation Scheduler를 이용한 미완료 트랜잭션 탐지 및 ShedLock을 이용한 분산 락 적용 사례.
-*   **[Circuit Breaker] [장애 전파 차단과 회복력 확보 전략](./docs/wiki/CircuitBreaker.md)**
+*   **[Circuit Breaker] [장애 전파 차단과 회복력 확보 전략](./docs/wiki/Resilience4j.md)**
     *   Resilience4j Circuit Breaker 설정 기준 및 동기 통신 환경에서의 장애 전파 방지 전략.
 
 ---
