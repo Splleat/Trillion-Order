@@ -3,6 +3,18 @@
 
 ---
 
+## 목차
+1. [주문 도메인](#주문-도메인)
+    *   [도메인 구조](#도메인-구조)
+    *   [기술적 도전 과제 및 해결 방안](#기술적-도전-과제-및-해결-방안)
+        *   [1. Saga Pattern을 이용한 분산 트랜잭션](#1-saga-pattern을-이용한-분산-트랜잭션-orchestration)
+        *   [2. 데이터 정합성 보장 (Scheduling)](#2-데이터-정합성-보장---동시성-제어-및-자동-복구concurrency--scheduling)
+        *   [3. 장애 격리 (Circuit Breaker)](#3-장애-격리-fault-tolerance)
+2. [사용 기술](#사용-기술)
+3. [문서 (Wiki)](#문서)
+
+---
+
 ## 주문 도메인
 
 ### 도메인 구조
@@ -127,13 +139,13 @@ com.nhnacademy.order
 ---
 
 ### 문서
-더 자세한 기술적 의사결정 과정과 구현 상세는 **Github Wiki**에서 확인 가능함.
+더 자세한 기술적 의사결정 과정과 구현 상세는 **docs/wiki** 디렉토리에서 확인 가능함.
 
-*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](https://github.com/nhnacademy/order-api/wiki/Saga-Pattern)**
+*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](./docs/wiki/Saga-Pattern.md)**
     *   오케스트레이션을 통한 서비스 간 정합성 보장 및 불확실한 상태에서의 멱등성 복구 로직 상세 설명.
-*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](https://github.com/nhnacademy/order-api/wiki/Reliability-Scheduling)**
+*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](./docs/wiki/Scheduling.md)**
     *   Reconciliation Scheduler를 이용한 미완료 트랜잭션 탐지 및 ShedLock을 이용한 분산 락 적용 사례.
-*   **[Resilience] [장애 격리와 시스템 회복 탄력성 확보](https://github.com/nhnacademy/order-api/wiki/Resilience-Strategy)**
+*   **[Circuit Breaker] [장애 전파 차단과 회복력 확보 전략](./docs/wiki/CircuitBreaker.md)**
     *   Resilience4j Circuit Breaker 설정 기준 및 동기 통신 환경에서의 장애 전파 방지 전략.
 
 ---
