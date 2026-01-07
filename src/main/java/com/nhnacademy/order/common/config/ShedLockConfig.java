@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = "PT1M") // 일단 스케줄러 락 1분으로 설정
+@EnableSchedulerLock(defaultLockAtMostFor = "PT4M", defaultLockAtLeastFor = "PT30S") // 스케줄러 주기 5분 대비 안전한 값 설정
 public class ShedLockConfig {
 
     @Bean
