@@ -76,6 +76,13 @@ stateDiagram-v2
     *   **Resilience4j TimeLimiter:** 서킷 브레이커와 연동된 논리적 실행 시간 제한.
 
 #### 핵심 설정
+*   **sliding-window-type:** 실패율을 계산할 방식 (개수 기반 / 시간 기반).
+    *   `COUNT_BASED`: 최근 N개의 요청을 표본으로 삼음.
+    *   `TIME_BASED`: 최근 N초 동안의 요청을 표본으로 삼음.
+*   **failure-rate-threshold:** 서킷을 열기 위한 실패율 임계값 (%).
+*   **sliding-window-size:** 실패율을 계산할 최근 요청의 표본 개수 (혹은 시간).
+*   **wait-duration-in-open-state:** OPEN 상태에서 다시 HALF-OPEN으로 전환될 때까지의 대기 시간.
+*   **permitted-calls-in-half-open:** HALF-OPEN 상태에서 복구 여부를 판단하기 위해 허용할 요청 수.
 *   **timeout-duration (TimeLimiter):** 외부 호출이 이 시간을 초과하면 즉시 타임아웃 예외를 발생시키고 실패로 간주함.
 *   **cancel-running-future:** 타임아웃 발생 시 실행 중인 스레드에 인터럽트(Interrupt) 신호를 보낼지 여부.
     *   `true` (권장): 타임아웃 시 즉시 스레드에 인터럽트를 걸어 I/O 작업을 중단시킴. 사용자는 이미 에러를 반환받았는데 백그라운드에서 스레드가 계속 도는 **자원 낭비**를 원천 차단함.
