@@ -76,7 +76,9 @@ stateDiagram-v2
     *   **Resilience4j TimeLimiter:** 서킷 브레이커와 연동된 논리적 실행 시간 제한.
 
 #### 핵심 설정
-*   **timeout-duration (TimeLimiter):** 외부 호출이 이 시간을 초과하면 즉시 타임아웃 예외를 발생시키고 실패로 간주함. 이를 통해 호출 중인 스레드를 강제로 해제함.
+*   **timeout-duration (TimeLimiter):** 외부 호출이 이 시간을 초과하면 즉시 타임아웃 예외를 발생시키고 실패로 간주함.
+*   **cancel-running-future:** 타임아웃 발생 시 실행 중인 스레드에 인터럽트(Interrupt) 신호를 보낼지 여부.
+    *   `true` (권장): 타임아웃 시 즉시 스레드에 인터럽트를 걸어 I/O 작업을 중단시킴. 사용자는 이미 에러를 반환받았는데 백그라운드에서 스레드가 계속 도는 **자원 낭비**를 원천 차단함.
 
 ### 3.4. 주요 설정값 (Configuration)
 아래의 설정값들은 **Spring Cloud Config** 서버를 통해 중앙 집중식으로 관리됨.
