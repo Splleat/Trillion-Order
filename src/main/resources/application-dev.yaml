@@ -61,6 +61,11 @@ spring:
     openfeign:
       okhttp:
         enabled: true
+      client:
+        config:
+          default:
+            connectTimeout: 2000
+            readTimeout: 5000
 
 logging:
   level:
@@ -85,6 +90,19 @@ resilience4j:
         automatic-transition-from-open-to-half-open-enabled: true
         # 반-열림 상태에서 받을 요청의 개수 (해당 요청들 중 하나라도 실패하면 서킷을 다시 열고, 모두 통과하면 닫음)
         permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      book-service: {}
+      coupon-service: {}
+      member-service: {}
+
+  timelimiter:
+    configs:
+      default:
+        # 작업 완료까지 기다릴 시간 (5초)
+        timeout-duration:
+          seconds: 5
+        # 스레드 인터럽트 허용 여부
+        cancel-running-future: true
     instances:
       book-service: {}
       coupon-service: {}
