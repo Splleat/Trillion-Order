@@ -1,8 +1,7 @@
 package com.nhnacademy.payment.controller;
 
-import com.nhnacademy.order.common.aop.AuthRole;
-import com.nhnacademy.order.common.aop.CheckAuth;
 import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.controller.docs.PaymentControllerDocs;
 import com.nhnacademy.payment.dto.reqeust.PaymentCancelRequestDto;
 import com.nhnacademy.payment.dto.reqeust.PaymentRequestDto;
 import com.nhnacademy.payment.dto.response.PaymentResponse;
@@ -18,12 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/payments")
-public class PaymentController {
+public class PaymentController implements PaymentControllerDocs {
     private final PaymentService paymentService;
     private final PaymentFlowService paymentFlowService;
 
 
     // 사용자 결제 승인(회원)
+    @Override
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(PaymentUser user, @RequestBody PaymentRequestDto request) {
 
@@ -33,6 +33,7 @@ public class PaymentController {
     }
 
     // 사용자 결제 전체 조회(회원)
+    @Override
     @GetMapping
     public ResponseEntity<?> getMemberPayments(PaymentUser user,
                                               Pageable pageable){
@@ -51,6 +52,7 @@ public class PaymentController {
 
 
     //사용자 결제 취소/부분취소(회원)
+    @Override
     @PostMapping("/cancel")
     public ResponseEntity<?> cancelPayment(PaymentUser user,
             @RequestBody PaymentCancelRequestDto request) {
@@ -66,6 +68,7 @@ public class PaymentController {
     }
 
     //사용자 결제 내역 단건 조회(회원) by orderNumber
+    @Override
     @GetMapping("/{order-number}")
     public ResponseEntity<?> getPayment(PaymentUser user,
                                             @PathVariable("order-number") String orderNumber){

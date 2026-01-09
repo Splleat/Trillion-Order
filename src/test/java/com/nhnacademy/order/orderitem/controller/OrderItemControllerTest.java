@@ -38,7 +38,7 @@ class OrderItemControllerTest {
     private OrderItemService orderItemService;
 
     @InjectMocks
-    private OrderItemControllerImpl orderItemController;
+    private OrderItemController orderItemController;
 
     @BeforeEach
     void setUp() {

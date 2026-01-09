@@ -22,8 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = DeliveryControllerImpl.class, properties = "toss.secret-key=test-key")
-class DeliveryControllerImplTest {
+@WebMvcTest(controllers = DeliveryController.class, properties = "toss.secret-key=test-key")
+class DeliveryControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

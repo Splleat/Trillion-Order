@@ -13,6 +13,7 @@
 package com.nhnacademy.payment.controller;
 
 import com.nhnacademy.payment.config.PaymentUser;
+import com.nhnacademy.payment.controller.docs.AdminPaymentControllerDocs;
 import com.nhnacademy.payment.dto.reqeust.PaymentCancelRequestDto;
 import com.nhnacademy.payment.dto.response.AdminPaymentResponse;
 import com.nhnacademy.payment.entity.Payment;
@@ -27,11 +28,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/payments")
-public class AdminPaymentController {
+public class AdminPaymentController implements AdminPaymentControllerDocs {
     private final PaymentService paymentService;
     private final PaymentFlowService paymentFlowService;
 
     //관리자 결제내역 전체 조회
+    @Override
     @GetMapping
     public ResponseEntity<Page<AdminPaymentResponse>> getPayments(PaymentUser user, Pageable pageable) {
         validateAdminRole(user);
@@ -42,6 +44,7 @@ public class AdminPaymentController {
     }
 
     //관리자 결제 내역 단건 조회
+    @Override
     @GetMapping({"/{payment-id}"})
     public ResponseEntity<?> getPayment(PaymentUser user, @PathVariable("payment-id") Long paymentId) {
 
@@ -51,6 +54,7 @@ public class AdminPaymentController {
     }
 
     //관리자 결제 취소.
+    @Override
     @PostMapping("/cancel")
     public ResponseEntity<?> cancelPayment(PaymentUser user,  @RequestBody PaymentCancelRequestDto request) {
         paymentFlowService.cancelPaymentByMember(
