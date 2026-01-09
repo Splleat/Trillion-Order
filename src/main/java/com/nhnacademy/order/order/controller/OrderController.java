@@ -104,22 +104,22 @@ public class OrderController implements OrderControllerDocs {
     // 주문 상품 상태 변경 (회원, 관리자)
     @Override
     @PatchMapping("/orders/{order-id}/items/{order-item-id}")
-    public ResponseEntity<OrderResponse> patchOrderItemStatusByCustomer(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
+    public ResponseEntity<Void> patchOrderItemStatusByCustomer(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
                                                                         @RequestBody @Valid OrderItemStatusPatchRequest request,
                                                                         UserInfo userInfo) {
         orderService.patchOrderItemStatus(userInfo, orderId, orderItemId, request);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     // 주문 상품 상태 변경 (비회원)
     @Override
     @PatchMapping("/orders/non-members/{order-id}/items/{order-item-id}")
-    public ResponseEntity<OrderResponse> patchOrderItemStatusForNonMember(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
+    public ResponseEntity<Void> patchOrderItemStatusForNonMember(@PathVariable("order-id") Long orderId, @PathVariable("order-item-id") Long orderItemId,
                                                                           @RequestBody @Valid NonMemberOrderItemStatusPatchRequest request) {
         nonMemberOrderService.patchOrderItemStatusForNonMember(orderId, orderItemId, request);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     // 주문 취소 (회원)
