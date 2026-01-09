@@ -38,8 +38,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = OrderControllerImpl.class, properties = "toss.secret-key=test-key")
-class OrderControllerImplTest {
+@WebMvcTest(controllers = OrderController.class, properties = "toss.secret-key=test-key")
+class OrderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -221,7 +221,7 @@ class OrderControllerImplTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(nonMemberOrderService).cancelOrderForNonMember(eq(1L), eq("password123"));
+        verify(nonMemberOrderService).cancelOrderForNonMember(1L, "password123");
     }
 
     @Test
