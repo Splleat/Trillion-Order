@@ -84,7 +84,7 @@ public interface OrderControllerDocs {
 
     @Operation(summary = "주문 상품 상태 변경 (회원/관리자)", description = "특정 주문에 포함된 개별 상품의 상태를 변경합니다. (예: 구매 확정)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "주문 상품 상태가 성공적으로 변경되었습니다."),
+            @ApiResponse(responseCode = "200", description = "주문 상품 상태가 성공적으로 변경되었습니다."),
             @ApiResponse(responseCode = "400", description = "요청 데이터가 유효하지 않습니다."),
             @ApiResponse(responseCode = "403", description = "해당 주문에 접근할 권한이 없습니다."),
             @ApiResponse(responseCode = "404", description = "해당 주문 또는 상품을 찾을 수 없습니다.")
@@ -97,7 +97,7 @@ public interface OrderControllerDocs {
 
     @Operation(summary = "주문 상품 상태 변경 (비회원)", description = "비회원 주문에 포함된 개별 상품의 상태를 변경합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "주문 상품 상태가 성공적으로 변경되었습니다."),
+            @ApiResponse(responseCode = "200", description = "주문 상품 상태가 성공적으로 변경되었습니다."),
             @ApiResponse(responseCode = "400", description = "요청 데이터가 유효하지 않습니다."),
             @ApiResponse(responseCode = "404", description = "주문 번호 또는 비밀번호가 일치하는 주문을 찾을 수 없거나, 해당 상품을 찾을 수 없습니다.")
     })
