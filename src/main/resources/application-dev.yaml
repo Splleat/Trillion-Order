@@ -90,6 +90,12 @@ resilience4j:
         automatic-transition-from-open-to-half-open-enabled: true
         # 반-열림 상태에서 받을 요청의 개수 (해당 요청들 중 하나라도 실패하면 서킷을 다시 열고, 모두 통과하면 닫음)
         permitted-number-of-calls-in-half-open-state: 3
+        # 서킷이 닫히기 위해 필요한 최소 요청 개수
+        minimum-number-of-calls: 10
+        # 지수 백오프 설정
+        enable-exponential-backoff: true
+        # Jitter 설정
+        randomized-wait-factor: 0.5
     instances:
       book-service: {}
       coupon-service: {}
