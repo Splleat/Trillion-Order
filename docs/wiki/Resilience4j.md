@@ -123,8 +123,7 @@ public <T> T handle(String serviceName, String operationName, Throwable throwabl
 ```json
 {
   "message": "주문 생성 실패...",
-  "errorCode": "SERVICE_UNAVAILABLE",
-  "timestamp": "2026-..."
+  "code": "SERVICE_UNAVAILABLE"
 }
 ```
 
