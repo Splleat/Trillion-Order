@@ -28,7 +28,7 @@
     *   [도메인 구조](#도메인-구조)
     *   [기술적 도전 과제 및 해결 방안](#기술적-도전-과제-및-해결-방안)
         *   [1. Saga Pattern을 이용한 분산 트랜잭션](#1-saga-pattern을-이용한-분산-트랜잭션-orchestration)
-        *   [2. 데이터 정합성 보장 (Scheduling)](#2-데이터-정합성-보장---동시성-제어-및-자동-복구concurrency--scheduling)
+        *   [2. 데이터 정합성 보장 (Scheduling)](#2-데이터-정합성-보장---자동-복구-scheduling)
         *   [3. 장애 격리 (Circuit Breaker)](#3-장애-격리-fault-tolerance)
 2. [사용 기술](#사용-기술)
 3. [문서 (Wiki)](#문서)
@@ -57,88 +57,27 @@ com.nhnacademy.order
 
 ### 기술적 도전 과제 및 해결 방안
 
-#### 주요 도전 과제
-```
-1. 분산 트랜잭션 처리: Saga Pattern을 이용해 '재고 차감 → 쿠폰 적용 → 포인트 사용'을 분산 처리.
-2. 데이터 정합성 보장: 서버 장애 등으로 중단된 트랜잭션을 감지하고 자동 복구하는 스케줄러 도입.
-3. 장애 격리: Resilience4j Circuit Breaker로 타 서비스 장애에 의한 장애 전파를 방지.
-```
-
-#### 해결 방안
-
 #### 1. Saga Pattern을 이용한 분산 트랜잭션 (Orchestration)
-주문 생성 시 `재고 감소(도서 서비스) -> 쿠폰 사용(쿠폰 서비스) -> 포인트 사용(회원 서비스)`으로 이어지는 분산 환경에서의 트랜잭션을 보장하기 위해 Saga Pattern (Orchestration 방식)을 도입함.
 
-*   **문제점:** 각 마이크로서비스가 독립된 데이터베이스를 소유(Database per Service)하므로, 단일 트랜잭션(ACID)만으로는 여러 서비스에 걸친 데이터 정합성을 보장할 수 없음.
-*   **해결책:** `OrderCreateOrchestrator`가 중앙에서 트랜잭션 흐름을 제어하고, 실패 시 보상 트랜잭션(Compensating Transaction)을 통해 데이터를 원복함.
-*   **흐름:**
-    1.  **재고 차감** (Book Service)
-    2.  **쿠폰 적용** (Coupon Service)
-    3.  **포인트 사용** (Member Service)
-    4.  *(실패 시 역순으로 Rollback 수행)*
+*   **문제점:** 각 마이크로서비스가 독립된 데이터베이스를 소유(Database per Service)하므로, 단일 트랜잭션(`@Transactional`)만으로는 여러 서비스에 걸친 데이터 정합성 보장 불가
+*   **해결책:** `OrderCreateOrchestrator`가 중앙에서 `재고 차감 → 쿠폰 적용 → 포인트 사용` 흐름을 제어하고, 실패 시 역순으로 보상 트랜잭션을 수행
+*   **추가 고려사항:**
+    *   **5xx 불확실성**: 외부 서비스가 요청을 처리한 후 응답 직전에 네트워크가 끊기면 성공 여부를 알 수 없음. 이 경우 무조건 보상 트랜잭션을 전송하고, 수신 서비스가 **멱등성(Idempotency)**으로 중복 처리를 방어하도록 설계
+    *   **선기록 전략**: 외부 API 호출 직전에 `STOCK_DECREASING` 같은 진행 중 상태를 먼저 저장해, 서버 장애 시 스케줄러가 요청 송신 여부를 판단하고 안전하게 보상 트랜잭션을 실행할 수 있도록 설계
+    *   **복구 전략 이원화**: 주문 생성은 하나라도 실패 시 전체 롤백(All-or-Nothing), 주문 취소는 사용자 의사가 확정된 상태이므로 성공할 때까지 재시도로 구분
 
-    ```mermaid
-    sequenceDiagram
-    autonumber
-    participant Order as 주문 서비스
-    box 외부 서비스
-        participant Book as 도서 서비스
-        participant Coupon as 쿠폰 서비스
-        participant Member as 회원 서비스
-    end
+#### 2. 데이터 정합성 보장 - 자동 복구 (Scheduling)
 
-    Note over Order, Member: [Step 1] 재고 처리
-    rect rgba(0, 255, 0, 0.1)
-        Order->>Book: 재고 차감 요청
-    end
-
-    alt 재고 차감 실패
-        rect rgba(255, 0, 0, 0.1)
-            Book-->>Order: 에러 응답 (4xx/5xx)
-            Order->>Book: 재고 복구
-            Note over Order: 주문 실패
-        end
-    else
-        Note over Order, Member: [Step 2] 쿠폰 처리
-        rect rgba(0, 255, 0, 0.1)
-            Order->>Coupon: 쿠폰 적용 요청
-        end
-
-        alt 쿠폰 적용 실패
-            rect rgba(255, 0, 0, 0.1)
-                Coupon-->>Order: 에러 응답 (4xx/5xx)
-                Order->>Coupon: 쿠폰 취소
-                Order->>Book: 재고 복구
-                Note over Order: 주문 실패
-            end
-        else
-            Note over Order, Member: [Step 3] 포인트 처리
-            rect rgba(0, 255, 0, 0.1)
-                Order->>Member: 포인트 사용 요청
-            end
-
-            alt 포인트 사용 실패
-                rect rgba(255, 0, 0, 0.1)
-                    Member-->>Order: 에러 응답 (4xx/5xx)
-                    Order->>Member: 포인트 환불
-                    Order->>Coupon: 쿠폰 취소
-                    Order->>Book: 재고 복구
-                    Note over Order: 주문 실패
-                end
-            else
-                Note over Order: 주문 생성 완료
-            end
-        end
-    end
-    ```
-
-#### 2. 데이터 정합성 보장 - 동시성 제어 및 자동 복구(Concurrency & Scheduling)
-*   **문제점:** Saga 트랜잭션 진행 중 서버 장애 발생 시, '재고는 차감되었으나 주문은 완료되지 않은 상태'로 남게 되어 데이터 불일치가 발생함. 또한, 다중 인스턴스 환경에서 스케줄러가 중복 실행될 경우 동일 주문에 대해 중복 보상 처리가 수행될 위험이 있음.
-*   **해결책:** **Reconciliation Scheduler**를 운영하여 중단된 트랜잭션을 주기적으로 감지 및 자동 복구(보상/재시도)함. 동시에 **ShedLock** 기반의 분산 락을 적용하여 스케줄러의 유일한 실행을 보장함으로써 데이터 정합성을 유지함.
+*   **문제점:** Saga 실행 중 서버 장애 발생 시 트랜잭션이 중단된 채로 남거나, 모든 단계가 성공했음에도 주문 도메인 상태 반영(`bridged`) 직전에 장애가 나면 사가와 도메인 간 불일치 발생
+*   **해결책:** **Reconciliation Scheduler**를 5분 주기로 운영하여 미완료 사가를 감지하고 복구 정책(롤백/재시도/Bridge)을 적용
+    *   생성 사가 중단 → 롤백, 취소·환불 사가 중단 → 재시도, 도메인 미반영 → 재동기화
+    *   결제 없이 1시간 이상 대기 중인 `PENDING` 주문은 선점된 재고·쿠폰·포인트를 강제 회수
+*   **분산 락:** 이중화 환경에서 중복 실행을 막기 위해 Redis 없이 RDB 레코드를 활용하는 **ShedLock**을 적용
 
 #### 3. 장애 격리 (Fault Tolerance)
-*   **문제점:** HTTP 기반의 동기 통신(Feign Client)은 타 서비스의 장애가 발생했을 때 응답 지연(Blocking)이 발생하고, 이것이 주문 서비스 전체의 장애로 전파(Cascading Failure)될 위험이 있음.
-*   **해결책:** **Resilience4j Circuit Breaker**를 도입하여, 일정 비율 이상 실패가 감지되면 즉시 요청을 차단(Open)하고 빠른 실패(Fail-Fast)를 수행하여 시스템 전체의 안정성을 보장함.
+
+*   **문제점:** OpenFeign 기반 동기 통신은 외부 서비스 지연 시 스레드가 블로킹되고, 주문 서비스 전체의 장애로 전파될 위험이 존재
+*   **해결책:** **Resilience4j Circuit Breaker**를 도입하여 실패율이 임계치를 초과하면 즉시 요청을 차단(Open)하고 빠른 실패(Fail-Fast)를 수행
 
 ---
 
@@ -161,11 +100,9 @@ com.nhnacademy.order
 ### 문서
 더 자세한 기술적 의사결정 과정과 구현 상세는 **docs/wiki** 디렉토리에서 확인 가능함.
 
-*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](./docs/wiki/Saga-Pattern.md)**
-    *   오케스트레이션을 통한 서비스 간 정합성 보장 및 불확실한 상태에서의 멱등성 복구 로직 상세 설명.
-*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](./docs/wiki/Scheduling.md)**
-    *   Reconciliation Scheduler를 이용한 미완료 트랜잭션 탐지 및 ShedLock을 이용한 분산 락 적용 사례.
-*   **[Resilience4j] [장애 전파 차단과 회복력 확보 전략](./docs/wiki/Resilience4j.md)**
-    *   Resilience4j Circuit Breaker 설정 기준 및 동기 통신 환경에서의 장애 전파 방지 전략.
+*   **[Saga Pattern] [분산 트랜잭션 구현과 5xx 에러 처리 전략](./docs/wiki/01-saga-pattern.md)**
+    *   오케스트레이션 Saga를 통한 서비스 간 정합성 보장 및 불확실한 상태에서의 멱등성 복구 로직
+*   **[Scheduling] [데이터 정합성 복구를 위한 스케줄링 전략](./docs/wiki/02-scheduling.md)**
+    *   Spring Scheduler를 이용한 미완료 트랜잭션 탐지 및 ShedLock을 이용한 분산 락 적용
 
 ---
